@@ -29,3 +29,5 @@ Caution:
 (c) For some parts of the aircraft (e.g., closets and doghouse), assistance from Engineering may be requested to remove emergency equipment to enable cleaning and disinfection.
 (d) Avoid bleach and fabric softeners, as they can damage the fire-retardant properties. 
 (e) Avoid abrasive tools: Never use abrasive cloths, harsh scrubbing, or high-pressure water, as this can wear away the coating and reduce its effectiveness.
+
+<EOF>
