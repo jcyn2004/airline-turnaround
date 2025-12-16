@@ -1,0 +1,29 @@
+
+
+    # JC's work 
+    # Recent work by JC
+
+    # Airline turnaround - FinnAir 
+    
+    "AirlineTurnaround/aircraft_traffic_controller.hocon": true,
+    "AirlineTurnaround/aircraft_cleaning.hocon": true, 
+    "AirlineTurnaround/aircraft_landing.hocon": true, 
+    "AirlineTurnaround/aircraft_taxiing.hocon": true, 
+    "AirlineTurnaround/aircraft_gate_selection.hocon": true, 
+    "AirlineTurnaround/aircraft_ground_services.hocon": true,
+    "AirlineTurnaround/aircraft_chocks_install.hocon": true, 
+    "AirlineTurnaround/aircraft_engines_stop.hocon": true, 
+    "AirlineTurnaround/aircraft_gpu_connect.hocon": true, 
+    "AirlineTurnaround/aircraft_acu_connect.hocon": true, 
+    "AirlineTurnaround/aircraft_jetbridge_connect.hocon": true, 
+    "AirlineTurnaround/aircraft_door_opening.hocon": true, 
+    "AirlineTurnaround/aircraft_disembark.hocon": true, 
+    "AirlineTurnaround/aircraft_baggage_unload.hocon": true, 
+    "AirlineTurnaround/aircraft_crew_debrief.hocon": true, 
+    "AirlineTurnaround/aircraft_crew_exit.hocon": true, 
+    "AirlineTurnaround/aircraft_lavatory_service.hocon": true, 
+    "AirlineTurnaround/aircraft_catering_loading.hocon": true, 
+    "AirlineTurnaround/aircraft_inspection_maintenance.hocon": true, 
+    "AirlineTurnaround/aircraft_fueling.hocon": true, 
+    "AirlineTurnaround/aircraft_ground_traffic.hocon": true, 
+    "AirlineTurnaround/aircraft_turnaround.hocon": true,

@@ -1,0 +1,441 @@
+{
+    include "registries/aaosa_basic.hocon" 
+
+    # Optional metadata describing this agent network
+    "metadata": {
+        "description": "Simple agent network using a single LLM-based agent",
+        "tags": ["example"],
+        "sample_queries": [
+            "The B747 aircraft of flight AF84 is on blocks at gate A1. The plane has been connected to the jetbridge. The aircraft door is open. Unload baggages.",
+        ]
+    },
+
+    "llm_config": {
+        "model_name": "gpt-4o",
+    },
+    "max_iterations": 40000, #3000 
+    "max_execution_seconds": 7200, #600
+    "commondefs": {
+        "replacement_strings": {
+            "instructions_prefix": """
+You are part of aircraft turnaround process at an Airport. 
+Only answer inquiries that are directly within your area of expertise.
+Do not try to help for other matters.
+Do not mention what you can NOT do. Only mention what you can do.
+            """,
+            "aaosa_instructions": """
+When you receive an inquiry, you will:
+1. If you are clearly not the right agent for this type of inquiry, reply you're not relevant.
+2. If there is a chance you're relevant, call your down-chain agents to determine if they can answer all or part of the inquiry.
+   Do not assume what your down-chain agents can do. Always call them. You'll be surprised.
+3. Once all relevant down-chain agents have responded, either:
+   - Analyze their response and compile your final response. No need to include non-relevant agents. In doubt, ask for clarification.
+   - Follow up with your down-chain agents if needed, as many times as needed
+   - If an action is needed, ask the most relevant down-chain agent to fulfill the inquiry.
+4. Return the final response to the caller.
+You may, in turn, be called by other agents in the system and have to act as a down-chain agent to them. 
+            """
+        },
+        "replacement_values": {
+            "aaosa_call": {
+                "description": "Depending on the mode, returns a natural language string in response.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "inquiry": {
+                            "type": "string",
+                            "description": "The inquiry"
+                        },
+                        "mode": {
+                            "type": "string",
+                            "description": """
+'Determine' to ask the agent if the inquiry belongs to it, in its entirety or in part.
+'Fulfill' to ask the agent to fulfill the inquiry, if it can.
+'Follow up' to ask the agent to respond to a follow up.
+                            """
+                        },
+                    },
+                    "required": [
+                        "inquiry",
+                        "mode"
+                    ]
+                }
+            },
+            "aaosa_command": """
+If mode is 'Determine', return a json block with the following fields:
+{
+    "Name": <your name>,
+    "Inquiry": <the inquiry>,
+    "Mode": <Determine | Fulfill>,
+    "Relevant": <Yes | No>,
+    "Strength": <number between 1 and 10 representing how certain you are in your claim>,
+    "Claim:" <All | Partial>,
+    "Requirements" <None | list of requirements>
+}
+If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json block with the following fields:
+{
+    "Name": <your name>,
+    "Inquiry": <the inquiry>,
+    "Mode": Fulfill,
+    "Response" <your response>
+}
+            """
+        },
+    },
+
+    "tools": [
+
+        {
+            "name": "baggage_unload_agent",
+            "function": {
+                "description": """
+ I am in charge of unloading baggage from the aircraft at the gate. 
+                """
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },         
+                        "flight_status": {
+                            "type": "string", 
+                            "description": "This is the flight status."
+                        },        
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate where the aircraft is parked."
+                        },       
+                        "jetbridge_connection_status": {
+                            "type": "string", 
+                            "description": "This is the status of jetbridge connection."
+                        },     
+                        "door_opening_status": {
+                            "type": "string", 
+                            "description": "This is the status of aircraft door opening."
+                        },         
+                    }, 
+                    "required": ["flight_number", "aircraft_type","gate_id","flight_status","jetbridge_connection_status","door_opening_status"] 
+                }
+            },
+
+// "flight_status",
+
+// {instructions_prefix}
+
+//             "instructions": """
+// You are the agent in charge of connecting jetbridge to aircraft. 
+// When you receive user inquiry, proceed as follows: 
+// Make sure that flight status = 'on blocks'
+// Call trackerAPI to check the status of acu connection and gpu connection
+// - Wait for its response 
+// - Record acu_connection_status
+// - Record gpu_connection_status
+// If gpu is not connected, call aircraft_gpu_connect to connect gpu. 
+// If acu is not connected, call aircraft_acu_connect to connect acu. 
+// If gpu is connected and acu is connected:
+//     - call jetbridge operator to connect jetbridge to the aircraft.
+//     - Return the status of jetbridge connection status jetbridge_connection_status reported. 
+// Display result in the following format: 
+// ** jetbridge connection status **: [jetbridge_connection_status]
+// """ ${aaosa_instructions},
+
+//             "instructions": """
+// You are the agent in charge of connecting jetbridge to aircraft. 
+// When user submits inquiry, proceed as follows: 
+// 1. read the user inquiry and determine 
+//     a. if flights status is on blocks, then flight_status = 'on blocks'
+//     b. if acu is connected, then acu_connection_status = 'connected'
+//     c. if gpu is connected, then gpu_connection_status = 'connected'
+//     d. if jetbridge_connection_status = 'connected, then move to step 6.
+// 2. Call trackerAPI
+//     a. wait for its response 
+//     b. store acu connection status as acu_connection_status, store gpu connection status as gpu_connection_status, store flight status as flight_status, store jetbridge connection status as jetbridge_connection_status
+// 3. If jetbridge_connection_status = 'connected'
+//     a. Report jetbridge_connection_status as follows 
+//          ** jetbridge connection status summary **: 
+//          [jetbridge_connection_status]
+//     b. End process
+// 4. If acu_connection_status is not connected or gpu_connection_status is not connected
+//     a. call your tools to make sure that acu_connection_status is connected and gpu_connection_status is connected
+//     b. wait for their responses 
+//     c. go back to step 2. 
+// 5. Call trackerAPI
+//     a. wait for its response 
+//     b. store acu connection status as acu_connection_status, store gpu connection status as gpu_connection_status, store flight status as flight_status, store jetbridge connection status as jetbridge_connection_status
+// 6. If acu_connection_status = 'connected' and gpu_connection_status = 'connected' and jetbridge_connection_status is not connected
+//     a. call jetbridge_operator to connect jetbridge to aircraft
+//     b. Wait for its response and save it as jetbridge_connection_status
+//     c. Report jetbridge_connection_status
+// 7. Provide the acu connection status report summary as: 
+//     ** jetbridge connection status summary **: 
+//     [jetbridge_connection_status]
+//             """ ${aaosa_instructions},
+
+//             "instructions": """
+// You are the agent in charge of connecting jetbridge to aircraft. 
+// When user submits inquiry, proceed as follows: 
+// 1. Determine the followings from the user inquiry: 
+//     a. if flights status is on blocks, then flight_status = 'on blocks'
+//     b. if acu is connected, then acu_connection_status = 'connected'
+//     c. if gpu is connected, then gpu_connection_status = 'connected'
+//     d. if jetbridge connection status is connected, then jetbridge_connection_status = 'connected'
+// 2. Call trackerAPI
+//     a. wait for its response 
+//     b. store acu connection status as acu_connection_status, store gpu connection status as gpu_connection_status, store flight status as flight_status, store jetbridge connection status as jetbridge_connection_status
+// 3. If jetbridge_connection_status = 'connected'
+//     a. Report jetbridge_connection_status as follows 
+//          ** jetbridge connection status summary **: 
+//          [jetbridge_connection_status]
+//     b. End process
+// 4. If acu_connection_status is not connected or gpu_connection_status is not connected
+//     a. call your tools to make sure that acu_connection_status is connected and gpu_connection_status is connected
+//     b. wait for their responses 
+//     c. go back to step 2. 
+// 5. Call trackerAPI
+//     a. wait for its response 
+//     b. store acu connection status as acu_connection_status, store gpu connection status as gpu_connection_status, store flight status as flight_status, store jetbridge connection status as jetbridge_connection_status
+// 6. If acu_connection_status = 'connected' and gpu_connection_status = 'connected' and jetbridge_connection_status is not connected
+//     a. call jetbridge_operator to connect jetbridge to aircraft
+//     b. Wait for its response and save it as jetbridge_connection_status
+//     c. Report jetbridge_connection_status
+// 7. Provide the acu connection status report summary as: 
+//     ** jetbridge connection status summary **: 
+//     [jetbridge_connection_status]
+//             """ ${aaosa_instructions},
+
+            "instructions": """
+You are the agent in charge of unloading baggages from aircraft. 
+When user submits inquiry, proceed as follows: 
+1. Determine if the followings are provided by the user: 
+    a. jetbridge connection status such as'connected'
+    b. door opening status such as 'open' 
+    c. flight status status such as 'on blocks' 
+2. If jetbridge_connection_status = 'connected' and door_opening_status includes 'open' then go to step 5.
+3. If jetbridge_connection_status is not 'connected', or door_opening_status does not includes 'open'
+    a. call your tools to make sure that jetbridge_connection_status is connected and door_opening_status is open
+    b. wait for their responses 
+4. Call trackerAPI
+    a. wait for its response 
+    b. store jetbridge connection status as jetbridge_connection_status, store door opening status as door_opening_status
+    c. if jetbridge_connection_status is not connected or door_opening_status does not contain open, go back to step 3.
+5. If jetbridge_connection_status = 'connected' and door_opening_status includes 'open' 
+    a. call baggage_unload_operator to unload baggages from aircraft
+    b. Wait for its response and save it as baggage_unload_status
+    c. Report baggage_unload_status
+6. Provide the baggage unload status status report summary as: 
+    ** baggage unload status summary **: 
+    [baggage_unload_status]
+            """ ${aaosa_instructions},
+
+// If user inquiry does not confirm that gpu is connected, call aircraft_acu_connect to connect gpu. 
+// If user inquiry does not confirm that acu is connected, call aircraft_acu_connect to connect acu. 
+
+// Make sure that gpu is connected and that acu is connected. 
+
+    // - Wait for its response 
+
+            # Specify the sly data that should come back from the tools to the client.
+            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
+            "allow": {
+                "to_upstream": {
+                    "sly_data": {
+                        "baggage_unload_status": true
+                    }
+                }
+            },
+
+            # Specify the sly data that should come back from the tools to the client.
+            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
+            "allow": {
+                "to_downstream": {
+                    "sly_data": {
+                        "baggage_unload_status": true
+                        // "engines_stop_status": true
+                    }
+                }
+            },
+
+            # Specify the sly data that should come back from the tools to the client.
+            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
+            "allow": {
+                "from_upstream": {
+                    "sly_data": {
+                        "flight_number": true
+                        "aircraft_type": true
+                        "flight_status": true
+                        "gate_id": true 
+                        "jetbridge_connection_status": true
+                        "door_opening_status": true 
+                        "baggage_unload_status": true
+                    }
+                }
+            },
+            
+            # Specify the sly data that should come back from the tools to the client.
+            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
+            "allow": {
+                "from_downstream": {
+                    "sly_data": {
+                        "flight_number": true
+                        "aircraft_type": true
+                        "flight_status": true
+                        "gate_id": true 
+                        "jetbridge_connection_status": true
+                        "door_opening_status": true 
+                        "baggage_unload_status": true
+                    }
+                }
+            },
+
+#######
+            # Specify the sly data that should come back from the tools to the client.
+            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
+            "allow": {
+                "to_downstream": {
+                    "sly_data": {
+                        "flight_number": true
+                        "aircraft_type": true
+                        "flight_status": true
+                        "gate_id": true 
+                        "jetbridge_connection_status": true
+                        "door_opening_status": true 
+                        "baggage_unload_status": true
+                    }
+                }
+            },
+
+            "tools":    ["trackerAPI","baggage_unload_operator","/AirlineTurnaround/aircraft_door_opening","/AirlineTurnaround/aircraft_jetbridge_connect"]
+        },
+
+        {
+            "name": "baggage_unload_operator",
+            "function": {
+                "description": """
+This agent disembarks passengers from the aircraft. 
+                """,
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },         
+                        "flight_status": {
+                            "type": "string", 
+                            "description": "This is the flight status."
+                        },        
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate where the aircraft is parked."
+                        },    
+                        "jetbridge_connection_status": {
+                            "type": "string", 
+                            "description": "This is the status of jetbridge connection."
+                        },     
+                        "door_opening_status": {
+                            "type": "string", 
+                            "description": "This is the status of aircraft door opening."
+                        },         
+                    }, 
+                    "required": ["flight_number", "aircraft_type","gate_id","jetbridge_connection_status","door_opening_status"] 
+                }
+            },
+            "class": "aircraft_baggage_unload.baggage_unload_operator" 
+        }, 
+
+#########
+        {
+            "name": "trackerAPI",
+            "function": {
+
+                "description": """
+I am the flight tracker in charge of logging parameters during aircraft turnaround. 
+I check jetbridge connection status as jetbridge_connection_status. 
+I check door opening status as door_opening_status. 
+                """
+
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },     
+                        "flight_status": {
+                            "type": "string", 
+                            "description": "This is the flight status."
+                        },          
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate assigned to the aircraft parking."
+                        },     
+                        "ground_services_request_type": {
+                            "type": "string", 
+                            "description": "This is the type of the inquiry received for grand services."
+                        },         
+                        "wheels_chocks_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks readiness status."
+                        },   
+                        "wheels_chocks_installation_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks installation status."
+                        },   
+                        "gpu_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the gpu readiness status."
+                        },     
+                        "acu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the acu connection status."
+                        },     
+                        "gpu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the gpu connection status."
+                        },     
+
+                        "engines_stop_status": {
+                            "type": "string", 
+                            "description": "This is the engines stop status."
+                        },    
+                        "jetbridge_connection_status": {
+                            "type": "string", 
+                            "description": "This is the jetbridge connection status."
+                        },    
+                        "door_opening_status": {
+                            "type": "string", 
+                            "description": "This is the door opening status."
+                        },    
+                        "passenger_disembarkation_status": {
+                            "type": "string", 
+                            "description": "This is the passenger disembarkation status."
+                        },    
+                        "baggage_unload_status": {
+                            "type": "string", 
+                            "description": "This is the baggage unload status."
+                        },   
+                    }, 
+                    // "required": ["flight_number", "aircraft_type","flight_status","assigned_runway_id","gate_id","ground_services_request_type"] 
+                }
+            },
+            "class": "aircraft_baggage_unload.trackerAPI" 
+        }, 
+#########
+    ],
+}
+
+
+

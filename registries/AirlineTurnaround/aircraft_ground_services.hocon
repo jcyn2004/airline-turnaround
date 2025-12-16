@@ -1,0 +1,531 @@
+{
+    include "registries/aaosa_basic.hocon" 
+
+    # Optional metadata describing this agent network
+    "metadata": {
+        "description": "Simple agent network using a single LLM-based agent",
+        "tags": ["example"],
+        "sample_queries": [
+            "Flight AF84 has just landed and is set to deplane at gate A1. It is a B747 aircraft. What is the ground services readiness?",
+        ]
+    },
+
+    "llm_config": {
+        "model_name": "gpt-4o",
+    },
+    "max_iterations": 40000, #3000 
+    "max_execution_seconds": 7200, #600
+
+    "tools": [
+
+        {
+            "name": "ground_services_manager",
+            "function": {
+                "description": """
+I manage ground services during aircraft turnaround at the airport. 
+I coordinate ground services readiness and task execution such as wheels chocks installation and gpu connection. 
+                """
+            },
+
+            "instructions": """
+You are the agent in charge of ground services during the aircraft turnaround. 
+When user submits inquiry, proceed as follows: 
+1. Determine if the followings are provided by the user: 
+    a. flight number as flight_number 
+    b. aircraft type as aircraft_type 
+    c. gate id as gate_id 
+    d. flight status
+    e. ground service request type as ground_services_request_type with value such as readiness inquiry or task execution. 
+    f. wheels chocks readiness status as wheels_chocks_installation_status 
+    g. wheels chocks installation status as wheels_chocks_installation_status
+    h. gpu readiness status as gpu_readiness_status
+    i. gpu connect status as gpu_connect_status
+2. Call trackerAPI and log all the available parameters.
+3. If ground_services_request_type is readiness inquiry: 
+    a. Send the request to ground_readiness_coordinator including flight_number, aircraft_type, gate_id, and ground_services_request_type. 
+    b. Wait for the ground_readiness_coordinator response
+    c. Display the response of ground_readiness_coordinator as follows: 
+    - ** gpu readiness status **: [gpu_readiness_status]
+    - ** wheels chocks readiness status **: [wheels_chocks_readiness_status]
+4. If ground_services_request_type is a task execution: 
+    a. Use your tools definition to determine the tools that should fullfill the user request. 
+    b. Report the result of each task that has been executed. 
+    - for gpu connection, display ** gpu connect status **: [gpu_connection_status]
+    - for wheels chocks installation, display ** wheels chocks installation status **: [wheels_chocks_installation_status]    
+            """ ${aaosa_instructions},
+
+            "parameters": {
+                "type": "object", 
+                "properties": {
+                    "flight_number": {
+                        "type": "string", 
+                        "description": "This is the flight number of the incoming aicraft."
+                    },   
+                    "aircraft_type": {
+                        "type": "string", 
+                        "description": "This is the type of the incoming aircraft."
+                    },               
+                    "flight_status": {
+                        "type": "string", 
+                        "description": "This is the flight status"
+                    },       
+                    "gate_id": {
+                        "type": "string", 
+                        "description": "This is the gate id assigned to the aircraft"
+                    },   
+                    "ground_services_request_type": {
+                        "type": "string", 
+                        "description": "This is the ground services inquiry type"
+                    },   
+                    "wheels_chocks_readiness_status": {
+                        "type": "string", 
+                        "description": "This is the wheels chocks readiness status."
+                    },   
+                    "gpu_readiness_status": {
+                        "type": "string", 
+                        "description": "This is the gpu readiness status."
+                    },   
+                    "wheels_chocks_installation_status": {
+                        "type": "string", 
+                        "description": "This is the wheels chocks placing status."
+                    },   
+                    "gpu_connect_status": {
+                        "type": "string", 
+                        "description": "This is the gpu connecting status."
+                    },   
+                }, 
+                "required": ["flight_number","aircraft_type","gate_id","ground_services_request_type"] 
+            },
+
+            # Specifying this allows sly_data keys from this network to be passed back to the calling client
+            "allow": {
+                "to_upstream": {
+                    "sly_data": {
+                        "gpu_readiness_status": true, 
+                        "gpu_connect_status": true, 
+                        "wheels_chocks_readiness_status": true, 
+                        "wheels_chocks_installation_status": true
+                    }
+                }
+            },
+
+            # Specifying this allows specific sly_data keys to be ingested from upstream agent networks as sly_data for this agent network
+            "allow": {
+                "from_upstream": {
+                    "sly_data": {
+                        "flight_number": true, 
+                        "aircraft_type": true, 
+                        "gate_id": true, 
+                        "flight_status": true, 
+                        "assigned_runway_id": true, 
+                        "ground_services_request_type": true
+                    }
+                }
+            },
+
+            # Specifying this allows specific sly_data keys to be ingested from upstream agent networks as sly_data for this agent network
+            "allow": {
+                "from_downstream": {
+                    "sly_data": {
+                        "flight_number": true, 
+                        "aircraft_type": true, 
+                        "gate_id": true, 
+                        "flight_status": true, 
+                        "assigned_runway_id": true, 
+                        "ground_services_request_type": true, 
+                        "gpu_readiness_status": true, 
+                        "gpu_connect_status": true, 
+                        "wheels_chocks_readiness_status": true, 
+                        "wheels_chocks_installation_status": true
+                    }
+                }
+            },
+
+
+            # Specifying this allows specific sly_data keys to be ingested from upstream agent networks as sly_data for this agent network
+            "allow": {
+                "to_downstream": {
+                    "sly_data": {
+                        "flight_number": true, 
+                        "aircraft_type": true, 
+                        "gate_id": true, 
+                        "flight_status": true, 
+                        "assigned_runway_id": true, 
+                        "ground_services_request_type": true, 
+                        "gpu_readiness_status": true, 
+                        "gpu_connect_status": true, 
+                        "wheels_chocks_readiness_status": true, 
+                        "wheels_chocks_installation_status": true
+                    }
+                }
+            },
+
+            "tools":    ["trackerAPI","ground_readiness_coordinator","/AirlineTurnaround/aircraft_chocks_install","/AirlineTurnaround/aircraft_gpu_connect"]
+        },
+
+        {
+            "name": "ground_readiness_coordinator",
+            "function": {
+
+                "description": """
+I am in charge of the ground services readiness. 
+I check and report the readiness of wheels chocks. 
+I check and report the readiness of cpu gpu.
+                """, 
+
+// This checks and reports ground services readiness for arrival of incoming aircraft at the gate. 
+
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        "flight_status": {
+                            "type": "string", 
+                            "description": "This is the aircraft status."
+                        }, 
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },    
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate assigned to the incoming aicraft."
+                        },    
+                        "ground_services_request_type": {
+                            "type": "string", 
+                            "description": "This is the type of the user inquiry."
+                        },    
+                        "wheels_chocks_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks readiness status."
+                        },   
+                        "gpu_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the gpu readiness status."
+                        },   
+                    },
+                    "required": ["flight_number", "aircraft_type","gate_id","ground_services_request_type"]
+                },  
+            },     
+            "instructions": """
+When you received a request, proceed as follows: 
+1. Send request to cpu_gpu_agent including flight number, aircraft type, gate id, flight status, and ground service inquiry type
+    - Wait for cpu_gpu_agent response 
+    - Report the cpu_gpu_agent response
+2. Send request to wheels_chocks_agent including flight number, aircraft type, gate id, flight status, and ground service inquiry type
+    - Wait for wheels_chocks_agent response 
+    - Report the wheels_chocks_agent response
+            """ ${aaosa_instructions},
+
+            "tools":["cpu_gpu_agent","wheels_chocks_agent"],
+        },
+
+// ,"trackerAPI"
+
+        {
+            "name": "cpu_gpu_agent",
+            "function": {
+                "description": """
+This agent is in charge of ground power at the gate. 
+It respond on request for ground power unit readiness. 
+It executes the task of connecting ground power unit to the aircraft. 
+                """, 
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        // "flight_status": {
+                        //     "type": "string", 
+                        //     "description": "This is the flight status."
+                        // },     
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },    
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate assigned to the aicraft for parking."
+                        },     
+                        "engines_stop_status": {
+                            "type": "string", 
+                            "description": "This is the status of aircraft engines."
+                        },     
+                        "ground_services_request_type": {
+                            "type": "string", 
+                            "description": "This is the type of the user inquiry."
+                        },    
+                        "wheels_chocks_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks readiness status."
+                        },   
+                        "gpu_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the gpu readiness status."
+                        },    
+                        "gpu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the gpu connection status."
+                        },    
+                    },
+                    "required": ["flight_number","gate_id","ground_services_request_type"]
+                },  
+            },     
+            "instructions": """
+1. Use only your tools to fulfill the task. 
+2. Ask for any missing required data. 
+3. Send the request to cpu_gpu_operator including flight number, aircraft type, gate id, ground services inquiry type
+    a. Wait for cpu_gpu_operator response 
+    b. Report cpu_gpu_operator response
+            """ ${aaosa_instructions},
+
+            "tools":["cpu_gpu_operator"]
+        },
+
+// ,"trackerAPI"
+
+        {
+            "name": "cpu_gpu_operator",
+            "function": {
+                "description": """
+This agent connects the ground power unit or gpu. 
+                """, 
+                "parameters": {
+                    "type": "object", 
+                    "properties": { 
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        // "flight_status": {
+                        //     "type": "string", 
+                        //     "description": "This is the aircraft status."
+                        // },  
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },    
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate assigned to the incoming aicraft."
+                        },     
+                        "ground_services_request_type": {
+                            "type": "string", 
+                            "description": "This is the type of the user inquiry."
+                        },     
+                        "wheels_chocks_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks readiness status."
+                        },   
+                        "gpu_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the gpu readiness status."
+                        },   
+                        "gpu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the gpu connection status."
+                        },   
+                    },
+                    "required": ["flight_number", "aircraft_type","gate_id","ground_services_request_type"]
+                },
+            }, 
+            "class": "aircraft_ground_services.execute_cpu_gpu_operator"
+        }, 
+
+        {
+            "name": "wheels_chocks_agent",
+            "function": {
+                "description": """
+This agent is in charge of wheels chocks at the gate. 
+It respond on request for wheels chocks readiness. 
+It executes the task of placing wheels chocks on the aircraft. 
+                """, 
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        // "flight_status": {
+                        //     "type": "string", 
+                        //     "description": "This is the flight status."
+                        // },     
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },    
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate assigned to the aicraft for parking."
+                        },     
+                        "aircraft_engines_status": {
+                            "type": "string", 
+                            "description": "This is the status of aircraft engines."
+                        },     
+                        "ground_services_request_type": {
+                            "type": "string", 
+                            "description": "This is the type of the user inquiry."
+                        },     
+                        "wheels_chocks_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks readiness status."
+                        },   
+                        "wheels_chocks_placing_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks placing status."
+                        },    
+                    },
+                    "required": ["flight_number","gate_id","ground_services_request_type"]
+                },  
+            }, 
+            "instructions": """
+1. Use only your tools to fulfill the task. 
+2. Ask for any missing required data. 
+3. Send the request to wheels_chocks_operator including flight number, aircraft type, gate id, ground services inquiry type
+    a. Wait for wheels_chocks_operator response 
+    b. Report wheels_chocks_operator response
+            """ ${aaosa_instructions},
+
+            "tools":["wheels_chocks_operator"]
+        }, 
+
+// ,"trackerAPI"
+
+        {
+            "name": "wheels_chocks_operator",
+            "function": {
+                "description": """
+This agent places the wheels chocks. 
+                """, 
+                "parameters": {
+                    "type": "object", 
+                    "properties": { 
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        // "flight_status": {
+                        //     "type": "string", 
+                        //     "description": "This is the aircraft status."
+                        // },  
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },    
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate assigned to the incoming aicraft."
+                        },     
+                        "ground_services_request_type": {
+                            "type": "string", 
+                            "description": "This is the type of the user inquiry."
+                        },     
+                        "wheels_chocks_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks readiness status."
+                        },   
+                        "wheels_chocks_placing_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks placing status."
+                        },    
+                    },
+                    "required": ["flight_number", "aircraft_type","gate_id","ground_services_request_type"]
+                },
+            }, 
+            "class": "aircraft_ground_services.execute_wheels_chocks_operator"
+        },       
+
+#########
+        {
+            "name": "trackerAPI",
+            "function": {
+
+                "description": """
+I am the flight tracker in charge of logging parameters during aircraft turnaround. 
+I check passenger disembarkation status as passenger_disembarkation_status. 
+I check crew exit status as crew_exit_status. 
+I check baggage unload status as baggage_unload_status. 
+                """
+
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },     
+                        "flight_status": {
+                            "type": "string", 
+                            "description": "This is the flight status."
+                        },          
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate assigned to the aircraft parking."
+                        },     
+                        "ground_services_request_type": {
+                            "type": "string", 
+                            "description": "This is the type of the inquiry received for grand services."
+                        },         
+                        "wheels_chocks_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks readiness status."
+                        },   
+                        "wheels_chocks_installation_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks installation status."
+                        },   
+                        "gpu_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the gpu readiness status."
+                        },     
+                        "acu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the acu connection status."
+                        },     
+                        "gpu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the gpu connection status."
+                        },     
+                        "engines_stop_status": {
+                            "type": "string", 
+                            "description": "This is the engines stop status."
+                        },    
+                        "jetbridge_connection_status": {
+                            "type": "string", 
+                            "description": "This is the jetbridge connection status."
+                        },    
+                        "door_opening_status": {
+                            "type": "string", 
+                            "description": "This is the door opening status."
+                        },    
+                        "passenger_disembarkation_status": {
+                            "type": "string", 
+                            "description": "This is the passenger disembarkation status."
+                        },    
+                        crew_exit_status:  {
+                            "type": "string", 
+                            "description": "This is the crew exit status." 
+                        },
+                        "baggage_unload_status": {
+                            "type": "string", 
+                            "description": "This is the baggage unload status."
+                        },  
+                    }, 
+                    // "required": ["flight_number", "aircraft_type","flight_status","assigned_runway_id","gate_id","ground_services_request_type"] 
+                }
+            },
+            "class": "aircraft_ground_services.trackerAPI" 
+        }, 
+
+    ],
+}

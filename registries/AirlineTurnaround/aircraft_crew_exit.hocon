@@ -1,0 +1,327 @@
+{
+    include "registries/aaosa_basic.hocon" 
+
+    # Optional metadata describing this agent network
+    "metadata": {
+        "description": "Simple agent network using a single LLM-based agent",
+        "tags": ["example"],
+        "sample_queries": [
+            "The B747 aircraft of flight AF84 is on blocks at gate A1. The plane has been connected to the jetbridge. The aircraft door is open. Exit the crew.",
+        ]
+    },
+
+    "llm_config": {
+        "model_name": "gpt-4o",
+    },
+    "max_iterations": 40000, #3000 
+    "max_execution_seconds": 7200, #600
+    "commondefs": {
+        "replacement_strings": {
+            "instructions_prefix": """
+You are part of aircraft turnaround process at an Airport. 
+Only answer inquiries that are directly within your area of expertise.
+Do not try to help for other matters.
+Do not mention what you can NOT do. Only mention what you can do.
+            """,
+            "aaosa_instructions": """
+When you receive an inquiry, you will:
+1. If you are clearly not the right agent for this type of inquiry, reply you're not relevant.
+2. If there is a chance you're relevant, call your down-chain agents to determine if they can answer all or part of the inquiry.
+   Do not assume what your down-chain agents can do. Always call them. You'll be surprised.
+3. Once all relevant down-chain agents have responded, either:
+   - Analyze their response and compile your final response. No need to include non-relevant agents. In doubt, ask for clarification.
+   - Follow up with your down-chain agents if needed, as many times as needed
+   - If an action is needed, ask the most relevant down-chain agent to fulfill the inquiry.
+4. Return the final response to the caller.
+You may, in turn, be called by other agents in the system and have to act as a down-chain agent to them. 
+            """
+        },
+        "replacement_values": {
+            "aaosa_call": {
+                "description": "Depending on the mode, returns a natural language string in response.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "inquiry": {
+                            "type": "string",
+                            "description": "The inquiry"
+                        },
+                        "mode": {
+                            "type": "string",
+                            "description": """
+'Determine' to ask the agent if the inquiry belongs to it, in its entirety or in part.
+'Fulfill' to ask the agent to fulfill the inquiry, if it can.
+'Follow up' to ask the agent to respond to a follow up.
+                            """
+                        },
+                    },
+                    "required": [
+                        "inquiry",
+                        "mode"
+                    ]
+                }
+            },
+            "aaosa_command": """
+If mode is 'Determine', return a json block with the following fields:
+{
+    "Name": <your name>,
+    "Inquiry": <the inquiry>,
+    "Mode": <Determine | Fulfill>,
+    "Relevant": <Yes | No>,
+    "Strength": <number between 1 and 10 representing how certain you are in your claim>,
+    "Claim:" <All | Partial>,
+    "Requirements" <None | list of requirements>
+}
+If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json block with the following fields:
+{
+    "Name": <your name>,
+    "Inquiry": <the inquiry>,
+    "Mode": Fulfill,
+    "Response" <your response>
+}
+            """
+        },
+    },
+
+    "tools": [
+
+        {
+            "name": "passenger_disembark_agent",
+            "function": {
+                "description": """
+ I am in charge of disembarking passengers from the aircraft at the gate. 
+                """
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },         
+                        "flight_status": {
+                            "type": "string", 
+                            "description": "This is the flight status."
+                        },        
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate where the aircraft is parked."
+                        },       
+                        "jetbridge_connection_status": {
+                            "type": "string", 
+                            "description": "This is the status of jetbridge connection."
+                        },     
+                        "door_opening_status": {
+                            "type": "string", 
+                            "description": "This is the status of aircraft door opening."
+                        },         
+                    }, 
+                    "required": ["flight_number", "aircraft_type","gate_id","flight_status","jetbridge_connection_status","door_opening_status"] 
+                }
+            },
+
+            "instructions": """
+You are the agent in charge of disembarking passengers from aircraft. 
+When user submits inquiry, proceed as follows: 
+1. Determine if the followings are provided by the user: 
+    a. jetbridge connection status such as'connected'
+    b. door opening status such as 'open' 
+    c. flight status status such as 'on blocks' 
+2. If jetbridge_connection_status = 'connected' and door_opening_status includes 'open' then go to step 5.
+3. If jetbridge_connection_status is not 'connected', or door_opening_status does not includes 'open'
+    a. call your tools to make sure that jetbridge_connection_status is connected and door_opening_status is open
+    b. wait for their responses 
+4. Call trackerAPI
+    a. wait for its response 
+    b. store jetbridge connection status as jetbridge_connection_status, store door opening status as door_opening_status
+    c. if jetbridge_connection_status is not connected or gpu_connection_status is not connected, go back to step 3.
+5. If jetbridge_connection_status = 'connected' and door_opening_status includes 'open' 
+    a. call crew_exit_operator to exit crew from the aircraft
+    b. Wait for its response and save it as crew_exit_status
+    c. Report crew_exit_status
+6. Provide the crew exit status report summary as: 
+    ** crew exit status summary **: 
+    [crew_exit_status]
+            """ ${aaosa_instructions},
+
+            # Specify the sly data that should come back from the tools to the client.
+            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
+            "allow": {
+                "to_upstream": {
+                    "sly_data": {
+                        "crew_exit_status": true
+                    }
+                }
+                "to_downstream": {
+                    "sly_data": {
+                        "crew_exit_status": true
+                        // "engines_stop_status": true
+                    }
+                }
+                "from_upstream": {
+                    "sly_data": {
+                        "flight_number": true
+                        "aircraft_type": true
+                        "flight_status": true
+                        "gate_id": true 
+                        "jetbridge_connection_status": true
+                        "door_opening_status": true 
+                        "crew_exit_status": true
+                    }
+                }
+                "from_downstream": {
+                    "sly_data": {
+                        "flight_number": true
+                        "aircraft_type": true
+                        "flight_status": true
+                        "gate_id": true 
+                        "jetbridge_connection_status": true
+                        "door_opening_status": true 
+                        "crew_exit_status": true
+                    }
+                }
+                "to_downstream": {
+                    "sly_data": {
+                        "flight_number": true
+                        "aircraft_type": true
+                        "flight_status": true
+                        "gate_id": true 
+                        "jetbridge_connection_status": true
+                        "door_opening_status": true 
+                        "crew_exit_status": true
+                    }
+                }
+            },
+
+            "tools":    ["trackerAPI","crew_exit_operator","/AirlineTurnaround/aircraft_door_opening","/AirlineTurnaround/aircraft_jetbridge_connect"]
+        },
+
+        {
+            "name": "crew_exit_operator",
+            "function": {
+                "description": """
+This agent exits crew from the aircraft. 
+                """,
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },         
+                        "flight_status": {
+                            "type": "string", 
+                            "description": "This is the flight status."
+                        },        
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate where the aircraft is parked."
+                        },    
+                        "jetbridge_connection_status": {
+                            "type": "string", 
+                            "description": "This is the status of jetbridge connection."
+                        },     
+                        "door_opening_status": {
+                            "type": "string", 
+                            "description": "This is the status of aircraft door opening."
+                        },         
+                    }, 
+                    "required": ["flight_number", "aircraft_type","gate_id","jetbridge_connection_status","door_opening_status"] 
+                }
+            },
+            "class": "aircraft_crew_exit.crew_exit_operator" 
+        }, 
+
+        {
+            "name": "trackerAPI",
+            "function": {
+
+                "description": """
+I am the flight tracker in charge of logging parameters during aircraft turnaround. 
+I check jetbridge connection status as jetbridge_connection_status. 
+I check door opening status as door_opening_status. 
+                """
+
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },     
+                        "flight_status": {
+                            "type": "string", 
+                            "description": "This is the flight status."
+                        },          
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate assigned to the aircraft parking."
+                        },     
+                        "ground_services_request_type": {
+                            "type": "string", 
+                            "description": "This is the type of the inquiry received for grand services."
+                        },         
+                        "wheels_chocks_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks readiness status."
+                        },   
+                        "wheels_chocks_installation_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks installation status."
+                        },   
+                        "gpu_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the gpu readiness status."
+                        },     
+                        "acu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the acu connection status."
+                        },     
+                        "gpu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the gpu connection status."
+                        },     
+
+                        "engines_stop_status": {
+                            "type": "string", 
+                            "description": "This is the engines stop status."
+                        },    
+                        "jetbridge_connection_status": {
+                            "type": "string", 
+                            "description": "This is the jetbridge connection status."
+                        },    
+                        "door_opening_status": {
+                            "type": "string", 
+                            "description": "This is the door opening status."
+                        },    
+                        "passenger_disembarkation_status": {
+                            "type": "string", 
+                            "description": "This is the passenger disembarkation status."
+                        },    
+                        "crew_debrief_status": {
+                            "type": "string", 
+                            "description": "This is the crew debrief status."
+                        },    
+                        "crew_exit_status": {
+                            "type": "string", 
+                            "description": "This is the crew exit status."
+                        },    
+                    }, 
+                }
+            },
+            "class": "aircraft_crew_exit.trackerAPI" 
+        }, 
+#########
+    ],
+}
