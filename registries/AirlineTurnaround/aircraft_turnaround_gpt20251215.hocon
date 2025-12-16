@@ -1,0 +1,301 @@
+{
+  include "registries/aaosa_basic.hocon"
+
+  metadata {
+    description = "Simple agent network using a single LLM-based agent"
+    tags = ["example"]
+    sample_queries = [
+      "The B747 aircraft of flight AF84 is incoming. Execute the turnaround process."
+    ]
+  }
+
+  llm_config {
+    model_name = "gpt-4o"
+  }
+
+  max_iterations = 40000 # 3000
+  max_execution_seconds = 7200 # 600
+
+  commondefs {
+    replacement_strings {
+      instructions_prefix = """
+You are part of aircraft turnaround process at an Airport.
+Only answer inquiries that are directly within your area of expertise.
+Do not try to help for other matters.
+Do not mention what you can NOT do. Only mention what you can do.
+"""
+
+      aaosa_instructions = """
+When you receive an inquiry, you will:
+1. If you are clearly not the right agent for this type of inquiry, reply you're not relevant.
+2. If there is a chance you're relevant, call your down-chain agents to determine if they can answer all or part of the inquiry.
+   Do not assume what your down-chain agents can do. Always call them. You'll be surprised.
+3. Once all relevant down-chain agents have responded, either:
+   - Analyze their response and compile your final response. No need to include non-relevant agents. In doubt, ask for clarification.
+   - Follow up with your down-chain agents if needed, as many times as needed
+   - If an action is needed, ask the most relevant down-chain agent to fulfill the inquiry.
+4. Return the final response to the caller.
+You may, in turn, be called by other agents in the system and have to act as a down-chain agent to them.
+"""
+    }
+
+    replacement_values {
+      aaosa_call {
+        description = "Depending on the mode, returns a natural language string in response."
+        parameters {
+          type = "object"
+          properties {
+            inquiry {
+              type = "string"
+              description = "The inquiry"
+            }
+            mode {
+              type = "string"
+              description = """
+'Determine' to ask the agent if the inquiry belongs to it, in its entirety or in part.
+'Fulfill' to ask the agent to fulfill the inquiry, if it can.
+'Follow up' to ask the agent to respond to a follow up.
+"""
+            }
+          }
+          required = ["inquiry", "mode"]
+        }
+      }
+
+      aaosa_command = """
+If mode is 'Determine', return a json block with the following fields:
+{
+    "Name": <your name>,
+    "Inquiry": <the inquiry>,
+    "Mode": <Determine | Fulfill>,
+    "Relevant": <Yes | No>,
+    "Strength": <number between 1 and 10 representing how certain you are in your claim>,
+    "Claim:" <All | Partial>,
+    "Requirements" <None | list of requirements>
+}
+If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json block with the following fields:
+{
+    "Name": <your name>,
+    "Inquiry": <the inquiry>,
+    "Mode": Fulfill,
+    "Response" <your response>
+}
+"""
+    }
+  }
+
+  tools = [
+    {
+      name = "aircraft_turnaround_manager"
+      function {
+        description = """
+You are in charge of aircraft turnaround at the airport.
+"""
+        parameters {
+          type = "object"
+          properties {
+            flight_number { type = "string" description = "This is the flight number of the incoming aicraft." }
+            aircraft_type { type = "string" description = "This is the type of the incoming aircraft." }
+            flight_status { type = "string" description = "This is the flight status." }
+            aircraft_direction { type = "string" description = "This is the direction of the aircraft: incoming or departing." }
+            gate_id { type = "string" description = "This is the gate assigned to the aircraft parking." }
+            wheels_chocks_readiness_status { type = "string" description = "This is the wheels chocks readiness status." }
+            gpu_readiness_status { type = "string" description = "This is the gpu readiness status." }
+            ground_clearance_type { type = "string" description = "This is the ground clearance type of of the aircraft" }
+            ground_clearance_status { type = "string" description = "This is the ground clearance status of the aircraft" }
+            ground_services_request_type { type = "string" description = "This is the type of the inquiry received for grand services." }
+            wheels_chocks_installation_status { type = "string" description = "This is the wheels chocks installation status." }
+            acu_connection_status { type = "string" description = "This is the acu connection status." }
+            gpu_connection_status { type = "string" description = "This is the gpu connection status." }
+            engines_stop_status { type = "string" description = "This is the engines stop status." }
+            jetbridge_connection_status { type = "string" description = "This is the jetbridge connection status." }
+            door_opening_status { type = "string" description = "This is the door opening status." }
+            passenger_disembarkation_status { type = "string" description = "This is the passenger disembarkation status." }
+            crew_exit_status { type = "string" description = "This is the crew exit status." }
+            baggage_unload_status { type = "string" description = "This is the baggage unload status." }
+            assigned_runway_id { type = "string" description = "This is the runway assigned to the aircraft movement autorized by the clearance." }
+          }
+          required = ["aircraft_direction", "flight_number", "aircraft_type"]
+        }
+      }
+
+      instructions = """
+You are the top-level agent responsible for aircraft turnaround at the airport.
+When you receive a user request to handle an aircraft turnaround, you will proceed in the following order:
+1. Determine the followings information from prompt.
+    - flight number as flight_number
+    - aircraft type as aircraft_type
+    - aircraft direction as incoming or departing as aircraft_direction.
+2. Call trackerAPI to log all the available parameters.
+3. If the user has not provided all the required information, proceed in the following order:
+    a. ask the user for the missing information.
+    b. wait for the user to provide the missing information.
+    c. Return to step 1.
+4. If the user has provided all the required information, then proceed in the following order:
+    a. call aircraft_turnaround_operator to handle the aircraft turnaround process.
+    b. wait for the response
+    c. display the response to the user.
+""" ${aaosa_instructions}
+
+      tools = ["aircraft_turnaround_operator", "trackerAPI"]
+    },
+
+    {
+      name = "aircraft_turnaround_operator"
+      function {
+        description = """
+You are the aircraft turnaround operator.
+You execute aircraft turnaround process at the airport.
+"""
+        parameters {
+          type = "object"
+          properties {
+            flight_number { type = "string" description = "This is the flight number of the incoming aicraft." }
+            aircraft_type { type = "string" description = "This is the type of the incoming aircraft." }
+            flight_status { type = "string" description = "This is the flight status." }
+            aircraft_direction { type = "string" description = "This is the direction of the aircraft: incoming or departing." }
+            gate_id { type = "string" description = "This is the gate assigned to the aircraft parking." }
+            wheels_chocks_readiness_status { type = "string" description = "This is the wheels chocks readiness status." }
+            gpu_readiness_status { type = "string" description = "This is the gpu readiness status." }
+            ground_clearance_type { type = "string" description = "This is the ground clearance type of of the aircraft" }
+            ground_clearance_status { type = "string" description = "This is the ground clearance status of the aircraft" }
+            ground_services_request_type { type = "string" description = "This is the type of the inquiry received for grand services." }
+            wheels_chocks_installation_status { type = "string" description = "This is the wheels chocks installation status." }
+            acu_connection_status { type = "string" description = "This is the acu connection status." }
+            gpu_connection_status { type = "string" description = "This is the gpu connection status." }
+            engines_stop_status { type = "string" description = "This is the engines stop status." }
+            jetbridge_connection_status { type = "string" description = "This is the jetbridge connection status." }
+            door_opening_status { type = "string" description = "This is the door opening status." }
+            passenger_disembarkation_status { type = "string" description = "This is the passenger disembarkation status." }
+            crew_exit_status { type = "string" description = "This is the crew exit status." }
+            baggage_unload_status { type = "string" description = "This is the baggage unload status." }
+            assigned_runway_id { type = "string" description = "This is the runway assigned to the aircraft movement autorized by the clearance." }
+          }
+          required = ["aircraft_direction", "flight_number", "aircraft_type"]
+        }
+      }
+
+      instructions = """
+You are responsible for the aircraft turnaround process at the airport.
+When you receive a request to handle an aircraft turnaround, you will:
+1. Review the provided information including flight number as flight_number, aircraft type as aircraft_type, traffic direction as aircraft_direction.
+2. For incoming aircraft you will proceed in the following order:
+    a. call aircraft_traffic_controller to to request clearance for landing the aircraft:
+        i. provide it with flight_number, aircraft_type, and aircraft_direction
+        ii. wait for its response and store flight_status, clearance_type, assigned_runway_id, and assigned_runway_length.
+        iii. Call trackerAPI to log all the available parameters.
+    b. call aircraft_landing to land the aircraft:
+        i. provide it with flight_number, aircraft_type,clearance_type,aircraft_direction,assigned_runway_id, and assigned_runway_length.
+        ii. wait for its response and store the new value of flight_status.
+        iii. Call trackerAPI to log all the available parameters.
+    c. call aircraft_ground_services to inquire ground services readiness at the gate:
+        i. provide it with flight_number, aircraft_type, gate_id, and ground_services_request_type as 'inquiry'.
+        ii. wait for its response and store gpu_readiness_status and wheels_chocks_readiness_status.
+        iii. Call trackerAPI to log all the available parameters.
+    d. call aircraft_ground_traffic to request taxiing clearance to the assigned gate:
+        i. provide it with flight_number, aircraft_type, flight_status, assigned_runway_id, and gate_id.
+        ii. wait for its response and store ground_clearance_type, ground_clearance_status, and the new value of flight_status.
+        iii. Call trackerAPI to log all the available parameters.
+    e. call aircraft_taxiing to taxi in the aircraft to the assigned gate:
+        i. provide it with flight_number, aircraft_type, flight_status, gate_id, ground_clearance_type, and ground_clearance_status.
+        ii. wait for its response and store the new value of flight_status.
+        iii. Call trackerAPI to log all the available parameters.
+3. You will collect the results from each of the steps and compile a final report on the aircraft turnaround process.
+4. You will return the final report to the user.
+""" ${aaosa_instructions}
+
+      tools = [
+        "trackerAPI",
+        "/AirlineTurnaround/AirlineTurnaround/aircraft_traffic_controller",
+        "/AirlineTurnaround/aircraft_gate_selection",
+        "/AirlineTurnaround/aircraft_ground_services",
+        "/AirlineTurnaround/aircraft_landing",
+        "/AirlineTurnaround/aircraft_ground_traffic",
+        "/AirlineTurnaround/aircraft_taxiing"
+      ]
+
+      allow {
+        to_downstream {
+          sly_data {
+            aircraft_type = true
+            flight_number = true
+            flight_status = true
+            gate_id = true
+            assigned_runway_id = true
+            ground_services_inquiry_type = true
+            ground_services_request_type = true
+            wheels_chocks_readiness_status = true
+            wheels_chocks_installation_status = true
+            gpu_readiness_status = true
+            gpu_connection_status = true
+            engines_stop_status = true
+            jetbridge_connection_status = true
+            door_opening_status = true
+            passenger_disembarkation_status = true
+            crew_exit_status = true
+            baggage_unload_status = true
+            ground_clearance_type = true
+            ground_clearance_status = true
+          }
+        }
+        from_downstream {
+          sly_data {
+            aircraft_type = true
+            flight_number = true
+            flight_status = true
+            gate_id = true
+            assigned_runway_id = true
+            ground_services_inquiry_type = true
+            ground_services_request_type = true
+            wheels_chocks_readiness_status = true
+            wheels_chocks_installation_status = true
+            gpu_readiness_status = true
+            gpu_connection_status = true
+            engines_stop_status = true
+            jetbridge_connection_status = true
+            door_opening_status = true
+            passenger_disembarkation_status = true
+            crew_exit_status = true
+            baggage_unload_status = true
+            ground_clearance_type = true
+            ground_clearance_status = true
+          }
+        }
+      }
+    },
+
+    {
+      name = "trackerAPI"
+      function {
+        description = """
+I am the flight tracker in charge of logging parameters during aircraft turnaround.
+"""
+        parameters {
+          type = "object"
+          properties {
+            flight_number { type = "string" description = "This is the flight number of the incoming aicraft." }
+            aircraft_type { type = "string" description = "This is the type of the incoming aircraft." }
+            flight_status { type = "string" description = "This is the flight status." }
+            gate_id { type = "string" description = "This is the gate assigned to the aircraft parking." }
+            ground_services_request_type { type = "string" description = "This is the type of the inquiry received for grand services." }
+            wheels_chocks_readiness_status { type = "string" description = "This is the wheels chocks readiness status." }
+            wheels_chocks_installation_status { type = "string" description = "This is the wheels chocks installation status." }
+            gpu_readiness_status { type = "string" description = "This is the gpu readiness status." }
+            acu_connection_status { type = "string" description = "This is the acu connection status." }
+            gpu_connection_status { type = "string" description = "This is the gpu connection status." }
+            engines_stop_status { type = "string" description = "This is the engines stop status." }
+            jetbridge_connection_status { type = "string" description = "This is the jetbridge connection status." }
+            door_opening_status { type = "string" description = "This is the door opening status." }
+            passenger_disembarkation_status { type = "string" description = "This is the passenger disembarkation status." }
+            crew_exit_status { type = "string" description = "This is the crew exit status." }
+            baggage_unload_status { type = "string" description = "This is the baggage unload status." }
+            ground_clearance_type { type = "string" description = "This is the type of clearance given to the aircrfat." }
+            ground_clearance_status { type = "string" description = "This is the status of clearance given to the aircraft." }
+            assigned_runway_id { type = "string" description = "This is the runway assigned to the aircraft movement autorized by the clearance." }
+          }
+        }
+      }
+      class = "AirlineTurnaround/aircraft_turnaround.trackerAPI"
+    }
+  ]
+}

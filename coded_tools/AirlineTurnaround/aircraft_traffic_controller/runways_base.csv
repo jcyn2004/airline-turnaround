@@ -1,0 +1,5 @@
+unit_id,length(ft),length(m),availability,readiness
+28L,11381,3500,yes,11
+28R,11870,3650,yes,15
+19L,8650,2650,yes,17
+19R,7650,2350,yes,7

@@ -1,0 +1,272 @@
+{
+    include "registries/aaosa_basic.hocon" 
+
+    # Optional metadata describing this agent network
+    "metadata": {
+        "description": "Simple agent network using a single LLM-based agent",
+        "tags": ["example"],
+        "sample_queries": [
+            "The B747 aircraft of flight AF84 is on blocks at gate A1. Install wheels chocks.",
+        ]
+    },
+
+    "llm_config": {
+        "model_name": "gpt-4o",
+    },
+    "max_iterations": 40000, #3000 
+    "max_execution_seconds": 7200, #600
+    "commondefs": {
+        "replacement_strings": {
+            "instructions_prefix": """
+You are part of aircraft turnaround process at an Airport. 
+Only answer inquiries that are directly within your area of expertise.
+Do not try to help for other matters.
+Do not mention what you can NOT do. Only mention what you can do.
+            """,
+            "aaosa_instructions": """
+When you receive an inquiry, you will:
+1. If you are clearly not the right agent for this type of inquiry, reply you're not relevant.
+2. If there is a chance you're relevant, call your down-chain agents to determine if they can answer all or part of the inquiry.
+   Do not assume what your down-chain agents can do. Always call them. You'll be surprised.
+3. Once all relevant down-chain agents have responded, either:
+   - Analyze their response and compile your final response. No need to include non-relevant agents. In doubt, ask for clarification.
+   - Follow up with your down-chain agents if needed, as many times as needed
+   - If an action is needed, ask the most relevant down-chain agent to fulfill the inquiry.
+4. Return the final response to the caller.
+You may, in turn, be called by other agents in the system and have to act as a down-chain agent to them. 
+            """
+        },
+        "replacement_values": {
+            "aaosa_call": {
+                "description": "Depending on the mode, returns a natural language string in response.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "inquiry": {
+                            "type": "string",
+                            "description": "The inquiry"
+                        },
+                        "mode": {
+                            "type": "string",
+                            "description": """
+'Determine' to ask the agent if the inquiry belongs to it, in its entirety or in part.
+'Fulfill' to ask the agent to fulfill the inquiry, if it can.
+'Follow up' to ask the agent to respond to a follow up.
+                            """
+                        },
+                    },
+                    "required": [
+                        "inquiry",
+                        "mode"
+                    ]
+                }
+            },
+            "aaosa_command": """
+If mode is 'Determine', return a json block with the following fields:
+{
+    "Name": <your name>,
+    "Inquiry": <the inquiry>,
+    "Mode": <Determine | Fulfill>,
+    "Relevant": <Yes | No>,
+    "Strength": <number between 1 and 10 representing how certain you are in your claim>,
+    "Claim:" <All | Partial>,
+    "Requirements" <None | list of requirements>
+}
+If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json block with the following fields:
+{
+    "Name": <your name>,
+    "Inquiry": <the inquiry>,
+    "Mode": Fulfill,
+    "Response" <your response>
+}
+            """
+        },
+    },
+
+    "tools": [
+
+        {
+            "name": "wheels_chocks_agent",
+            "function": {
+                "description": """
+ I am in charge of wheels chocks. 
+ I install them to set aircraft parking at the gate. 
+                """
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },         
+                        "flight_status": {
+                            "type": "string", 
+                            "description": "This is the flight status."
+                        },        
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate where the aircraft is parked."
+                        },       
+                        "wheels_chocks_installation_status": {
+                            "type": "string", 
+                            "description": "This is the status of wheels chocks installation."
+                        },         
+                    }, 
+                    "required": ["flight_number", "aircraft_type","flight_status","gate_id"] 
+                }
+            },
+
+            "instructions": """
+You are the agent in charge of installing wheels chocks on aircraft when it reaches the gate. 
+When user submit inquiry to install wheels chocks, proceed as follows: 
+Make sure that user provides flight status such as on blocks or landed. 
+1. Call trackerAPI
+    a. wait for its response 
+    b. store flight_status as flight status
+2. If flight status is on blocks
+    a. call wheels chocks operator to install the wheels chocks 
+    b. Wait for its response 
+    c. Report the status of wheels chocks installation 
+3. Provides the wheels chocks installation report summary as: 
+    ** Wheels chocks installation summary **: 
+    [wheels_chocks_installation_status]
+            """ ${aaosa_instructions},
+
+            # Specify the sly data that should come back from the tools to the client.
+            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
+            "allow": {
+                "to_upstream": {
+                    "sly_data": {
+                        "wheels_chocks_installation_status": true
+                    }
+                }
+                "from_upstream": {
+                    "sly_data": {
+                        "flight_number": true
+                        "aircraft_type": true
+                        "flight_status": true
+                        "gate_id": true
+                        "wheels_chocks_installation_status": true
+                    }
+                }
+            },
+
+            "tools":    ["trackerAPI","wheels_chocks_operator"]
+        },
+
+        {
+            "name": "wheels_chocks_operator",
+            "function": {
+                "description": """
+This agent install wheels chocks on the aircraft upon arrival at the gate. 
+                """,
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },         
+                        "flight_status": {
+                            "type": "string", 
+                            "description": "This is the flight status."
+                        },        
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate where the aircraft is parked."
+                        },      
+                        "wheels_chocks_installation_status": {
+                            "type": "string", 
+                            "description": "This is the status of wheels chocks installation."
+                        },              
+                    }, 
+                    "required": ["flight_number", "aircraft_type","flight_status","gate_id"] 
+                }
+
+            },
+            "class": "aircraft_chocks_install.wheels_chocks_operator" 
+        }, 
+
+        {
+            "name": "trackerAPI",
+            "function": {
+
+                "description": """
+I am the flight tracker in charge of logging parameters during aircraft turnaround. 
+I check the flight status. 
+                """
+
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },     
+                        "flight_status": {
+                            "type": "string", 
+                            "description": "This is the flight status."
+                        },          
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate assigned to the aircraft parking."
+                        },     
+                        "ground_services_request_type": {
+                            "type": "string", 
+                            "description": "This is the type of the inquiry received for grand services."
+                        },         
+                        "wheels_chocks_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks readiness status."
+                        },   
+                        "wheels_chocks_installation_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks installation status."
+                        },   
+                        "gpu_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the gpu readiness status."
+                        },     
+                        "acu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the acu connection status."
+                        },     
+                        "gpu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the gpu connection status."
+                        },     
+
+                        "engines_stop_status": {
+                            "type": "string", 
+                            "description": "This is the engines stop status."
+                        },    
+
+                        "jetbridge_connection_status": {
+                            "type": "string", 
+                            "description": "This is the jetbridge connection status."
+                        },    
+
+                        "door_opening_status": {
+                            "type": "string", 
+                            "description": "This is the door opening status."
+                        },    
+                    }, 
+                    "required": [] 
+                }
+            },
+            "class": "aircraft_chocks_install.trackerAPI" 
+        }, 
+    ],
+}
