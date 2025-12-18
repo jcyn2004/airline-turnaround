@@ -126,39 +126,6 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                     "required": ["flight_number", "aircraft_type","flight_status","gate_id","engines_stop_status","wheels_chocks_installation_status"] 
                 }
             },
-// {instructions_prefix}
-
-// ,"engines_stop_status","wheels_chocks_installation_status"
-
-//             "instructions": """
-// You are the agent in charge of connecting acu to aircraft. 
-// When you receive user inquiry to connect acu to aircraft: 
-// 1. Determine engine stop status
-// 2. Determine wheels chocks installation status. 
-// 3. Make sure that aircraft engines are stopped and that wheels chocks are installed. 
-//     a. Connect acu to aircraft 
-//     b. report acu connect status. 
-// """ ${aaosa_instructions},
-
-//             "instructions": """
-// You are the agent in charge of connecting acu to aircraft. 
-// When user submit inquiry to connect acu to aircraft, proceed as follows: 
-// 1. read the user inquiry and determine 
-//     a. if flights status is on blocks, then flight_status = 'on blocks'
-//     b. if engines stop status is stopped, then engines_stop_status = 'stopped'
-//     c. if wheels chocks installation status is installed, then wheels_chocks_installation_status = 'installed'.
-// 2. If engines_stop_status is not stopped or wheels_chucks_installation_status is not installed
-//     a. call your tools to make sure that engines_stop_status is stopped and wheels_chucks_installation_status is installed
-//     b. wait for their responses 
-//     c. go back to step 2.  
-// 3. If engines_stop_status = 'stopped' and wheels_chucks_installation_status = 'installed'
-//     a. call acu_operator to connect acu to aircraft
-//     b. Wait for its response and save it as acu_connection_status
-//     c. Report acu_connection_status
-// 4. Provide the acu connection status report summary as: 
-//     ** acu connection status summary **: 
-//     [acu_connection_status]
-//             """ ${aaosa_instructions},
 
             "instructions": """
 You are the agent in charge of connecting acu to aircraft. 
@@ -186,32 +153,18 @@ When user submit inquiry to connect acu to aircraft, proceed as follows:
     [acu_connection_status]
             """ ${aaosa_instructions},
 
-// Make sure that user provides engines stop status such as 'stopped' or 'running'. 
-// Make sure that user provides wheels chucks installation status such as installed. 
-
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
+            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
                 "to_upstream": {
                     "sly_data": {
                         "acu_connection_status": true
                     }
                 }
-            },
-
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            "allow": {
                 "to_downstream": {
                     "sly_data": {
                         "acu_connection_status": true
                     }
                 }
-            },
-
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            "allow": {
                 "from_upstream": {
                     "sly_data": {
                         "flight_number": true
@@ -223,11 +176,6 @@ When user submit inquiry to connect acu to aircraft, proceed as follows:
                         "acu_connection_status": true
                     }
                 }
-            },
-            
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            "allow": {
                 "from_downstream": {
                     "sly_data": {
                         "flight_number": true
@@ -239,11 +187,6 @@ When user submit inquiry to connect acu to aircraft, proceed as follows:
                         "acu_connection_status": true
                     }
                 }
-            },
-
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            "allow": {
                 "to_downstream": {
                     "sly_data": {
                         "flight_number": true
@@ -253,6 +196,7 @@ When user submit inquiry to connect acu to aircraft, proceed as follows:
                     }
                 }
             },
+
             "tools":    ["acu_operator","trackerAPI","/AirlineTurnaround/aircraft_engines_stop","/AirlineTurnaround/aircraft_chocks_install"]
         },
 
@@ -289,10 +233,9 @@ This agent connects acu to the aircraft and return "acu_connection_status"
                     "required": ["flight_number", "aircraft_type","flight_status","gate_id"] 
                 }
             },
-            "class": "aircraft_acu_connect.acu_operator" 
+            "class": "AirlineTurnaround.aircraft_acu_connect.aircraft_acu_connect.acu_operator" 
         }, 
 
-#########
         {
             "name": "trackerAPI",
             "function": {
@@ -362,12 +305,10 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                             "description": "This is the door opening status."
                         },    
                     }, 
-                    // "required": ["flight_number", "aircraft_type","flight_status","assigned_runway_id","gate_id","ground_services_request_type"] 
+                    "required": [] 
                 }
             },
-            "class": "aircraft_acu_connect.trackerAPI" 
+            "class": "AirlineTurnaround.aircraft_acu_connect.aircraft_acu_connect.trackerAPI" 
         }, 
-#########
-
     ],
 }

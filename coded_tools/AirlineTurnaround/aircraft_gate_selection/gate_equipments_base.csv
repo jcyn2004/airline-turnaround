@@ -1,0 +1,11 @@
+unit_id,type,gate_id,aircraft_type,availability,readiness,gpu_readiness,wheels_chocks_readiness,tug_readiness
+jetway_1,jetway,A1,B747,no,11,yes,yes,yes
+stairtruck_2,stairtruck,B2,B747,no,15,yes,yes,yes
+stairtruck_3,stairtruck,B3,B747,yes,17,yes,yes,yes
+jetway_4,jetway,A4,B747,no,7,yes,yes,yes
+stairtruck_5,stairtruck,B5,B747,no,9,yes,yes,yes
+jetway_6,jetway,A1,B747,no,11,yes,yes,yes
+stairtruck_7,stairtruck,B2,B747,yes,15,yes,yes,yes
+stairtruck_8,stairtruck,B3,B747,yes,17,yes,yes,yes
+jetway_9,jetway,A4,B747,no,7,yes,yes,yes
+stairtruck_10,stairtruck,B5,B747,no,9,yes,yes,yes

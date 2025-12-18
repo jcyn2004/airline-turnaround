@@ -86,9 +86,9 @@ class execute_air_clearance(CodedTool):
 
     def __init__(
         self,
-        aircraft_base: str = "/Users/971244/workspace/neuro-san-studio/coded_tools/AirlineTurnaround/aircraft_traffic_controller/aircraft_base.csv",
-        runway_base: str = "/Users/971244/workspace/neuro-san-studio/coded_tools/AirlineTurnaround/aircraft_traffic_controller/runways_base.csv",
-        log_path: str = "/Users/971244/workspace/neuro-san-studio/test_debug/airlineturnaround.txt",
+        aircraft_base: str = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/aircraft_base.csv",
+        runway_base: str = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/runways_base.csv",
+        log_path: str = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt",
     ):
         super().__init__()
         self.aircraft_base = aircraft_base
@@ -192,8 +192,6 @@ class execute_air_clearance(CodedTool):
             "clearance_report": line1 + line2,
         })
 
-        # return clearance_reportx
-
         try:
             return build_clearance(
                 flight_status=flight_status,
@@ -206,7 +204,6 @@ class execute_air_clearance(CodedTool):
         except Exception as e:
             return f"Error: failed to build clearance: {e}"
 
-######
 class trackerAPI(CodedTool):
 
     """
@@ -233,83 +230,56 @@ class trackerAPI(CodedTool):
                 "Error: <error message>"
         """
         print(">>>>>>>>>>>>>>>>>>> trackerAPI flight operation agent >>>>>>>>>>>>>>>>>>")
-        # # Client name is required to place an order.
-        # customer_name: str = args.get("customer_name", None)
-        # if not customer_name:
-        #     print("No customer name provided. Trying to get it from sly_data")
-        #     customer_name = sly_data.get("username")
-        # if not customer_name:
-        #     error = "Error: Please provide a valid customer name for the order."
-        #     print(error)
-        #     return error
 
-        file_path_log = "/Users/971244/Workspace/neuro-san-studio/test_debug/airlineturnaround.txt"
+        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
 
         # flight number is needed in particular. 
         flight_number: str = args.get("flight_number", None)
         if not flight_number:
             print("No flight number provided. Trying to get it from sly_data")
             flight_number = sly_data.get("flight_number")
-        # if not flight_number:
-        #     error = "Error: Please provide a flight number for the request."
-        #     print(error)
-        #     return error
-        sly_data["flight_number"] = flight_number
+        else: 
+            sly_data["flight_number"] = flight_number
 
         # aircraft type is required to fulfill the request.
         aircraft_type: str = args.get("aircraft_type", None)
         if not aircraft_type:
             print("No aircraft type provided. Trying to get it from sly_data")
             aircraft_type = sly_data.get("aircraft_type")
-        # if not aircraft_type:
-        #     error = "Error: Please provide an aircraft type for the request."
-        #     print(error)
-        #     return error
-        sly_data["aircraft_type"] = aircraft_type
+        else: 
+            sly_data["aircraft_type"] = aircraft_type
 
         # ground clearance type is required to fulfill the request.
         aircraft_direction: str = args.get("aircraft_direction", None)
         if not aircraft_direction:
             print("No ground clearance type provided. Trying to get it from sly_data")
             aircraft_direction = sly_data.get("aircraft_direction")
-        # if not aircraft_direction:
-        #     error = "Error: Please provide a ground clearance type for the request."
-        #     print(error)
-        #     return error    
-        sly_data["aircraft_direction"] = aircraft_direction
+        else: 
+            sly_data["aircraft_direction"] = aircraft_direction
 
         # ground clearance status is required to fulfill the request.
         clearance_type: str = args.get("clearance_type", None)
         if not clearance_type:
             print("No ground clearance status provided. Trying to get it from sly_data")
-            clearance_type = sly_data.get("clearance_type")
-        # if not clearance_type:
-        #     error = "Error: Please provide a ground clearance status for the request."
-        #     print(error)
-            # return error    
-        sly_data["clearance_type"] = clearance_type
+            clearance_type = sly_data.get("clearance_type")   
+        else: 
+            sly_data["clearance_type"] = clearance_type
 
         # flight status is required to fulfill the request.
         assigned_runway_id: str = args.get("assigned_runway_id", None)
         if not assigned_runway_id:
             print("No flight status provided. Trying to get it from sly_data")
-            assigned_runway_id = sly_data.get("assigned_runway_id")
-        # if not assigned_runway_id:
-        #     error = "Error: Please provide flight status for the request."
-        #     print(error)
-        #     return error      
-        sly_data["assigned_runway_id"] = assigned_runway_id
+            assigned_runway_id = sly_data.get("assigned_runway_id")   
+        else: 
+            sly_data["assigned_runway_id"] = assigned_runway_id
         
         # assigned runway is required to fulfill the request.
         assigned_runway_length: str = args.get("assigned_runway_length", None)
         if not assigned_runway_length:
             print("No assigned runway provided. Trying to get it from sly_data")
-            assigned_runway_length = sly_data.get("assigned_runway_length")
-        # if not assigned_runway_length:
-        #     error = "Error: Please provide assigned runway for the request."
-        #     print(error)
-        #     return error    
-        sly_data["assigned_runway_length"] = assigned_runway_length
+            assigned_runway_length = sly_data.get("assigned_runway_length") 
+        else: 
+            sly_data["assigned_runway_length"] = assigned_runway_length
 
         message = f"Flight {flight_number} with airplane type {aircraft_type} with traffic direction {aircraft_direction} at runway {assigned_runway_id} has {clearance_type} type clearance at runway {assigned_runway_id} with length {assigned_runway_length}"
         print(message)
@@ -330,7 +300,6 @@ class trackerAPI(CodedTool):
         """
         return self.invoke(args, sly_data)
     
-######
 class tracker_aircraft_traffic_controller(CodedTool):
 
     """
@@ -355,61 +324,40 @@ class tracker_aircraft_traffic_controller(CodedTool):
                 "Error: <error message>"
         """
         print(">>>>>>>>>>>>>>>>>>> trackerAPI flight operation agent >>>>>>>>>>>>>>>>>>")
-        # # Client name is required to place an order.
-        # customer_name: str = args.get("customer_name", None)
-        # if not customer_name:
-        #     print("No customer name provided. Trying to get it from sly_data")
-        #     customer_name = sly_data.get("username")
-        # if not customer_name:
-        #     error = "Error: Please provide a valid customer name for the order."
-        #     print(error)
-        #     return error
 
-        file_path_log = "/Users/971244/Workspace/neuro-san-studio/test_debug/airlineturnaround.txt"
+        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
 
         # ground clearance type is required to fulfill the request.
         flight_status: str = args.get("flight_status", None)
         if not flight_status:
             print("No ground flight status provided. Trying to get it from sly_data")
-            flight_status = sly_data.get("flight_status")
-        # if not aircraft_direction:
-        #     error = "Error: Please provide a ground clearance type for the request."
-        #     print(error)
-        #     return error    
-        sly_data["flight_status"] = flight_status
+            flight_status = sly_data.get("flight_status")   
+        else: 
+            sly_data["flight_status"] = flight_status
 
         # ground clearance status is required to fulfill the request.
         clearance_type: str = args.get("clearance_type", None)
         if not clearance_type:
             print("No ground clearance status provided. Trying to get it from sly_data")
             clearance_type = sly_data.get("clearance_type")
-        # if not clearance_type:
-        #     error = "Error: Please provide a ground clearance status for the request."
-        #     print(error)
-            # return error    
-        sly_data["clearance_type"] = clearance_type
+        else: 
+            sly_data["clearance_type"] = clearance_type
 
         # flight status is required to fulfill the request.
         assigned_runway_id: str = args.get("assigned_runway_id", None)
         if not assigned_runway_id:
             print("No flight status provided. Trying to get it from sly_data")
-            assigned_runway_id = sly_data.get("assigned_runway_id")
-        # if not assigned_runway_id:
-        #     error = "Error: Please provide flight status for the request."
-        #     print(error)
-        #     return error      
-        sly_data["assigned_runway_id"] = assigned_runway_id
+            assigned_runway_id = sly_data.get("assigned_runway_id")  
+        else: 
+            sly_data["assigned_runway_id"] = assigned_runway_id
         
         # assigned runway is required to fulfill the request.
         assigned_runway_length: str = args.get("assigned_runway_length", None)
         if not assigned_runway_length:
             print("No assigned runway provided. Trying to get it from sly_data")
             assigned_runway_length = sly_data.get("assigned_runway_length")
-        # if not assigned_runway_length:
-        #     error = "Error: Please provide assigned runway for the request."
-        #     print(error)
-        #     return error    
-        sly_data["assigned_runway_length"] = assigned_runway_length
+        else:  
+            sly_data["assigned_runway_length"] = assigned_runway_length
 
         message = f"{clearance_type} type clearance given at runway {assigned_runway_id} with length {assigned_runway_length} and flight status updated to {flight_status}"
         print(message)
@@ -429,86 +377,6 @@ class tracker_aircraft_traffic_controller(CodedTool):
         Delegates to the synchronous invoke method because it's quick, non-blocking.
         """
         return self.invoke(args, sly_data)
-    
-# ######
-# class report_aircraft_traffic_controller(CodedTool):
-
-#     """
-#     Taxiing information.
-#     """
-
-#     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
-#         """
-#         :param args: a dictionary with the following keys:
-#             - flight_number: this is the flight number.
-#             - aircraft_type: this is the aircraft type.
-#             - aircraft_direction: this is the traffic direction.
-#             - flight_status: this is the flight status. 
-#             - clearance_type: this is the air clearance type requested for landing or for takeoff. 
-#             - assigned_runway_id: this is the id of the runway assigned for landing or for takeoff. 
-#             - assigned_runway_length: this is the length of the runway assigned for landing or for takeoff. 
-
-#         :param sly_data: a dictionary with the following keys:
-
-#         :return:
-#             In case of successful execution:
-#                 all parameters available.
-#             otherwise:
-#                 a string error message in the format:
-#                 "Error: <error message>"
-#         """
-#         print(">>>>>>>>>>>>>>>>>>> trackerAPI flight operation agent >>>>>>>>>>>>>>>>>>")
-#         # # Client name is required to place an order.
-#         # customer_name: str = args.get("customer_name", None)
-#         # if not customer_name:
-#         #     print("No customer name provided. Trying to get it from sly_data")
-#         #     customer_name = sly_data.get("username")
-#         # if not customer_name:
-#         #     error = "Error: Please provide a valid customer name for the order."
-#         #     print(error)
-#         #     return error
-
-#         file_path_log = "/Users/971244/Workspace/neuro-san-studio/test_debug/airlineturnaround.txt"
-
-#         # read sly data for consolidated report
-#         flight_number = sly_data.get("flight_number")
-#         aircraft_type = sly_data.get("aircraft_type")
-#         aircraft_direction = sly_data.get("aircraft_direction")
-#         flight_status = sly_data.get("flight_status")
-#         clearance_type = sly_data.get("clearance_type")
-#         assigned_runway_id = sly_data.get("assigned_runway_id")
-#         assigned_runway_length = sly_data.get("assigned_runway_length")
-
-#         clearance_summary = {
-#             "flight_number": flight_number,
-#             "aircraft_type": aircraft_type,
-#             "aircraft_direction": aircraft_direction,
-#             "flight_status": flight_status,
-#             "clearance_type": clearance_type,
-#             "assigned_runway_id": assigned_runway_id,
-#             "assigned_runway_length": assigned_runway_length
-#         }
-
-#         message = f"clearance completed with summary {clearance_summary}"
-#         print(message)
-#         print(">>>>>>>>>>>>>>>>>>> DONE !!! >>>>>>>>>>>>>>>>>>")
-
-#         # Log
-#         ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-#         line = ts + ": " + message
-
-#         with open(file_path_log, "a", encoding="utf-8") as f:
-#             f.write(line + "\n")
-
-#         sly_data["clearance_summary"] = clearance_summary
-
-#         return clearance_summary
-
-#     async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
-#         """
-#         Delegates to the synchronous invoke method because it's quick, non-blocking.
-#         """
-#         return self.invoke(args, sly_data)
 
 #############################################################################
 # Tracker API for all parameters in the aircraft turnaround agentic system  #
@@ -544,8 +412,8 @@ class trackerAPI(CodedTool):
 
         :return: None in write mode or any of teh parameters in read mode
         """
-        
-        file_path_log = "/Users/971244/demospace/neuro-san-studio/test_debug/airlineturnaround.txt"
+
+        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
 
         print("\n")
         print("\n")
@@ -563,7 +431,6 @@ class trackerAPI(CodedTool):
             print("flight_number has not been provided in user inquiry. Trying to get it from sly_data")
             flight_number = sly_data.get("flight_number")
             if flight_number: 
-                sly_data["flight_number"] = flight_number
                 print("\n")
                 print("\n")
                 print("####### flight_number read from sly data: #######", flight_number)
@@ -588,7 +455,6 @@ class trackerAPI(CodedTool):
             print("aircraft_type has not been provided in user inquiry. Trying to get it from sly_data")
             aircraft_type = sly_data.get("aircraft_type")
             if aircraft_type: 
-                sly_data["aircraft_type"] = aircraft_type
                 print("\n")
                 print("\n")
                 print("####### aircraft_type read from sly data: #######", aircraft_type)
@@ -613,7 +479,6 @@ class trackerAPI(CodedTool):
             print("aircraft_direction has not been provided in user inquiry. Trying to get it from sly_data")
             aircraft_direction = sly_data.get("aircraft_direction")
             if aircraft_direction: 
-                sly_data["aircraft_direction"] = aircraft_direction
                 print("\n")
                 print("\n")
                 print("####### aircraft_direction read from sly data: #######", aircraft_direction)
@@ -638,7 +503,6 @@ class trackerAPI(CodedTool):
             print("flight_status has not been provided in user inquiry. Trying to get it from sly_data")
             flight_status = sly_data.get("flight_status")
             if flight_status: 
-                sly_data["flight_status"] = flight_status
                 print("\n")
                 print("\n")
                 print("####### flight_status read from sly data: #######", flight_status)
@@ -661,7 +525,6 @@ class trackerAPI(CodedTool):
         print("\n")
         if not gate_id:
             print("gate_id has not been provided in user inquiry. Trying to get it from sly_data")
-            gate_id = sly_data.get("gate_id")
             if gate_id: 
                 sly_data["gate_id"] = gate_id
                 print("\n")
@@ -688,7 +551,6 @@ class trackerAPI(CodedTool):
             print("acu_connection_status has not been provided in user inquiry. Trying to get it from sly_data")
             acu_connection_status = sly_data.get("acu_connection_status")
             if acu_connection_status: 
-                sly_data["acu_connection_status"] = acu_connection_status
                 print("\n")
                 print("\n")
                 print("####### acu_connection_status read from sly data: #######", acu_connection_status)
@@ -713,7 +575,6 @@ class trackerAPI(CodedTool):
             print("gpu_connection_status has not been provided in user inquiry. Trying to get it from sly_data")
             gpu_connection_status = sly_data.get("gpu_connection_status")
             if gpu_connection_status: 
-                sly_data["gpu_connection_status"] = gpu_connection_status
                 print("\n")
                 print("\n")
                 print("####### gpu_connection_status read from sly data: #######", gpu_connection_status)
@@ -738,7 +599,6 @@ class trackerAPI(CodedTool):
             print("wheels_chocks_installation_status has not been provided in user inquiry. Trying to get it from sly_data")
             wheels_chocks_installation_status = sly_data.get("wheels_chocks_installation_status")
             if wheels_chocks_installation_status: 
-                sly_data["wheels_chocks_installation_status"] = wheels_chocks_installation_status
                 print("\n")
                 print("\n")
                 print("####### wheels_chocks_installation_status read from sly data: #######", wheels_chocks_installation_status)
@@ -763,7 +623,6 @@ class trackerAPI(CodedTool):
             print("engines_stop_status has not been provided in user inquiry. Trying to get it from sly_data")
             engines_stop_status = sly_data.get("engines_stop_status")
             if engines_stop_status: 
-                sly_data["engines_stop_status"] = engines_stop_status
                 print("\n")
                 print("\n")
                 print("####### engines_stop_status read from sly data: #######", engines_stop_status)
@@ -788,7 +647,6 @@ class trackerAPI(CodedTool):
             print("jetbridge_connection_status has not been provided in user inquiry. Trying to get it from sly_data")
             jetbridge_connection_status = sly_data.get("jetbridge_connection_status")
             if jetbridge_connection_status: 
-                sly_data["jetbridge_connection_status"] = jetbridge_connection_status
                 print("\n")
                 print("\n")
                 print("####### jetbridge_connection_status read from sly data: #######", jetbridge_connection_status)
@@ -813,7 +671,6 @@ class trackerAPI(CodedTool):
             print("door_opening_status has not been provided in user inquiry. Trying to get it from sly_data")
             door_opening_status = sly_data.get("door_opening_status")
             if door_opening_status: 
-                sly_data["door_opening_status"] = door_opening_status
                 print("\n")
                 print("\n")
                 print("####### door_opening_status read from sly data: #######", door_opening_status)
@@ -838,7 +695,6 @@ class trackerAPI(CodedTool):
             print("ground_services_request_type has not been provided in user inquiry. Trying to get it from sly_data")
             ground_services_request_type = sly_data.get("ground_services_request_type")
             if ground_services_request_type: 
-                sly_data["ground_services_request_type"] = ground_services_request_type
                 print("\n")
                 print("\n")
                 print("####### ground_services_request_type read from sly data: #######", ground_services_request_type)
@@ -863,7 +719,6 @@ class trackerAPI(CodedTool):
             print("wheels_chocks_readiness_status has not been provided in user inquiry. Trying to get it from sly_data")
             wheels_chocks_readiness_status = sly_data.get("wheels_chocks_readiness_status")
             if wheels_chocks_readiness_status: 
-                sly_data["wheels_chocks_readiness_status"] = wheels_chocks_readiness_status
                 print("\n")
                 print("\n")
                 print("####### wheels_chocks_readiness_status read from sly data: #######", wheels_chocks_readiness_status)
@@ -877,8 +732,9 @@ class trackerAPI(CodedTool):
             print("\n")
             print("\n")
 
-        # This return list will be trimmed to contain only parameters relevant to the agentic system where this generic coded tool is used. 
-        # return flight_status,flight_number,aircraft_type,gate_id,acu_connection_status,gpu_connection_status,wheels_chocks_installation_status,engines_stop_status,jetbridge_connection_status,door_opening_status, ground_services_request_type, wheels_chocks_readiness_status
+        #####################################################################################################################################
+        # This return list will be trimmed to contain only parameters relevant to the agentic system where this generic coded tool is used. #
+        #####################################################################################################################################
         return aircraft_direction,flight_number,aircraft_type
 
     async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
@@ -886,5 +742,4 @@ class trackerAPI(CodedTool):
         Delegates to the synchronous invoke method because it's quick, non-blocking.
         """
         return self.invoke(args, sly_data)
-
-#########################################################    
+ 

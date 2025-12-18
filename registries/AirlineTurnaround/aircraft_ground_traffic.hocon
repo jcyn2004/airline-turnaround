@@ -95,7 +95,6 @@ You are the ground traffic orchestrator.
 You coordinate ground traffic at the airport. 
                 """
             },
-// {instructions_prefix}
             "instructions": """
 You are the agent responsible to giving aircraft the clearance to taxi in the gate of to taxi out of the gate. 
 Only perform the tasks that fall under your responsibility. 
@@ -165,10 +164,7 @@ When you receive a user request for clearance to taxi in or taxi out, proceed as
                 "required": ["flight_number", "aircraft_type","flight_status","assigned_runway_id","gate_id"] 
             },
 
-// {aaosa_instructions}
-
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
+            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
                 "to_upstream": {
                     "sly_data": {
@@ -204,7 +200,7 @@ When you receive a user request for clearance to taxi in or taxi out, proceed as
                         "flight_status": true, 
                         "gate_id": true
                     }
-                }
+                },
                 "from_downstream": {
                     "sly_data": {
                         "flight_number": true, 
@@ -267,7 +263,7 @@ Your role is to provide ground clearance for aircraft to taxi in or to taxi out 
                     "required": ["aircraft_type", "flight_number", "flight_status","assigned_runway_id","gate_id"] 
                 },
             },
-// {instructions_prefix}
+
             "instructions": """
 You are responsible for giving clearance to aircrafts for taxi in or taxi out. 
 Only perform the tasks that fall under your responsibility. 
@@ -323,10 +319,9 @@ This agent clears aircraft for taxi in or taxi out in the airport ground.
                     "required": ["flight_number", "aircraft_type","flight_status","assigned_runway_id","gate_id"] 
                 }
             }, 
-            "class": "aircraft_ground_traffic.execute_ground_clearance"
+            "class": "AirlineTurnaround.aircraft_ground_traffic.aircraft_ground_traffic.execute_ground_clearance"
         }, 
 
-#########
         {
             "name": "trackerAPI",
             "function": {
@@ -416,11 +411,10 @@ I check and return flight_status and gate_id.
                             "description": "This is the ground clearance status of the aircraft"
                         },    
                     }, 
-                    // "required": ["flight_number", "aircraft_type","flight_status","assigned_runway_id","gate_id","ground_services_request_type"] 
+                    "required": [] 
                 }
             },
-            "class": "aircraft_ground_traffic.trackerAPI" 
+            "class": "AirlineTurnaround.aircraft_ground_traffic.aircraft_ground_traffic.trackerAPI" 
         }, 
-#########
     ],
 }
