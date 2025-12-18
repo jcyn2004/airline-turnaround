@@ -122,19 +122,6 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                     "required": ["flight_number", "aircraft_type","flight_status","gate_id"] 
                 }
             },
-// {instructions_prefix}
-
-// ,"engines_stop_status","wheels_chocks_installation_status"
-
-//             "instructions": """
-// You are the agent in charge of connecting gpu to aircraft. 
-// When you receive user inquiry to connect gpu to aircraft: 
-// 1. Determine engine stop status
-// 2. Determine wheels chocks installation status. 
-// 3. Make sure that aircraft engines are stopped and that wheels chocks are installed. 
-//     a. Connect gpu to aircraft 
-//     b. report gpu connect status. 
-// """ ${aaosa_instructions},
 
             "instructions": """
 You are the agent in charge of connecting gpu to aircraft. 
@@ -162,29 +149,18 @@ When user submit inquiry to connect acu to aircraft, proceed as follows:
     [gpu_connection_status]
             """ ${aaosa_instructions},
 
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
+            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
                 "to_upstream": {
                     "sly_data": {
                         "gpu_connection_status": true
                     }
                 }
-            },
-
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            "allow": {
                 "to_downstream": {
                     "sly_data": {
                         "gpu_connection_status": true
                     }
                 }
-            },
-
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            "allow": {
                 "from_upstream": {
                     "sly_data": {
                         "flight_number": true
@@ -196,11 +172,6 @@ When user submit inquiry to connect acu to aircraft, proceed as follows:
                         "gpu_connection_status": true
                     }
                 }
-            },
-            
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            "allow": {
                 "from_downstream": {
                     "sly_data": {
                         "flight_number": true
@@ -214,19 +185,6 @@ When user submit inquiry to connect acu to aircraft, proceed as follows:
                 }
             },
 
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            "allow": {
-                "to_downstream": {
-                    "sly_data": {
-                        "flight_number": true
-                        "aircraft_type": true
-                        "flight_status": true
-                        "gate_id": true 
-                        "gpu_connection_status": true
-                    }
-                }
-            },
             "tools":    ["gpu_operator","/AirlineTurnaround/aircraft_engines_stop","/AirlineTurnaround/aircraft_chocks_install","trackerAPI"]
         },
 
@@ -263,10 +221,9 @@ This agent connects gpu to the aircraft upon arrival at the gate.
                     "required": ["flight_number", "aircraft_type","flight_status","gate_id"] 
                 }
             },
-            "class": "aircraft_gpu_connect.gpu_operator" 
+            "class": "AirlineTurnaround.aircraft_gpu_connect.aircraft_gpu_connect.gpu_operator" 
         }, 
 
-#########
         {
             "name": "trackerAPI",
             "function": {
@@ -320,28 +277,23 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                             "type": "string", 
                             "description": "This is the gpu connection status."
                         },     
-
                         "engines_stop_status": {
                             "type": "string", 
                             "description": "This is the engines stop status."
                         },    
-
                         "jetbridge_connection_status": {
                             "type": "string", 
                             "description": "This is the jetbridge connection status."
                         },    
-
                         "door_opening_status": {
                             "type": "string", 
                             "description": "This is the door opening status."
                         },    
                     }, 
-                    // "required": ["flight_number", "aircraft_type","flight_status","assigned_runway_id","gate_id","ground_services_request_type"] 
+                    "required": [] 
                 }
             },
-            "class": "aircraft_gpu_connect.trackerAPI" 
+            "class": "AirlineTurnaround.aircraft_gpu_connect.aircraft_gpu_connect.trackerAPI" 
         }, 
-#########
-
     ],
 }

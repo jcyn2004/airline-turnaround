@@ -113,16 +113,6 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                     "required": ["flight_number", "aircraft_type","gate_id","jetbridge_status","jetbridge_connection_status"] 
                 }
             },
-// {instructions_prefix}
-
-// ,"engines_stop_status","wheels_chocks_installation_status"
-
-//             "instructions": """
-// You are the agent in charge of opening aircraft cabin door. 
-// When you receive user inquiry: 
-// Make sure that jetbridge is connected to aircraft. 
-// Open aircraft cabin door.
-// """ ${aaosa_instructions},
 
             "instructions": """
 You are the agent in charge of of opening aircraft cabin door. 
@@ -147,8 +137,7 @@ When user submit inquiry to open aircraft door, proceed as follows:
     [door_opening_status]
             """ ${aaosa_instructions},
 
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
+            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
                 "to_upstream": {
                     "sly_data": {
@@ -157,11 +146,6 @@ When user submit inquiry to open aircraft door, proceed as follows:
                         "door_opening_status": true
                     }
                 }
-            },
-
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            "allow": {
                 "to_downstream": {
                     "sly_data": {
                         "jetbridge_status": true 
@@ -169,11 +153,6 @@ When user submit inquiry to open aircraft door, proceed as follows:
                         "door_opening_status": true
                     }
                 }
-            },
-
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            "allow": {
                 "from_upstream": {
                     "sly_data": {
                         "flight_number": true
@@ -185,11 +164,6 @@ When user submit inquiry to open aircraft door, proceed as follows:
                         "door_opening_status": true
                     }
                 }
-            },
-            
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            "allow": {
                 "from_downstream": {
                     "sly_data": {
                         "flight_number": true
@@ -204,20 +178,6 @@ When user submit inquiry to open aircraft door, proceed as follows:
                     }
                 }
             },
-
-#######
-            // # Specify the sly data that should come back from the tools to the client.
-            // # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            // "allow": {
-            //     "to_downstream": {
-            //         "sly_data": {
-            //             "flight_number": true
-            //             "aircraft_type": true
-            //             "flight_status": true
-            //             "gate_id": true 
-            //         }
-            //     }
-            // },
 
             "tools":    ["cabin_door_operator","/aircraft_jetbridge_connect","trackerAPI"]
         },
@@ -260,10 +220,9 @@ This agent opens the aircraft cabin door.
                 }
 
             },
-            "class": "aircraft_cabin_opening.cabin_door_operator" 
+            "class": "AirlineTurnaround.aircraft_cabin_opening.aircraft_cabin_opening.cabin_door_operator" 
         }, 
 
-#########
         {
             "name": "trackerAPI",
             "function": {
@@ -333,12 +292,10 @@ I check and report the jetbridge connection status as jetbridge_connection_statu
                             "description": "This is the door opening status."
                         },    
                     }, 
-                    // "required": ["flight_number", "aircraft_type","flight_status","assigned_runway_id","gate_id","ground_services_request_type"] 
+                    "required": [] 
                 }
             },
-            "class": "aircraft_cabin_opening.trackerAPI" 
+            "class": "AirlineTurnaround.aircraft_cabin_opening.aircraft_cabin_opening.trackerAPI" 
         }, 
-#########
-
     ],
 }

@@ -86,7 +86,6 @@ Do not mention what you can NOT do. Only mention what you can do.
                             "description": "This is the baggage unload status."
                         }
                     }, 
-                    // "required": ["flight_number", "aircraft_type","gate_id","passenger_disembarkation_status","crew_exit_status","baggage_unload_status"] 
                     "required": ["passenger_disembarkation_status","crew_exit_status","baggage_unload_status"] 
                 }             
             },
@@ -125,8 +124,7 @@ Store the user input as user_inquiry then proceed as follows:
     [cabin_cleaning_status]
             """ ${aaosa_instructions},
 
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
+            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
                 "to_upstream": {
                     "sly_data": {
@@ -142,11 +140,6 @@ Store the user input as user_inquiry then proceed as follows:
                         "baggage_unload_status": true
                     }
                 }
-            },
-
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            "allow": {
                 "from_upstream": {
                     "sly_data": {
                         "flight_number": true
@@ -161,11 +154,6 @@ Store the user input as user_inquiry then proceed as follows:
                         "baggage_unload_status": true
                     }
                 }
-            },
-            
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            "allow": {
                 "from_downstream": {
                     "sly_data": {
                         "flight_number": true
@@ -180,12 +168,6 @@ Store the user input as user_inquiry then proceed as follows:
                         "baggage_unload_status": true
                     }
                 }
-            },
-
-#######
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            "allow": {
                 "to_downstream": {
                     "sly_data": {
                         "flight_number": true
@@ -238,7 +220,6 @@ Store the user input as user_inquiry then proceed as follows:
                             "description": "This is the baggage unload status."
                         }
                     }, 
-                    // "required": ["flight_number", "aircraft_type","gate_id","passenger_disembarkation_status","crew_exit_status","baggage_unload_status"] 
                     "required": ["passenger_disembarkation_status","crew_exit_status","baggage_unload_status"] 
                 }      
 
@@ -316,30 +297,9 @@ Find existing operational restriction.
                     "required": ["app_name"]
                 }
             },
-            "class": "extract_docs_cabin_passenger_seating.pull_restriction"
+            "class": "AirlineTurnaround.aircraft_cleaning.aircraft_cleaning.pull_restriction"
         },
 
-// ### Morning version of execution agent prior to discussion with Dan and modification
-//         {
-//             "name": "execution",
-//             "function": ${aaosa_call}, 
-//             "instructions": ${instructions_prefix} """
-// You are the execution agent. 
-// You propare the response to user inquiry. 
-// 1. Evaluate that user inquiry complies with existing operational restrictions. 
-// 2. If compliant, Call extract_docs_cabin_passenger_seating. Return the response to the user. 
-// 3. If not compliant
-//     a. Ask the user exactly this question and WAIT for the answer: 
-//         "Your request does not comply with restriction on cleaning. Would you like me to propose a compliant process? (yes/no)" 
-//     b. When the user replies, make sure that their response be exactly "yes" or "no". 
-//         - If response is "yes": Call extract_docs_cabin_passenger_seating. Return the response to the user. 
-//         - If response is "no": Call create_escalation. Return the response to the user. 
-//             """,
-//             "command": ${aaosa_command},
-//             "tools": [ "create_escalation","extract_docs_cabin_passenger_seating","cleaning_tracker"]
-//         },
-
-### Afternoon version of execution agent after discussion with Dan and modification
         {
             "name": "execution",
             "function": {
@@ -375,34 +335,14 @@ You receive existing operational restriction from check_restriction.
         - If user response is "no": call escalation_agent and return the response to user. 
         - If user response is "yes": call extract_docs_cabin_passenger_seating to create an escalation. Return the response to user. 
             """,
-            // "command": ${aaosa_command},
+
             "tools": [ "escalation_agent","extract_docs_cabin_passenger_seating","cleaning_tracker"]
         },
-
-// ${instructions_prefix} 
 
         {
             "name": "escalation_agent",
             "function": ${aaosa_call}, 
-//             "function": {
-//                 "description": """
-// I create an escalation when user response to proposed compliant cleaning process is "no". 
-//                 """,
-//                 "parameters": {
-//                     "type": "object",
-//                     "properties": {
-//                         "Inquiry": {
-//                             "type": "string",
-//                             "description": "The user inquiry"
-//                         },
-//                         "restriction_on_cleaning": {
-//                             "type": "string",
-//                             "description": "The restriction on cleaning"
-//                         },
-//                     },
-//                     "required": ["Inquiry","restriction_on_cleaning"]
-//                 }
-//             },
+
             "instructions": ${instructions_prefix} """
 You responsibility is to create escalation. 
 Return result. 
@@ -410,10 +350,6 @@ Return result.
             "command": ${aaosa_command},
             "tools": ["create_escalation"]
         },
-
-// Do not make things up. This is not a game.
-// Use only your tools. 
-// When you receive a request, call your tool to create an escalation. 
 
         {
             "name": "create_escalation",
@@ -448,10 +384,8 @@ This agent creates escalation.
                     // "required": ["app_name","response_to_recommendation"]
                 }
             },
-            "class": "extract_docs_cabin_passenger_seating.create_escalation"
+            "class": "AirlineTurnaround.aircraft_cleaning.aircraft_cleaning.create_escalation"
         },
-
-// "restriction_on_cleaning","restriction_applies",
 
         {
             "name": "extract_docs_cabin_passenger_seating",
@@ -492,7 +426,7 @@ It returns the text content of the escalation message.
                     "required": ["app_name"]
                 }
             },
-            "class": "extract_docs_cabin_passenger_seating.ExtractDocs"
+            "class": "AirlineTurnaround.aircraft_cleaning.aircraft_cleaning.ExtractDocs"
         },
 
         {
@@ -536,10 +470,9 @@ Store and track parameters and states of the cleaning process.
                     // "required": ["app_name","restriction_on_cleaning"]
                 }
             },
-            "class": "extract_docs_cabin_passenger_seating.cleaning_tracker"
+            "class": "AirlineTurnaround.aircraft_cleaning.aircraft_cleaning.cleaning_tracker"
         },
 
-#########
         {
             "name": "trackerAPI",
             "function": {
@@ -619,11 +552,10 @@ I check door opening status as door_opening_status.
                             "description": "This is the crew exit status."
                         },    
                     }, 
-                    // "required": ["flight_number", "aircraft_type","flight_status","assigned_runway_id","gate_id","ground_services_request_type"] 
+                    "required": [] 
                 }
             },
-            "class": "aircraft_cleaning.trackerAPI" 
+            "class": "AirlineTurnaround.aircraft_cleaning.aircraft_cleaning.trackerAPI" 
         }, 
-#########
     ]
 }

@@ -147,8 +147,7 @@ When user submits inquiry, proceed as follows:
     [passenger_disembarkation_status]
             """ ${aaosa_instructions},
 
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
+            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
                 "to_upstream": {
                     "sly_data": {
@@ -158,7 +157,6 @@ When user submits inquiry, proceed as follows:
                 "to_downstream": {
                     "sly_data": {
                         "passenger_disembarkation_status": true
-                        // "engines_stop_status": true
                     }
                 }
                 "from_upstream": {
@@ -236,7 +234,7 @@ This agent disembarks passengers from the aircraft.
                     "required": ["flight_number", "aircraft_type","gate_id","jetbridge_connection_status","door_opening_status"] 
                 }
             },
-            "class": "aircraft_disembark.passenger_disembark_operator" 
+            "class": "AirlineTurnaround.aircraft_disembark.aircraft_disembark.passenger_disembark_operator" 
         }, 
 
         {

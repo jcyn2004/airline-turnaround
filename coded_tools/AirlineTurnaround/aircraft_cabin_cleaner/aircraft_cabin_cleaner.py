@@ -22,8 +22,8 @@ class execute_time_estimator(CodedTool):
         pass
 
     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
-        file_path_log = "/Users/971244/workspace/neuro-san-studio/test_debug/airlineturnaround.txt"
-        ground_equipments_base = "/Users/971244/workspace/neuro-san-studio/coded_tools/ground_services/ground_equipments_base.csv"
+        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        ground_equipments_base = "/Users/971244/workspace/airline-turnaround/coded_tools/ground_services/ground_equipments_base.csv"
 
         # Check parameters in sly data
         aircraft_type: str = sly_data.get("aircraft_type", None)   
@@ -77,22 +77,6 @@ class execute_time_estimator(CodedTool):
 
         return cabin_cleaning_time_estimate
 
-        # else: 
-        #     if 'On_Blocks' in flight_status: 
-        #         time.sleep(5)
-        #         gpu_connect_status = 'connected'
-
-        #     sly_data["gpu_connect_status"] = gpu_connect_status   
-        #     return gpu_connect_status
-
-
-            # # # async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> str:
-            # # def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> str:
-            # #     """Run invoke asynchronously."""
-            # #     # return await asyncio.to_thread(self.invoke, args, sly_data)
-            # #     return self.invoke(args, sly_data)  
-
-########
 class execute_staff_provider(CodedTool):
     """
     CodedTool implementation that calls function that estimates cabin cleaning staff count.
@@ -102,8 +86,8 @@ class execute_staff_provider(CodedTool):
         pass
 
     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
-        file_path_log = "/Users/971244/workspace/neuro-san-studio/test_debug/airlineturnaround.txt"
-        ground_equipments_base = "/Users/971244/workspace/neuro-san-studio/coded_tools/ground_services/ground_equipments_base.csv"
+        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        ground_equipments_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaroundground_services/ground_equipments_base.csv"
 
         # Check parameters in sly data
         aircraft_type: str = sly_data.get("aircraft_type", None)   
@@ -157,22 +141,6 @@ class execute_staff_provider(CodedTool):
 
         return cabin_cleaning_staff_estimate
 
-        # else: 
-        #     if 'On_Blocks' in flight_status: 
-        #         time.sleep(5)
-        #         gpu_connect_status = 'connected'
-
-        #     sly_data["gpu_connect_status"] = gpu_connect_status   
-        #     return gpu_connect_status
-
-
-            # # # async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> str:
-            # # def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> str:
-            # #     """Run invoke asynchronously."""
-            # #     # return await asyncio.to_thread(self.invoke, args, sly_data)
-            # #     return self.invoke(args, sly_data)  
-########
-
 class execute_wheels_chocks_operator(CodedTool):
     """
     CodedTool implementation that calls function that operates wheels chocks on the ground at the gate.
@@ -182,8 +150,8 @@ class execute_wheels_chocks_operator(CodedTool):
         pass
 
     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
-        file_path_log = "/Users/971244/workspace/neuro-san-studio/test_debug/airlineturnaround.txt"
-        ground_equipments_base = "/Users/971244/workspace/neuro-san-studio/coded_tools/ground_services/ground_equipments_base.csv"
+        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        ground_equipments_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlinesTurnaround/ground_services/ground_equipments_base.csv"
 
         # Check parameters in sly data
         aircraft_type: str = sly_data.get("aircraft_type", None)   
@@ -278,20 +246,6 @@ class execute_wheels_chocks_operator(CodedTool):
                 
                 return f"Error: wheels chocks cannot be placed until flight {flight_number} aircraft of type {aircraft_type} is on blocks at gate {gate_id}."
 
-        # else: 
-        #     if 'On_Blocks' in flight_status: 
-        #         time.sleep(5)
-        #         wheels_chocks_placed_status = 'placed'
-
-        #     sly_data["wheels_chocks_placed_status"] = wheels_chocks_placed_status   
-        #     return wheels_chocks_placed_status
-
-            # # # async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> str:
-            # # def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> str:
-            # #     """Run invoke asynchronously."""
-            # #     # return await asyncio.to_thread(self.invoke, args, sly_data)
-            # #     return self.invoke(args, sly_data)  
-
 class execute_tug_operator(CodedTool):
     """
     CodedTool implementation that calls function that operates wheels chocks on the ground at the gate.
@@ -301,8 +255,8 @@ class execute_tug_operator(CodedTool):
         pass
 
     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
-        file_path_log = "/Users/971244/workspace/neuro-san-studio/test_debug/airlineturnaround.txt"
-        ground_equipments_base = "/Users/971244/workspace/neuro-san-studio/coded_tools/ground_services/ground_equipments_base.csv"
+        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        ground_equipments_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/ground_services/ground_equipments_base.csv"
 
         # Check parameters in sly data
         aircraft_type: str = sly_data.get("aircraft_type", None)   
@@ -429,8 +383,6 @@ class execute_flight_tracker(CodedTool):
         sly_data["gpu_readiness_status"] = gpu_readiness_status    
         sly_data["chocks_readiness_status"] = chocks_readiness_status   
 
-# Flight AF84 has just landed and is set to deplane at gate A1. What is the ground services readiness? 
-
 class trackerAPI(CodedTool):
 
     """
@@ -459,18 +411,7 @@ class trackerAPI(CodedTool):
         """
         print(">>>>>>>>>>>>>>>>>>> trackerAPI flight operation agent >>>>>>>>>>>>>>>>>>")
 
-        # # Client name is required to place an order.
-        # customer_name: str = args.get("customer_name", None)
-        # if not customer_name:
-        #     print("No customer name provided. Trying to get it from sly_data")
-        #     customer_name = sly_data.get("username")
-        # if not customer_name:
-        #     error = "Error: Please provide a valid customer name for the order."
-        #     print(error)
-        #     return error
-
         # flight number is required to fulfill the request.
-
         flight_number: str = args.get("flight_number", None)
         if not flight_number:
             print("No flight number provided. Trying to get it from sly_data")
