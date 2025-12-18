@@ -147,8 +147,7 @@ When user submits inquiry, proceed as follows:
     [crew_debrief_status]
             """ ${aaosa_instructions},
 
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
+            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
                 "to_upstream": {
                     "sly_data": {
@@ -224,7 +223,7 @@ This agent that debriefs crew in the aircraft.
                     "required": ["flight_number", "aircraft_type","gate_id","jetbridge_connection_status","door_opening_status"] 
                 }
             },
-            "class": "aircraft_crew_debrief.crew_debrief_operator" 
+            "class": "AirlineTurnaround.aircraft_crew_debrief.aircraft_crew_debrief.crew_debrief_operator" 
         }, 
 
         {
@@ -308,7 +307,7 @@ I check door opening status as door_opening_status.
                     }, 
                 }
             },
-            "class": "aircraft_crew_debrief.trackerAPI" 
+            "class": "AirlineTurnaround.aircraft_crew_debrief.aircraft_crew_debrief.trackerAPI" 
         }, 
     ],
 }
