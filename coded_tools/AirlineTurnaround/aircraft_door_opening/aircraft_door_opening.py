@@ -19,23 +19,6 @@ def _norm(s: Union[str, None]) -> str:
     """Lowercase+strip (safe for None)."""
     return (s or "").strip().lower()
 
-# def build_tracker_status(
-#     flight_number: str,
-#     flight_status: str,
-#     aircraft_type: str,
-#     ground_clearance_type: str,
-#     assigned_runway: str,
-#     gate_id: str,
-# ) -> ClearanceDict:
-
-#     return {
-#         "flight_status": flight_status.strip().upper(),
-#         "flight_number": flight_number.strip().upper(),
-#         "aircraft_type": aircraft_type.strip().upper(),
-#         "ground_clearance_type": ground_clearance_type,
-#         "assigned_runway": assigned_runway,
-#         "gate_id": gate_id,
-#     }
 # ---------- tool ----------
 
 class door_operator(CodedTool):
@@ -60,7 +43,7 @@ class door_operator(CodedTool):
         :return: None in write mode or any of teh parameters in read mode
         """
         
-        file_path_log = "/Users/971244/workspace/neuro-san-studio/test_debug/airlineturnaround.txt"
+        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
         door_opening_status = 'closed'
 
         # flight number is needed in particular. 
@@ -68,7 +51,6 @@ class door_operator(CodedTool):
         if not flight_number:
             print("No flight number provided. Trying to get it from sly_data")
             flight_number = sly_data.get("flight_number")
-            # sly_data["flight_number"] = flight_number
         if not flight_number:
             error = "Error: Please provide a flight number for the request."
             print(error)
@@ -85,7 +67,6 @@ class door_operator(CodedTool):
         if not aircraft_type:
             print("No aircraft type provided. Trying to get it from sly_data")
             aircraft_type = sly_data.get("aircraft_type")
-            # sly_data["aircraft_type"] = aircraft_type
         if not aircraft_type:
             error = "Error: Please provide an aircraft type for the request."
             print(error)
@@ -102,7 +83,6 @@ class door_operator(CodedTool):
         if not flight_status:
             print("No flight status provided. Trying to get it from sly_data")
             flight_status = sly_data.get("flight_status")
-            # sly_data["flight_status"] = flight_status
         if not flight_status:
             error = "Error: Please provide a flight status for the request."
             print(error)
@@ -119,7 +99,6 @@ class door_operator(CodedTool):
         if not flight_status:
             print("No gate id provided. Trying to get it from sly_data")
             gate_id = sly_data.get("gate_id")
-            # sly_data["gate_id"] = gate_id
         if not gate_id:
             error = "Error: Please provide a gate id for the request."
             print(error)
@@ -130,47 +109,12 @@ class door_operator(CodedTool):
         print("gate_id: ", gate_id)
         print("\n")
         print("\n")
-         
-        # # engines stop status is required to fulfill the request.
-        # acu_connection_status: str = args.get("acu_connection_status", None)
-        # if not acu_connection_status:
-        #     print("No acu connection status provided. Trying to get it from sly_data")
-        #     acu_connection_status = sly_data.get("acu_connection_status")
-        #     # sly_data["gate_id"] = gate_id
-        # if not acu_connection_status:
-        #     error = "Error: Please provide acu connection status for the request."
-        #     print(error)
-        #     return error  
-                
-        # print("\n")
-        # print("\n")
-        # print("acu_connection_status: ", acu_connection_status)
-        # print("\n")
-        # print("\n")
-         
-        # # wheels chocks installation status is required to fulfill the request.
-        # gpu_connection_status: str = args.get("gpu_connection_status", None)
-        # if not gpu_connection_status:
-        #     print("No gpu connection status provided. Trying to get it from sly_data")
-        #     gpu_connection_status = sly_data.get("gpu_connection_status")
-        #     # sly_data["gate_id"] = gate_id
-        # if not gpu_connection_status:
-        #     error = "Error: Please provide gpu connection status for the request."
-        #     print(error)
-        #     return error  
-        
-        # print("\n")
-        # print("\n")
-        # print("gpu_connection_status: ", gpu_connection_status)
-        # print("\n")
-        # print("\n")
 
         # wheels chocks installation status is required to fulfill the request.
         jetbridge_connection_status: str = args.get("jetbridge_connection_status", None)
         if not jetbridge_connection_status:
             print("No jetbridge connection status provided. Trying to get it from sly_data")
             jetbridge_connection_status = sly_data.get("jetbridge_connection_status")
-            # sly_data["gate_id"] = gate_id
         if not jetbridge_connection_status:
             error = "Error: Please provide jetbridge connection status for the request."
             print(error)
@@ -182,6 +126,38 @@ class door_operator(CodedTool):
         print("\n")
         print("\n")
 
+        # acu connection status is required to fulfill the request.
+        acu_connection_status: str = args.get("acu_connection_status", None)
+        if not acu_connection_status:
+            print("No acu connection status provided. Trying to get it from sly_data")
+            acu_connection_status = sly_data.get("acu_connection_status")
+        if not acu_connection_status:
+            error = "Error: Please provide acu connection status for the request."
+            print(error)
+            return error  
+        
+        print("\n")
+        print("\n")
+        print("acu_connection_status: ", acu_connection_status)
+        print("\n")
+        print("\n")
+
+        # gpu connection status is required to fulfill the request.
+        gpu_connection_status: str = args.get("gpu_connection_status", None)
+        if not gpu_connection_status:
+            print("No gpu connection status provided. Trying to get it from sly_data")
+            gpu_connection_status = sly_data.get("gpu_connection_status")
+        if not gpu_connection_status:
+            error = "Error: Please provide gpu connection status for the request."
+            print(error)
+            return error  
+        
+        print("\n")
+        print("\n")
+        print("gpu_connection_status: ", gpu_connection_status)
+        print("\n")
+        print("\n")
+
         if acu_connection_status is not None: 
             acu_connection_status = acu_connection_status.lower()
         if gpu_connection_status is not None: 
@@ -189,7 +165,6 @@ class door_operator(CodedTool):
         if jetbridge_connection_status is not None: 
             jetbridge_connection_status = jetbridge_connection_status.lower() 
 
-        # if (('done' in acu_connection_status) & ('done' in gpu_connection_status)): 
         if ('connected' in jetbridge_connection_status): 
             door_opening_status = 'open'
 
@@ -206,9 +181,6 @@ class door_operator(CodedTool):
 
             sly_data["door_opening_status"] = door_opening_status
 
-        # message = f"Flight {flight_number} with airplane type {aircraft_type} {flight_status} at gate {gate_id} has door opened. Its door opening status is {door_opening_status}."
-
-        # return message
         return door_opening_status
 
     async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
@@ -251,14 +223,15 @@ class trackerAPI(CodedTool):
 
         :return: None in write mode or any of teh parameters in read mode
         """
-        
-        file_path_log = "/Users/971244/workspace/neuro-san-studio/test_debug/airlineturnaround.txt"
+
+        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
 
         print("\n")
         print("\n")
         print(" #################### API TRACKER GENERIC - AIRCRAFT DOOR OPENING #################### ")
         print("\n")
         print("\n")
+
         # Check and update flight_number
         flight_number: str = args.get("flight_number", None)
         print("\n")
@@ -270,7 +243,6 @@ class trackerAPI(CodedTool):
             print("flight_number has not been provided in user inquiry. Trying to get it from sly_data")
             flight_number = sly_data.get("flight_number")
             if flight_number: 
-                sly_data["flight_number"] = flight_number
                 print("\n")
                 print("\n")
                 print("####### flight_number read from sly data: #######", flight_number)
@@ -295,7 +267,6 @@ class trackerAPI(CodedTool):
             print("aircraft_type has not been provided in user inquiry. Trying to get it from sly_data")
             aircraft_type = sly_data.get("aircraft_type")
             if aircraft_type: 
-                sly_data["aircraft_type"] = aircraft_type
                 print("\n")
                 print("\n")
                 print("####### aircraft_type read from sly data: #######", aircraft_type)
@@ -320,7 +291,6 @@ class trackerAPI(CodedTool):
             print("flight_status has not been provided in user inquiry. Trying to get it from sly_data")
             flight_status = sly_data.get("flight_status")
             if flight_status: 
-                sly_data["flight_status"] = flight_status
                 print("\n")
                 print("\n")
                 print("####### flight_status read from sly data: #######", flight_status)
@@ -345,7 +315,6 @@ class trackerAPI(CodedTool):
             print("gate_id has not been provided in user inquiry. Trying to get it from sly_data")
             gate_id = sly_data.get("gate_id")
             if gate_id: 
-                sly_data["gate_id"] = gate_id
                 print("\n")
                 print("\n")
                 print("####### gate_id read from sly data: #######", flight_status)
@@ -370,7 +339,6 @@ class trackerAPI(CodedTool):
             print("acu_connection_status has not been provided in user inquiry. Trying to get it from sly_data")
             acu_connection_status = sly_data.get("acu_connection_status")
             if acu_connection_status: 
-                sly_data["acu_connection_status"] = acu_connection_status
                 print("\n")
                 print("\n")
                 print("####### acu_connection_status read from sly data: #######", acu_connection_status)
@@ -395,7 +363,6 @@ class trackerAPI(CodedTool):
             print("gpu_connection_status has not been provided in user inquiry. Trying to get it from sly_data")
             gpu_connection_status = sly_data.get("gpu_connection_status")
             if gpu_connection_status: 
-                sly_data["gpu_connection_status"] = gpu_connection_status
                 print("\n")
                 print("\n")
                 print("####### gpu_connection_status read from sly data: #######", gpu_connection_status)
@@ -420,7 +387,6 @@ class trackerAPI(CodedTool):
             print("wheels_chocks_installation_status has not been provided in user inquiry. Trying to get it from sly_data")
             wheels_chocks_installation_status = sly_data.get("wheels_chocks_installation_status")
             if wheels_chocks_installation_status: 
-                sly_data["wheels_chocks_installation_status"] = wheels_chocks_installation_status
                 print("\n")
                 print("\n")
                 print("####### wheels_chocks_installation_status read from sly data: #######", wheels_chocks_installation_status)
@@ -445,7 +411,6 @@ class trackerAPI(CodedTool):
             print("engines_stop_status has not been provided in user inquiry. Trying to get it from sly_data")
             engines_stop_status = sly_data.get("engines_stop_status")
             if engines_stop_status: 
-                sly_data["engines_stop_status"] = engines_stop_status
                 print("\n")
                 print("\n")
                 print("####### engines_stop_status read from sly data: #######", engines_stop_status)
@@ -470,7 +435,6 @@ class trackerAPI(CodedTool):
             print("jetbridge_connection_status has not been provided in user inquiry. Trying to get it from sly_data")
             jetbridge_connection_status = sly_data.get("jetbridge_connection_status")
             if jetbridge_connection_status: 
-                sly_data["jetbridge_connection_status"] = jetbridge_connection_status
                 print("\n")
                 print("\n")
                 print("####### jetbridge_connection_status read from sly data: #######", jetbridge_connection_status)
@@ -495,7 +459,6 @@ class trackerAPI(CodedTool):
             print("door_opening_status has not been provided in user inquiry. Trying to get it from sly_data")
             door_opening_status = sly_data.get("door_opening_status")
             if door_opening_status: 
-                sly_data["door_opening_status"] = door_opening_status
                 print("\n")
                 print("\n")
                 print("####### door_opening_status read from sly data: #######", door_opening_status)
@@ -520,7 +483,6 @@ class trackerAPI(CodedTool):
             print("ground_services_request_type has not been provided in user inquiry. Trying to get it from sly_data")
             ground_services_request_type = sly_data.get("ground_services_request_type")
             if ground_services_request_type: 
-                sly_data["ground_services_request_type"] = ground_services_request_type
                 print("\n")
                 print("\n")
                 print("####### ground_services_request_type read from sly data: #######", ground_services_request_type)
@@ -545,7 +507,6 @@ class trackerAPI(CodedTool):
             print("wheels_chocks_readiness_status has not been provided in user inquiry. Trying to get it from sly_data")
             wheels_chocks_readiness_status = sly_data.get("wheels_chocks_readiness_status")
             if wheels_chocks_readiness_status: 
-                sly_data["wheels_chocks_readiness_status"] = wheels_chocks_readiness_status
                 print("\n")
                 print("\n")
                 print("####### wheels_chocks_readiness_status read from sly data: #######", wheels_chocks_readiness_status)
@@ -559,8 +520,9 @@ class trackerAPI(CodedTool):
             print("\n")
             print("\n")
 
-        # This return list will be trimmed to contain only parameters relevant to the agentic system where this generic coded tool is used. 
-        # return flight_status,flight_number,aircraft_type,gate_id,acu_connection_status,gpu_connection_status,wheels_chocks_installation_status,engines_stop_status,jetbridge_connection_status,door_opening_status, ground_services_request_type, wheels_chocks_readiness_status
+        #####################################################################################################################################
+        # This return list will be trimmed to contain only parameters relevant to the agentic system where this generic coded tool is used. #
+        #####################################################################################################################################
         return jetbridge_connection_status
 
     async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
@@ -568,214 +530,3 @@ class trackerAPI(CodedTool):
         Delegates to the synchronous invoke method because it's quick, non-blocking.
         """
         return self.invoke(args, sly_data)
-
-#########################################################
-
-# ## trackerAPI
-
-# class trackerAPI(CodedTool):
-#     """
-#     Read and return sly data in read mode, or write and update sly data in write. 
-#     """
-
-#     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
-#         """
-#         :param args: an empty dictionary (not used).
-
-#         :param sly_data: a dictionary with the following keys:
-#             - flight_status
-#             - flight_number
-#             - aircraft_type
-#             - gate_id 
-#             - acu_connection_status 
-#             - gpu_connection_status 
-#             - wheels_chocks_installation status
-#             - jetbridge_connection_status
-#             - door_opening_status
-
-#         :return: None in write mode or any of teh parameters in read mode
-#         """
-        
-#         file_path_log = "/Users/971244/workspace/neuro-san-studio/test_debug/airlineturnaround.txt"
-#         # jetbridge_connection_status = 'pending'
-#         # acu_connection_status_temp = 'pending'
-#         # gpu_connection_status_temp = 'pending'
-#         jetbridge_connection_status_temp = 'retracted'
-#         door_opening_status = 'closed'
-
-#         print("\n")
-#         print("\n")
-#         print(" #################### API TRACKER FOR AIRCRAFT DOOR OPENING #################### ")
-#         print("\n")
-#         print("\n")
-#         # flight number is needed in particular. 
-#         flight_number: str = args.get("flight_number", None)
-#         if not flight_number:
-#             print("No flight number provided. Trying to get it from sly_data")
-#             flight_number = sly_data.get("flight_number")
-#             # sly_data["flight_number"] = flight_number
-#         # if not flight_number:
-#         #     error = "Error: Please provide a flight number for the request."
-#         #     print(error)
-#         #     return error       
-        
-#         print("\n")
-#         print("\n")
-#         print("####### flight_number from tracker: #######", flight_number)
-#         print("\n")
-#         print("\n")
-
-#         # aircraft type is required to fulfill the request.
-#         aircraft_type: str = args.get("aircraft_type", None)
-#         if not aircraft_type:
-#             print("No aircraft type provided. Trying to get it from sly_data")
-#             aircraft_type = sly_data.get("aircraft_type")
-#             # sly_data["aircraft_type"] = aircraft_type
-#         # if not aircraft_type:
-#         #     error = "Error: Please provide an aircraft type for the request."
-#         #     print(error)
-#         #     return error  
-        
-#         print("\n")
-#         print("\n")
-#         print("aircraft_type: ", aircraft_type)
-#         print("\n")
-#         print("\n")
- 
-#         # flight status is required to fulfill the request.
-#         flight_status: str = args.get("flight_status", None)
-#         if not flight_status:
-#             print("No flight status provided. Trying to get it from sly_data")
-#             flight_status = sly_data.get("flight_status")
-#             # sly_data["flight_status"] = flight_status
-#         # if not flight_status:
-#         #     error = "Error: Please provide a flight status for the request."
-#         #     print(error)
-#         #     return error  
-        
-#         print("\n")
-#         print("\n")
-#         print("flight_status: ", flight_status)
-#         print("\n")
-#         print("\n")
-         
-#         # flight status is required to fulfill the request.
-#         gate_id: str = args.get("gate_id", None)
-#         if not flight_status:
-#             print("No gate id provided. Trying to get it from sly_data")
-#             gate_id = sly_data.get("gate_id")
-#             # sly_data["gate_id"] = gate_id
-#         # if not gate_id:
-#         #     error = "Error: Please provide a gate id for the request."
-#         #     print(error)
-#         #     return error  
-        
-#         print("\n")
-#         print("\n")
-#         print("gate_id: ", gate_id)
-#         print("\n")
-#         print("\n")
-         
-#         # engines stop status is required to fulfill the request.
-#         acu_connection_status: str = args.get("acu_connection_status", None)
-#         print("acu_connection_status from args: ", acu_connection_status)
-#         print("\n")
-#         print("\n")
-#         if not acu_connection_status:
-#             print("No acu connection status provided. Trying to get it from sly_data")
-#             acu_connection_status = sly_data.get("acu_connection_status")
-#             # sly_data["gate_id"] = gate_id
-#             print("acu_connection_status from sly data: ", acu_connection_status)
-#             print("\n")
-#             print("\n")
-#         # if not acu_connection_status:
-#             # error = "Error: Please provide acu connection status for the request."
-#             # print(error)
-#             # return error  
-#             # acu_connection_status = acu_connection_status_temp
-                
-#         print("\n")
-#         print("\n")
-#         print("acu_connection_status: ", acu_connection_status)
-#         print("\n")
-#         print("\n")
-         
-#         # wheels chocks installation status is required to fulfill the request.
-#         gpu_connection_status: str = args.get("gpu_connection_status", None)
-#         print("gpu_connection_status from args: ", gpu_connection_status)
-#         print("\n")
-#         print("\n")
-#         if not gpu_connection_status:
-#             print("No gpu connection status provided. Trying to get it from sly_data")
-#             gpu_connection_status = sly_data.get("gpu_connection_status")
-#             # sly_data["gate_id"] = gate_id
-#             print("gpu_connection_status from sly data: ", gpu_connection_status)
-#             print("\n")
-#             print("\n")
-#         # if not gpu_connection_status:
-#             # error = "Error: Please provide gpu connection status for the request."
-#             # print(error)
-#             # return error  
-#             # gpu_connection_status = gpu_connection_status_temp
-        
-#         print("\n")
-#         print("\n")
-#         print("gpu_connection_status: ", gpu_connection_status)
-#         print("\n")
-#         print("\n")
-
-#         # wheels chocks installation status is required to fulfill the request.
-#         jetbridge_connection_status: str = args.get("jetbridge_connection_status", None)
-#         print("jetbridge_connection_status from args: ", jetbridge_connection_status)
-#         print("\n")
-#         print("\n")
-#         if not jetbridge_connection_status:
-#             print("No jetbridge connection status provided. Trying to get it from sly_data")
-#             jetbridge_connection_status = sly_data.get("jetbridge_connection_status")
-#             # sly_data["gate_id"] = gate_id
-#             print("jetbridge_connection_status from sly data: ", jetbridge_connection_status)
-#             print("\n")
-#             print("\n")
-#         # if not jetbridge_connection_status:
-#             # error = "Error: Please provide gpu connection status for the request."
-#             # print(error)
-#             # return error  
-#             jetbridge_connection_status = jetbridge_connection_status_temp
-        
-#         print("\n")
-#         print("\n")
-#         print("jetbridge_connection_status: ", jetbridge_connection_status)
-#         print("\n")
-#         print("\n")
-
-#         if acu_connection_status is not None: 
-#             acu_connection_status = acu_connection_status.lower()
-#         if gpu_connection_status is not None: 
-#             gpu_connection_status = gpu_connection_status.lower() 
-#         if jetbridge_connection_status is not None: 
-#             jetbridge_connection_status = jetbridge_connection_status.lower() 
-
-#         if (('done' in jetbridge_connection_status) | ('connected' in jetbridge_connection_status)): 
-#             door_opening_status = 'opened'
-
-#             message = f"door opening status is {door_opening_status}."
-#             # message = f"Flight {flight_number} with airplane type {aircraft_type} {flight_status} at gate {gate_id} has door opened installed. Its door opening status is {door_opening_status}."
-#             print(message)
-#             print("\n")
-#             print("\n")
-#             print(">>>>>>>>>>>>>>>>>>> DONE !!! >>>>>>>>>>>>>>>>>>")
-
-#             timenow = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-#             line = timenow + ": " + message
-#             with open(file_path_log, mode="a", encoding="utf-8") as f:  
-#                 f.write(line + "\n")   
-
-#             sly_data["door_opening_status"] = door_opening_status
-
-#         return door_opening_status
-
-#     async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
-#         """
-#         Delegates to the synchronous invoke method because it's quick, non-blocking.
-#         """
-#         return self.invoke(args, sly_data)

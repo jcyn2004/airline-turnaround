@@ -127,35 +127,6 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                 }
             },
 
-// "acu_connection_status","gpu_connection_status",
-
-// "flight_status",
-
-// {instructions_prefix}
-
-//             "instructions": """
-// You are the agent in charge of opening the door of the aircraft. 
-// Do not make things up. Only act based on confirmed information.
-// When user submits inquiry to open the door of the aircraft, proceed as follows: 
-// 1. Determine the followings from the user inquiry: 
-//     a. flights status such as 'on blocks'
-//     b. jetbridge connection status such as'connected'
-// 2. If jetbridge connection status = 'connected'
-//     a. call door_operator to open the door of the aircraft
-//     b. Wait for its response and save it as door_opening_status
-//     c. go to step 5. 
-// 3. If jetbridge connection status is not 'connected'
-//     a. call your tools to make sure that jetbridge connection status = 'connected'
-//     b. wait for their responses 
-// 4. Call trackerAPI
-//     a. wait for its response 
-//     b. store jetbridge connection status as jetbridge_connection_status, 
-//     c. if jetbridge_connection_status is not connected, go back to step 3.
-// 5. Provide the door opening status report summary as: 
-//     ** door opening status summary **: 
-//     [door_opening_status]
-//             """ ${aaosa_instructions},
-
             "instructions": """
 You are the agent in charge of opening the door of the aircraft. 
 Do not make things up. Only act based on confirmed information.
@@ -178,57 +149,7 @@ When user submits inquiry to open the door of the aircraft, proceed as follows:
     [door_opening_status]
             """ ${aaosa_instructions},
 
-//             "instructions": """
-// You are the agent in charge of opening the door of the aircraft. 
-// When you receive user inquiry, proceed as follows: 
-// Make sure that flight status = 'on blocks'
-// Call trackerAPI to check the jetbridge connection status
-// - Wait for its response 
-// - Record jetbridge_connection_status
-// If jetbridge_connection_status is not connected, call aircraft_jetbridge_connect to connect jetbridge to aircraft. 
-// Do not call door operator unless jetbridge_connection_status is connected. 
-// If jetbridge_connection_status is connected:
-//     - call door operator to open the door of the aircraft.
-//     - Return the status of door opening as door_opening_status reported. 
-// Display result in the following format: 
-// ** door opening status **: 
-// [door_opening_status]
-// """ ${aaosa_instructions},
-
-//             "instructions": """
-// You are the agent in charge of connecting jetbridge to aircraft. 
-// When user submits inquiry, proceed as follows: 
-// 1. Determine the followings from the user inquiry: 
-//     a. flights status such as 'on blocks'
-//     b. acu connection status such as 'connected' 
-//     c. gpu connection status such as 'connected' 
-//     d. jetbridge connection status such as'connected'
-// 2. If jetbridge_connection_status = 'connected', then go to step 6.
-// 3. If acu_connection_status is not connected or gpu_connection_status is not connected
-//     a. call your tools to make sure that acu_connection_status is connected and gpu_connection_status is connected
-//     b. wait for their responses 
-// 4. Call trackerAPI
-//     a. wait for its response 
-//     b. store acu connection status as acu_connection_status, store gpu connection status as gpu_connection_status, store flight status as flight_status, store jetbridge connection status as jetbridge_connection_status
-//     c. if acu_connection_status is not connected or gpu_connection_status is not connected, go back to step 3.
-// 5. If acu_connection_status = 'connected' and gpu_connection_status = 'connected' and jetbridge_connection_status is not connected
-//     a. call jetbridge_operator to connect jetbridge to aircraft
-//     b. Wait for its response and save it as jetbridge_connection_status
-//     c. Report jetbridge_connection_status
-// 6. Provide the acu connection status report summary as: 
-//     ** jetbridge connection status summary **: 
-//     [jetbridge_connection_status]
-//             """ ${aaosa_instructions},
-
-// If user inquiry does not confirm that gpu is connected, call aircraft_acu_connect to connect gpu. 
-// If user inquiry does not confirm that acu is connected, call aircraft_acu_connect to connect acu. 
-
-// Make sure that gpu is connected and that acu is connected. 
-
-    // - Wait for its response 
-
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
+            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
                 "to_upstream": {
                     "sly_data": {
@@ -236,23 +157,12 @@ When user submits inquiry to open the door of the aircraft, proceed as follows:
                         "jetbridge_connection_status": true
                     }
                 }
-            },
-
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            "allow": {
                 "to_downstream": {
                     "sly_data": {
                         "door_opening_status": true
-                        // "engines_stop_status": true
                         "jetbridge_connection_status": true
                     }
                 }
-            },
-
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            "allow": {
                 "from_upstream": {
                     "sly_data": {
                         "flight_number": true
@@ -264,11 +174,6 @@ When user submits inquiry to open the door of the aircraft, proceed as follows:
                         "jetbridge_connection_status": true
                     }
                 }
-            },
-            
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            "allow": {
                 "from_downstream": {
                     "sly_data": {
                         "flight_number": true
@@ -280,12 +185,6 @@ When user submits inquiry to open the door of the aircraft, proceed as follows:
                         "jetbridge_connection_status": true
                     }
                 }
-            },
-
-#######
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            "allow": {
                 "to_downstream": {
                     "sly_data": {
                         "flight_number": true
@@ -357,10 +256,10 @@ I check the status of the jetbridge connection to the aircraft.
                             "description": "This is the status of jetbridge connect."
                         },   
                     }, 
-                    // "required": ["flight_number", "aircraft_type","flight_status","assigned_runway_id","gate_id","ground_services_request_type"] 
+                    "required": [] 
                 }
             },
-            "class": "aircraft_door_opening.trackerAPI" 
+            "class": "AirlineTurnaround.aircraft_door_opening.aircraft_door_opening.trackerAPI" 
         }, 
 
         {
@@ -404,12 +303,7 @@ This agent opens the door of the aircraft.
                     "required": ["flight_number", "aircraft_type","gate_id","jetbridge_connection_status"] 
                 }
             },
-            "class": "aircraft_door_opening.door_operator" 
+            "class": "AirlineTurnaround.aircraft_door_opening.aircraft_door_opening.door_operator" 
         }, 
-
-// "acu_connection_status","gpu_connection_status",
-
-// "flight_status",
-
     ],
 }

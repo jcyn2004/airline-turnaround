@@ -6,6 +6,7 @@
         "description": "Simple agent network using a single LLM-based agent",
         "tags": ["example"],
         "sample_queries": [
+            "Land flight AF84 that has been cleared for landing on runway 19L. It is a B747. ",
             "Land the incoming flight AF84. It is a B747.",
         ]
     },
@@ -163,8 +164,7 @@ When you receive a user request to land an aircraft, proceed as follows:
     [landing_summary]
             """ ${aaosa_instructions},
 
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
+            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
                 "to_upstream": {
                     "sly_data": {
@@ -307,42 +307,8 @@ I am the agent in charge of landing the aircraft.
                     "required": ["aircraft_direction","flight_number", "aircraft_type","clearance_type","assigned_runway_id"] 
                 },
             },
-            "class": "aircraft_landing.execute_aircraft_landing" 
+            "class": "AirlineTurnaround.aircraft_landing.aircraft_landing.execute_aircraft_landing" 
         }, 
-
-//         {
-//             "name": "clearance_validation_agent",
-//             "function": {
-
-//                 "description": """
-// I check that length of the runway assigned by clearance meets the minimal requiremennt for the landing of your aircraft. 
-//                 """,
-//                 "parameters": {
-//                     "type": "object", 
-//                     "properties": {
-//                         "aircraft_type": {
-//                             "type": "string", 
-//                             "description": "This is the type of the incoming aircraft."
-//                         },                
-//                         "clearance_type": {
-//                             "type": "string", 
-//                             "description": "This is the type of clearance given to the aircrfat."
-//                         },         
-//                         "assigned_runway_id": {
-//                             "type": "string", 
-//                             "description": "This is the runway assigned to the aircraft movement autorized by the clearance."
-//                         },         
-//                         "assigned_runway_length": {
-//                             "type": "string", 
-//                             "description": "This is the length of assigned runway."
-//                         },        
-//                     }, 
-//                     "required": ["aircraft_type","clearance_type","assigned_runway_id","assigned_runway_length",] 
-//                 },
-
-//             },
-//             "class": "aircraft_landing.execute_clearance_validation" 
-//         }, 
 
         {
             "name": "trackerAPI",
@@ -442,7 +408,7 @@ I am the flight tracker in charge of logging parameters during aircraft turnarou
                     }, 
                 },
             },
-            "class": "aircraft_landing.trackerAPI" 
+            "class": "AirlineTurnaround.aircraft_landing.aircraft_landing.trackerAPI" 
         }, 
     ]
 }

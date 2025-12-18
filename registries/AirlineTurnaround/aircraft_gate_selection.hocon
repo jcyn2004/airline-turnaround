@@ -112,7 +112,7 @@ I assign gate to incoming flight by selecing the deplaning equipment for their p
                     "required": ["flight_number","aircraft_type"], 
                 }
             },
-// {instructions_prefix}
+
             "instructions": """
 You are the top-level agent responsible for assigning gate to incoming aircraft.  
 Only perform the tasks that fall under your responsibility. Use ONLY your tools to complete your tasks. 
@@ -131,24 +131,13 @@ When you receive a user request, do the following in the given order:
 - report gate_id    
             """ ${aaosa_instructions},
 
-// - flight number as flight_number 
-// - aircraft type as aircraft_type
-
-// {aaosa_instructions}
-
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
+            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
                 "to_upstream": {
                     "sly_data": {
                         "gate_id": true, 
                     }
                 }
-            },
-
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
-            "allow": {
                 "from_upstream": {
                     "sly_data": {
                         "flight_number": true, 
@@ -159,8 +148,6 @@ When you receive a user request, do the following in the given order:
 
             "tools":    ["deplaning_path_selector"]
         },
-
-// ,"tracker_agent"
 
         {
             "name": "deplaning_path_selector",
@@ -183,7 +170,7 @@ When you receive a user request, do the following in the given order:
                     "required": ["flight_number","aircraft_type"], 
                 },
             },
-// {instructions_prefix}
+
             "instructions": """
 When you receive a user request, do the following in the given order:
 (1) Send the user request to your tools in 'read' execution mode asking for available deplaning equipment: 
@@ -197,13 +184,8 @@ When you receive a user request, do the following in the given order:
 - report gate_id 
             """ ${aaosa_instructions},
 
-
-// (3) Send a request to your tools in 'write' execution with deplaning equipment id as deplaning_equipment_id
-
             "tools":["jetway_agent","stairtruck_agent"]
         },
-
-// ,"tracker_agent"
 
         {
             "name": "jetway_agent",
@@ -235,9 +217,7 @@ When you receive a user request, do the following in the given order:
                     "required": ["execution_mode","flight_number","aircraft_type"], 
                 },
             },
-// ,"aircraft_type","is_emergency"
 
-// {instructions_prefix}
             "instructions": """
 You are the agent responsible for proposing a deplaning equipment of jetway type. 
 When handling a user request in 'read' execution mode proceed in the following order:
@@ -253,16 +233,8 @@ When handling a user request in 'read' execution mode proceed in the following o
 - report deplaning_equipment_report.
             """ ${aaosa_instructions},
 
-// - report its gate id as gate_id
-
-// (3) Send a request to your tools in 'write' execution with deplaning equipment id as deplaning_equipment_id
-// - FULFILL the request always using your tools with the provided deplaning eqipment id deplaning_equipment_id.
-// When handling a user request in 'write' execution mode for jetway equipment, DO NOT check the emergency status of the aircraft.
-
             "tools":["jetway_park_agent"]
         },
-
-// ,"tracker_agent"
 
         {
             "name": "stairtruck_agent",
@@ -293,7 +265,7 @@ When handling a user request in 'read' execution mode proceed in the following o
                     "required": ["execution_mode","flight_number","aircraft_type"], 
                 },
             },
-// {instructions_prefix}
+
             "instructions": """
 You are the agent responsible for proposing a deplaning equipment of stairtruck type. 
 When handling a user request in 'read' execution mode proceed in the following order:
@@ -310,13 +282,8 @@ When handling a user request in 'read' execution mode proceed in the following o
 - report deplaning_equipment_report.
             """ ${aaosa_instructions},
 
-// When handling a user request in 'write' execution mode for stairtruck equipment, DO NOT check the emergency status of the aircraft.
-// - FULFILL the request always using your tools with the provided deplaning eqipment id deplaning_equipment_id.
-
             "tools":["stairtruck_park_agent"]
         },
-
-// ,"tracker_agent"
 
         {
             "name": "jetway_park_agent",
@@ -347,7 +314,7 @@ This agent provides the inventory of jet jetway park and return the fastest avai
                     "required": ["flight_number","aircraft_type"], 
                 }
             }, 
-            "class": "aircraft_gate_selection.jetway_park_inquiry"
+            "class": "AirlineTurnaround.aircraft_gate_selection.aircraft_gate_selection.jetway_park_inquiry"
         }, 
 
         {
@@ -379,50 +346,7 @@ This agent provides the inventory of stairtruck park and return the fastest avai
                     "required": ["flight_number","aircraft_type"], 
                 }
             }, 
-            "class": "aircraft_gate_selection.stairtruck_park_inquiry"
+            "class": "AirlineTurnaround.aircraft_gate_selection.aircraft_gate_selection.stairtruck_park_inquiry"
         }, 
-
-//         {
-//             "name": "tracker_agent",
-//             "function": {
-//                 "description": """
-// This agent gives aircraft clearance during emergency situation. 
-//                 """,    
-//                 "parameters": {
-//                     "type": "object", 
-//                     "properties": {
-//                         "flight_number": {
-//                             "type": "string", 
-//                             "description": "This is the flight number of the incoming aicraft."
-//                         },   
-//                         "aircraft_type": {
-//                             "type": "string", 
-//                             "description": "This is the type of the incoming aircraft."
-//                         },    
-//                         "deplaning_equipment_id": {
-//                             "type": "string", 
-//                             "description": "This is the deplaning equipment id that needs status updated."
-//                         },      
-//                         "gate_id": {
-//                             "type": "string", 
-//                             "description": "This is the gate id."
-//                         },      
-//                         "stairtruck_id": {
-//                             "type": "string", 
-//                             "description": "This is the the id of the stairtruck available."
-//                         },   
-//                         "jetway_id": {
-//                             "type": "string", 
-//                             "description": "This is the the id of the jetway available."
-//                         },        
-//                         "execution_mode": {
-//                             "type": "string", 
-//                             "description": "This is the mode that agent should operate in."
-//                         },                      
-//                     }, 
-//                 },
-//             }, 
-//             "class": "aircraft_gate_selection.trackerAPI"
-//         }, 
     ],
 }

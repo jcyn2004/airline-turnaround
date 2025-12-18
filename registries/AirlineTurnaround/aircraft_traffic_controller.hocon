@@ -30,7 +30,7 @@ You provide any information that is needed about landing clearance or runway.
 You share clearance details with the user as needed. 
                 """
             },
-// {instructions_prefix}
+
             "instructions": """
 You are the top-level agent responsible for giving clearance for aircraft landing or takeoff. 
 In that role to provide users with clearance details when asked. 
@@ -55,13 +55,6 @@ When you receive a user request for clearance,
 ** assigned runway length **: [assigned_runway_length]
 ** clearance report **: [clearance_report]
             """ ${aaosa_instructions},
-
-// 2. Ask for missing information. 
-// 3. Send the request to your tools including flight_number, aircraft_type, and aircraft_direction
-// 5. Call report_aircraft_traffic_controller
-// - Display results as the follows: 
-// ** clearance summary **: [clearance_summary]
-// When you receive a user request for clearance, 
 
             "parameters": {
                 "type": "object", 
@@ -102,18 +95,13 @@ When you receive a user request for clearance,
                 "required": ["aircraft_direction","flight_number", "aircraft_type"] 
             },
 
-// {aaosa_instructions}
-
-            # Specify the sly data that should come back from the tools to the client.
-            # The session is initiated by the tool, and the client must re-use it to continue the conversation.
+            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
                 "from_upstream": {
                     "sly_data": {
                         "flight_number": true, 
                         "aircraft_type": true, 
                         "aircraft_direction": true, 
-                        // "clearance_type": true, 
-                        // "flight_status": true, 
                     }
                 },
 
@@ -126,8 +114,6 @@ When you receive a user request for clearance,
                         "clearance_type": true, 
                         "assigned_runway": true, 
                         "runway_length": true, 
-                        "clearance_landing_valid": true, # to revisit
-                        "clearance_takeoff_valid": true, # to revisit
                     }
                 },
 
@@ -142,11 +128,11 @@ When you receive a user request for clearance,
                         "assigned_runway_length": true,
                     }
                 },
-
             },
+
             "tools": ["aircraft_traffic_controller","trackerAPI"]
         },
-            // "tools": ["aircraft_traffic_controller","emergency_agent","tracker_agent","report_aircraft_traffic_controller"]
+
         {
             "name": "aircraft_traffic_controller",
             "function": {
@@ -192,7 +178,7 @@ You can grant clearance, refuse clearance, or put clearance hold.
                     "required": ["aircraft_type", "flight_number", "aircraft_direction"] 
                 },
             },
-// {instructions_prefix}
+
             "instructions": """
 You are responsible for giving clearance to aircrafts for landing. 
 Only perform the tasks that fall under your responsibility. 
@@ -203,212 +189,6 @@ Return flight_status, clearance_type, assigned_runway_id, and assigned_runway_le
             """ ${aaosa_instructions},
             "tools":["air_clearance_agent"]
         },
-
-// ,"tracker_aircraft_traffic_controller"
-
-// #########
-//         {
-//             "name": "emergency_agent",
-//             "function": {
-
-//                 "description": """
-// You are responsible to managing air traffic ONLY when aircraft situation is an emergency. 
-//                 """
-//                 "parameters": {
-//                     "type": "object", 
-//                     "properties": {
-//                         "flight_number": {
-//                             "type": "string", 
-//                             "description": "This is the flight number of the incoming aicraft."
-//                         },   
-//                         "aircraft_type": {
-//                             "type": "string", 
-//                             "description": "This is the type of the incoming aircraft."
-//                         },      
-//                         "aircraft_direction": {
-//                             "type": "string", 
-//                             "description": "This is the direction of the aircraft: incoming or departing."
-//                         },           
-//                         "flight_status": {
-//                             "type": "string", 
-//                             "description": "This is the flight status"
-//                         },         
-//                         "clearance_type": {
-//                             "type": "string", 
-//                             "description": "This is the requested clearance type"
-//                         },       
-//                         "assigned_runway_id": {
-//                             "type": "string", 
-//                             "description": "This is the assigned runway id"
-//                         },       
-//                         "assigned_runway_length": {
-//                             "type": "string", 
-//                             "description": "This is the assigned runway length"
-//                         },     
-//                     }, 
-//                     "required": ["aircraft_type", "flight_number", "aircraft_direction","clearance_type","assigned_runway_id"] 
-//                 },
-//             },
-// // {instructions_prefix}
-//             "instructions": """
-// Respond to user request ONLY when the situation is an emergency. 
-// Activate the emergency protocol for the aircraft clearance type emergency. 
-// Only perform the tasks that fall under your responsibility. 
-// DO NOT make things up. 
-// Use ONLY YOUR TOOLS to fulfill your tasks. 
-//             """ ${aaosa_instructions},
-//             "tools":["air_clearance_emergency_agent","fire_department","medical_department"]
-//         },
-
-//         {
-//             "name": "fire_department",
-//             "function": {
-
-//                 "description": """
-// You are responsible for the deployment of fire fighting resources to address emergency situations. 
-//                 """
-//                 "parameters": {
-//                     "type": "object", 
-//                     "properties": {
-//                         "flight_number": {
-//                             "type": "string", 
-//                             "description": "This is the flight number of the incoming aicraft."
-//                         },   
-//                         "aircraft_type": {
-//                             "type": "string", 
-//                             "description": "This is the type of the incoming aircraft."
-//                         },      
-//                         "aircraft_direction": {
-//                             "type": "string", 
-//                             "description": "This is the direction of the aircraft: incoming or departing."
-//                         },           
-//                         "flight_status": {
-//                             "type": "string", 
-//                             "description": "This is the flight status"
-//                         },         
-//                         "clearance_type": {
-//                             "type": "string", 
-//                             "description": "This is the requested clearance type"
-//                         },       
-//                         "assigned_runway_id": {
-//                             "type": "string", 
-//                             "description": "This is the assigned runway id"
-//                         },       
-//                         "assigned_runway_length": {
-//                             "type": "string", 
-//                             "description": "This is the assigned runway length"
-//                         },     
-//                     }, 
-//                     "required": ["aircraft_type", "flight_number", "aircraft_direction","clearance_type","assigned_runway_id"] 
-//                 },
-//             },
-// // {instructions_prefix}
-//             "instructions": """
-// Respond to user request ONLY when the situation is an emergency. 
-// Activate the fire fighting protocol for rediness and intervention. 
-// Only perform the tasks that fall under your responsibility. 
-// DO NOT make things up. 
-// Use ONLY YOUR TOOLS to fulfill your tasks. 
-//             """ ${aaosa_instructions},
-//             // "tools":["air_clearance_emergency_agent","fire_department","medical_department"]
-//         },
-
-//         {
-//             "name": "medical_department",
-//             "function": {
-
-//                 "description": """
-// You are responsible for the deployment of medical resources to address emergency situations. 
-//                 """
-//                 "parameters": {
-//                     "type": "object", 
-//                     "properties": {
-//                         "flight_number": {
-//                             "type": "string", 
-//                             "description": "This is the flight number of the incoming aicraft."
-//                         },   
-//                         "aircraft_type": {
-//                             "type": "string", 
-//                             "description": "This is the type of the incoming aircraft."
-//                         },      
-//                         "aircraft_direction": {
-//                             "type": "string", 
-//                             "description": "This is the direction of the aircraft: incoming or departing."
-//                         },           
-//                         "flight_status": {
-//                             "type": "string", 
-//                             "description": "This is the flight status"
-//                         },         
-//                         "clearance_type": {
-//                             "type": "string", 
-//                             "description": "This is the requested clearance type"
-//                         },       
-//                         "assigned_runway_id": {
-//                             "type": "string", 
-//                             "description": "This is the assigned runway id"
-//                         },       
-//                         "assigned_runway_length": {
-//                             "type": "string", 
-//                             "description": "This is the assigned runway length"
-//                         },     
-//                     }, 
-//                     "required": ["aircraft_type", "flight_number", "aircraft_direction","clearance_type","assigned_runway_id"] 
-//                 },
-//             },
-// // {instructions_prefix}
-//             "instructions": """
-// Respond to user request ONLY when the situation is an emergency. 
-// Activate the fire medical emergency protocol for rediness and intervention. 
-// Only perform the tasks that fall under your responsibility. 
-// DO NOT make things up. 
-// Use ONLY YOUR TOOLS to fulfill your tasks. 
-//             """ ${aaosa_instructions},
-//             // "tools":["air_clearance_emergency_agent","fire_department","medical_department"]
-//         },
-
-//         {
-//             "name": "air_clearance_emergency_agent",
-//             "function": {
-//                 "description": """
-// This agent gives aircraft clearance during emergency situation. 
-//                 """,      
-//                 "parameters": {
-//                     "type": "object", 
-//                     "properties": {
-//                         "flight_number": {
-//                             "type": "string", 
-//                             "description": "This is the flight number of the incoming aicraft."
-//                         },   
-//                         "aircraft_type": {
-//                             "type": "string", 
-//                             "description": "This is the type of the incoming aircraft."
-//                         },      
-//                         "aircraft_direction": {
-//                             "type": "string", 
-//                             "description": "This is the direction of the aircraft: incoming or departing."
-//                         },           
-//                         "flight_status": {
-//                             "type": "string", 
-//                             "description": "This is the flight status"
-//                         },         
-//                         "clearance_type": {
-//                             "type": "string", 
-//                             "description": "This is the requested clearance type"
-//                         },       
-//                         "assigned_runway_id": {
-//                             "type": "string", 
-//                             "description": "This is the assigned runway id"
-//                         },       
-//                         "assigned_runway_length": {
-//                             "type": "string", 
-//                             "description": "This is the assigned runway length"
-//                         },     
-//                     }, 
-//                     "required": ["aircraft_type", "flight_number", "aircraft_direction"] 
-//                 },  
-//             }, 
-//             "class": "aircraft_traffic_controller.execute_air_clearance"
-//         }, 
 
         {
             "name": "air_clearance_agent",
@@ -451,108 +231,9 @@ This agent gives aircraft clearance for landing.
                     "required": ["aircraft_type", "flight_number", "aircraft_direction"] 
                 },
             }, 
-            "class": "aircraft_traffic_controller.execute_air_clearance"
+            "class": "AirlineTurnaround.aircraft_traffic_controller.aircraft_traffic_controller.execute_air_clearance"
         }, 
 
-//         {
-//             "name": "tracker_agent",
-//             "function": {
-//                 "description": """
-// This agent gives aircraft clearance during emergency situation. 
-//                 """,    
-//                 "parameters": {
-//                     "type": "object", 
-//                     "properties": {
-//                         "flight_number": {
-//                             "type": "string", 
-//                             "description": "This is the flight number of the incoming aicraft."
-//                         },   
-//                         "aircraft_type": {
-//                             "type": "string", 
-//                             "description": "This is the type of the incoming aircraft."
-//                         },      
-//                         "aircraft_direction": {
-//                             "type": "string", 
-//                             "description": "This is the direction of the aircraft: incoming or departing."
-//                         },           
-//                         "flight_status": {
-//                             "type": "string", 
-//                             "description": "This is the flight status"
-//                         },         
-//                         "clearance_type": {
-//                             "type": "string", 
-//                             "description": "This is the requested clearance type"
-//                         },       
-//                         "assigned_runway_id": {
-//                             "type": "string", 
-//                             "description": "This is the assigned runway id"
-//                         },       
-//                         "assigned_runway_length": {
-//                             "type": "string", 
-//                             "description": "This is the assigned runway length"
-//                         },     
-//                     }, 
-//                     "required": ["aircraft_type", "flight_number", "aircraft_direction"] 
-//                 },  
-//             }, 
-//             "class": "aircraft_traffic_controller.trackerAPI"
-//         }, 
-
-//         {
-//             "name": "tracker_aircraft_traffic_controller",
-//             "function": {
-//                 "description": """
-// This agent gives aircraft clearance during emergency situation. 
-//                 """,    
-//                 "parameters": {
-//                     "type": "object", 
-//                     "properties": {
-//                         "flight_number": {
-//                             "type": "string", 
-//                             "description": "This is the flight number of the incoming aicraft."
-//                         },   
-//                         "aircraft_type": {
-//                             "type": "string", 
-//                             "description": "This is the type of the incoming aircraft."
-//                         },      
-//                         "aircraft_direction": {
-//                             "type": "string", 
-//                             "description": "This is the direction of the aircraft: incoming or departing."
-//                         },           
-//                         // "flight_status": {
-//                         //     "type": "string", 
-//                         //     "description": "This is the flight status"
-//                         // },         
-//                         // "clearance_type": {
-//                         //     "type": "string", 
-//                         //     "description": "This is the requested clearance type"
-//                         // },       
-//                         // "assigned_runway_id": {
-//                         //     "type": "string", 
-//                         //     "description": "This is the assigned runway id"
-//                         // },       
-//                         // "assigned_runway_length": {
-//                         //     "type": "string", 
-//                         //     "description": "This is the assigned runway length"
-//                         // },     
-//                     }, 
-//                     "required": ["aircraft_type", "flight_number", "aircraft_direction"] 
-//                 },  
-//             }, 
-//             "class": "aircraft_traffic_controller.tracker_aircraft_traffic_controller"
-//         }, 
-
-//         {
-//             "name": "report_aircraft_traffic_controller",
-//             "function": {
-//                 "description": """
-// This agent reports aircraft clearance summary. 
-//                 """,    
-//             }, 
-//             "class": "aircraft_traffic_controller.report_aircraft_traffic_controller"
-//         }, 
-
-#########
         {
             "name": "trackerAPI",
             "function": {
@@ -629,10 +310,10 @@ I am the flight tracker in charge of logging parameters during aircraft turnarou
                             "description": "This is the baggage unload status."
                         },  
                     }, 
-                    // "required": ["flight_number", "aircraft_type","flight_status","assigned_runway_id","gate_id","ground_services_request_type"] 
+                    "required": [] 
                 }
             },
-            "class": "aircraft_traffic_controller.trackerAPI" 
+            "class": "AirlineTurnaround.aircraft_traffic_controller.aircraft_traffic_controller.trackerAPI" 
         }, 
     ],
 }
