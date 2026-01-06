@@ -138,21 +138,38 @@ When user submits inquiry, proceed as follows:
     e. passenger disembarkation status such as'completed'
     f. crew exit status such as 'completed' or 'exited'
     g. baggage unload status such as 'completed' or 'unloaded'
-2. If passenger_disembarkation_status = 'completed' and crew_exit_status includes 'completed' and baggage_unload_status includes 'completed' then go to step 5.
-3. If passenger_disembarkation_status is not 'completed', or crew_exit_status does not includes 'completed' or 'exited' or baggage_unload_status does not includes 'completed' or 'unloaded'
-    a. call your tools to make sure that passenger_disembarkation_status is completed and crew_exit_status is 'completed or 'exited' and baggage_unload_status is 'completed' or 'unloaded'
-    b. wait for their responses 
-4. Call trackerAPI
+2. call TrackerAPI to get the latest value of passenger_disembarkation_status, crew_exit_status, and baggage_unload_status  
     a. wait for its response 
-    b. store passenger disembarkation status as passenger_disembarkation_status, store crew exit status as crew_exit_status, and store baggage unload status as baggage_unload_status. 
-    c. If passenger_disembarkation_status is not 'completed', or crew_exit_status does not includes 'completed' or 'exited' or baggage_unload_status does not includes 'completed' or 'unloaded', then go back to step 3.
-5. If passenger_disembarkation_status = 'completed' and crew_exit_status includes 'completed' and baggage_unload_status includes 'completed'
+    b. store passenger disembarkation status as passenger_disembarkation_status, store crew exit status as crew_exit_status, and store baggage unload status as baggage_unload_status
+3. If passenger_disembarkation_status is 'completed', and crew_exit_status includes 'completed', and baggage_unload_status includes 'completed' then go to step 7.
+4. If passenger_disembarkation_status is not 'completed', 
+    a. call aircraft_disembark to disembark passengers 
+    b. wait for its response 
+    c. Return to step 2.
+5. If crew_exit_status does not includes 'completed' or 'exited', 
+    a. call aircraft_crew_exit to make sure that crew exits the aircraft
+    b. wait for its response 
+    c. Return to step 2.
+6. If baggage_unload_status does not includes 'completed' or 'unloaded'
+    a. call baggage_unload to make sure that baggage is unloaded from the aircraft  
+    b. wait for its response 
+    c. Return to step 2.
+7. If passenger_disembarkation_status is 'completed', and crew_exit_status includes 'completed', and baggage_unload_status includes 'completed'
     a. call lavatory_service_operator to service lavatories on aircraft
     b. Wait for its response and save it as lavatory_service_status
     c. Report lavatory_service_status
-6. Provide the lavatory service status report summary as: 
-    ** lavatory service summary **: 
-    [lavatory_service_status]
+8. Call TrackerAPI
+    a. wait for its response 
+    b. store lavatory_service_status as lavatory_service_status
+9. Provide the lavatory service status report summary as: 
+    ** flight_number **: [flight_number]
+    ** aircraft_type **: [aircraft_type]
+    ** flight_status **: [flight_status]
+    ** gate_id **: [gate_id]
+    ** passenger disembarkation status **: [passenger_disembarkation_status]
+    ** crew exit status **: [crew_exit_status]
+    ** baggage unload status **: [baggage_unload_status]
+    ** lavatory service status **: [lavatory_service_status]
             """ ${aaosa_instructions}, 
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
@@ -197,7 +214,7 @@ When user submits inquiry, proceed as follows:
                 }
             },
 
-            "tools":    ["trackerAPI","lavatory_service_operator","/AirlineTurnaround/aircraft_disembark","/AirlineTurnaround/aircraft_crew_exit","/AirlineTurnaround/aircraft_crew_exit","/AirlineTurnaround/aircraft_baggage_unload"]
+            "tools":    ["TrackerAPI","lavatory_service_operator","/AirlineTurnaround/aircraft_disembark","/AirlineTurnaround/aircraft_crew_exit","/AirlineTurnaround/aircraft_crew_exit","/AirlineTurnaround/aircraft_baggage_unload"]
         },
 
         {
@@ -245,7 +262,7 @@ This agent services lavatories on the aircraft at the gate.
         }, 
 
         {
-            "name": "trackerAPI",
+            "name": "TrackerAPI",
             "function": {
 
                 "description": """
@@ -326,7 +343,7 @@ I check baggage unload status as baggage_unload_status.
                     "required": [] 
                 }
             },
-            "class": "AirlineTurnaround.aircraft_lavatory_service.aircraft_lavatory_service.trackerAPI" 
+            "class": "AirlineTurnaround.aircraft_lavatory_service.aircraft_lavatory_service.TrackerAPI" 
         }, 
     ],
 }

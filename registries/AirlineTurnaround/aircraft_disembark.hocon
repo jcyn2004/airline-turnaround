@@ -6,7 +6,8 @@
         "description": "Simple agent network using a single LLM-based agent",
         "tags": ["example"],
         "sample_queries": [
-            "The B747 aircraft of flight AF84 is on blocks at gate A1. The plane has been connected to the jetbridge. The aircraft door is open. Disembark passengers.", 
+            "The flight AF84 is on blocks at gate A1. The jetbridge is connected to the B747 plane and its door is open. Disembark passengers.", 
+            "The B747 aircraft of flight AF84 is on blocks at gate A1. Disembark passengers."
         ]
     },
 
@@ -127,24 +128,33 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
 You are the agent in charge of disembarking passengers from aircraft. 
 When user submits inquiry, proceed as follows: 
 1. Determine if the followings are provided by the user: 
-    a. jetbridge connection status such as'connected'
-    b. door opening status such as 'open' 
-    c. flight status status such as 'on blocks' 
-2. If jetbridge_connection_status = 'connected' and door_opening_status includes 'open' then go to step 5.
-3. If jetbridge_connection_status is not 'connected', or door_opening_status does not includes 'open'
-    a. call your tools to make sure that jetbridge_connection_status is connected and door_opening_status is open
-    b. wait for their responses 
-4. Call trackerAPI
+    a. jetbridge connection status as jetbridge_connection_status with value such as'connected'
+    b. door opening status as door_opening_status with value such as 'open' 
+    c. flight status as flight_status with value such as 'on blocks' 
+2. Call TrackerAPI to get the latest value of jetbridge_connection_status and door_opening_status and flight status
     a. wait for its response 
-    b. store jetbridge connection status as jetbridge_connection_status, store door opening status as door_opening_status
-    c. if jetbridge_connection_status is not connected or gpu_connection_status is not connected, go back to step 3.
-5. If jetbridge_connection_status = 'connected' and door_opening_status includes 'open' 
-    a. call passenger_disembark_operator to disembark passemgers from the aircraft
+    b. store jetbridge connection status as jetbridge_connection_status, store door opening status as door_opening_status and flight status as flight_status
+3. If jetbridge_connection_status is 'connected' and door_opening_status includes 'open' then go to step 6.
+4. If jetbridge_connection_status is not 'connected',
+    a. call aircraft_jetbridge_connect to connect jetbridge
+    b. wait for its response 
+    c. Return to step 2.
+5. If door_opening_status does not includes 'open'
+    a. call aircraft_door_open to open the door
+    b. wait for its responses 
+    c. Return to step 2.
+6. If jetbridge_connection_status is 'connected' and door_opening_status includes 'open' 
+    a. call passenger_disembark_operator to disembark passengers from the aircraft
     b. Wait for its response and save it as passenger_disembarkation_status
     c. Report passenger_disembarkation_status
-6. Provide the passenger disembarkation status report summary as: 
-    ** passenger_disembarkation_status summary **: 
-    [passenger_disembarkation_status]
+7. Call TrackerAPI to get the latest value of jetbridge_connection_status and door_opening_status and passenger_disembarkation_status
+    a. wait for its response 
+    b. store jetbridge connection status as jetbridge_connection_status, store door opening status as door_opening_status, store flight status as flight_status and store passenger disembarkation status as passenger_disembarkation_status
+8. Provide the crew exit status report summary as: 
+    ** flight status **: [flight_status]
+    ** jet bridge connection status **: [jetbridge_connection_status]
+    ** door opening status **: [door_opening_status]
+    ** passenger disembarkation status **: [passenger_disembarkation_status]
             """ ${aaosa_instructions},
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
@@ -194,7 +204,7 @@ When user submits inquiry, proceed as follows:
                 }
             },
 
-            "tools":    ["trackerAPI","passenger_disembark_operator","/AirlineTurnaround/aircraft_door_opening","/AirlineTurnaround/aircraft_jetbridge_connect"]
+            "tools":    ["TrackerAPI","passenger_disembark_operator","/AirlineTurnaround/aircraft_door_opening","/AirlineTurnaround/aircraft_jetbridge_connect"]
         },
 
         {
@@ -238,7 +248,7 @@ This agent disembarks passengers from the aircraft.
         }, 
 
         {
-            "name": "trackerAPI",
+            "name": "TrackerAPI",
             "function": {
 
                 "description": """
@@ -310,7 +320,7 @@ I check door opening status as door_opening_status.
                     }, 
                 }
             },
-            "class": "aircraft_disembark.trackerAPI" 
+            "class": "aircraft_disembark.TrackerAPI" 
         }, 
     ],
 }

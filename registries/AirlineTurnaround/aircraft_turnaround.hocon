@@ -186,7 +186,7 @@ When you receive a user request to handle an aircraft turnaround, you will proce
     - flight number as flight_number
     - aircraft type as aircraft_type
     - aircraft direction as incoming or departing as aircraft_direction.  
-2. Call trackerAPI to log all the available parameters.
+2. Call TrackerAPI to log all the available parameters.
 3. If the user has not provided all the required information, proceed in the following order:
     a. ask the user for the missing information. 
     b. wait for the user to provide the missing information.
@@ -198,7 +198,7 @@ When you receive a user request to handle an aircraft turnaround, you will proce
             """ ${aaosa_instructions},
 
             "tools":    [
-                        "aircraft_turnaround_operator", "trackerAPI"
+                        "aircraft_turnaround_operator", "TrackerAPI"
                         ], 
         }, 
 
@@ -305,159 +305,113 @@ When you receive a request to handle an aircraft turnaround, you will:
     a. call aircraft_traffic_controller to to request clearance for landing the aircraft:
         i. provide it with flight_number, aircraft_type, and aircraft_direction
         ii. wait for its response and store flight_status, clearance_type, assigned_runway_id, and assigned_runway_length. 
-        iii. Call trackerAPI to log all the available parameters.
+        iii. Call TrackerAPI to log all the available parameters.
     b. call aircraft_landing to land the aircraft:
         i. provide it with flight_number, aircraft_type,clearance_type,aircraft_direction,assigned_runway_id, and assigned_runway_length.
         ii. wait for its response and store the new value of flight_status.
-        iii. Call trackerAPI to log all the available parameters.
+        iii. Call TrackerAPI to log all the available parameters.
     c. call aircraft_ground_services with ground_services_request_type set as 'inquiry' to inquire on ground services readiness at the gate: 
         i. provide it with flight_number, aircraft_type, gate_id, and ground_services_request_type as 'inquiry'.
         ii. wait for its response and store gpu_readiness_status and wheels_chocks_readiness_status. 
-        iii. Call trackerAPI to log all the available parameters.
+        iii. Call TrackerAPI to log all the available parameters.
     d. call aircraft_ground_traffic to request taxiing clearance to the assigned gate:
         i. provide it with flight_number, aircraft_type, flight_status, assigned_runway_id, and gate_id.
         ii. wait for its response and store ground_clearance_type, ground_clearance_status, and the new value of flight_status. 
-        iii. Call trackerAPI to log all the available parameters.
+        iii. Call TrackerAPI to log all the available parameters.
     e. call aircraft_taxiing to taxi in the aircraft to the assigned gate:
         i. provide it with flight_number, aircraft_type, flight_status, gate_id, ground_clearance_type, and ground_clearance_status.
         ii. wait for its response and store the new value of flight_status. 
-        iii. Call trackerAPI to log all the available parameters.
+        iii. Call TrackerAPI to log all the available parameters.
     f. call aircraft_chocks_install to install the wheels chocks:
         i. provide it with flight_number, aircraft_type, flight_status, gate_id, and wheels_chocks_readiness_status.
         ii. wait for its response and store wheels_chocks_installation_status.
-        iii. Call trackerAPI to log all the available parameters.
+        iii. Call TrackerAPI to log all the available parameters.
     g. call aircraft_engines_stop to stop the aircraft engines:
         i. provide it with flight_number, aircraft_type, flight_status, and gate_id.
         ii. wait for its response and store engines_stop_status.
-        iii. Call trackerAPI to log all the available parameters.
+        iii. Call TrackerAPI to log all the available parameters.
     h. call aircraft_gpu_connect to connect the gpu unit:
         i. provide it with flight_number, aircraft_type, flight_status, gate_id, and gpu_readiness_status.
         ii. wait for its response and store gpu_connection_status.
-        iii. Call trackerAPI to log all the available parameters.
+        iii. Call TrackerAPI to log all the available parameters.
     i. call aircraft_acu_connect to connect the acu unit:
         i. provide it with flight_number, aircraft_type, flight_status, and gate_id.
         ii. wait for its response and store acu_connection_status.
-        iii. Call trackerAPI to log all the available parameters.
+        iii. Call TrackerAPI to log all the available parameters.
     j. call aircraft_jetbridge_connect to connect the jetbridge:
         i. provide it with flight_number, aircraft_type, flight_status, and gate_id.
         ii. wait for its response and store jetbridge_connection_status.
-        iii. Call trackerAPI to log all the available parameters.
+        iii. Call TrackerAPI to log all the available parameters.
     k. call aircraft_door_opening to open the aircraft doors:
         i. provide it with flight_number, aircraft_type, flight_status, and gate_id.
         ii. wait for its response and store door_opening_status.
-        iii. Call trackerAPI to log all the available parameters.
+        iii. Call TrackerAPI to log all the available parameters.
     l. call aircraft_disembark to disembark the passengers:
         i. provide it with flight_number, aircraft_type, flight_status, and gate_id.
         ii. wait for its response and store passenger_disembarkation_status.
-        iii. Call trackerAPI to log all the available parameters.
+        iii. Call TrackerAPI to log all the available parameters.
     m. call aircraft_baggage_unload to unload the baggage:
         i. provide it with flight_number, aircraft_type, flight_status, and gate_id.
         ii. wait for its response and store baggage_unload_status.
-        iii. Call trackerAPI to log all the available parameters.
+        iii. Call TrackerAPI to log all the available parameters.
     n. call aircraft_crew_debrief to debrief the crew:
         i. provide it with flight_number, aircraft_type, flight_status, and gate_id.
         ii. wait for its response and store crew_debrief_status.
-        iii. Call trackerAPI to log all the available parameters.
+        iii. Call TrackerAPI to log all the available parameters.
     o. call aircraft_crew_exit to let the crew exit the aircraft:
         i. provide it with flight_number, aircraft_type, flight_status, and gate_id.
         ii. wait for its response and store crew_exit_status.
-        iii. Call trackerAPI to log all the available parameters.
-    p. call aircraft_lavatory_service to service the lavatory:
+        iii. Call TrackerAPI to log all the available parameters.
+    p. call aircraft_cabin_cleaning to clean the aircraft cabin area:
+        i. provide it with flight_number, aircraft_type, flight_status, and gate_id.
+        ii. wait for its response and store cabin_cleaning_status.
+        iii. Call TrackerAPI to log all the available parameters.
+    q. call aircraft_lavatory_service to service the lavatory:
         i. provide it with flight_number, aircraft_type, flight_status, and gate_id.
         ii. wait for its response and store lavatory_service_status.
-        iii. Call trackerAPI to log all the available parameters.
-    q. call aircraft_catering_loading to load the catering supplies:
+        iii. Call TrackerAPI to log all the available parameters.
+    r. call aircraft_catering_loading to load the catering supplies:
         i. provide it with flight_number, aircraft_type, flight_status, and gate_id.
         ii. wait for its response and store catering_loading_status.
-        iii. Call trackerAPI to log all the available parameters.
-    r. call aircraft_inspection_maintenance to inspect and maintain the aircraft:
+        iii. Call TrackerAPI to log all the available parameters.
+    s. call aircraft_inspection_maintenance to inspect and maintain the aircraft:
         i. provide it with flight_number, aircraft_type, flight_status, and gate_id.
         ii. wait for its response and store inspection_maintenance_status.
-        iii. Call trackerAPI to log all the available parameters.
-    s. call aircraft_fueling to fuel the aircraft:
+        iii. Call TrackerAPI to log all the available parameters.
+    t. call aircraft_fueling to fuel the aircraft:
         i. provide it with flight_number, aircraft_type, flight_status, and gate_id.
         ii. wait for its response and store fueling_status.
-        iii. Call trackerAPI to log all the available parameters.
+        iii. Call TrackerAPI to log all the available parameters.
 3. You will collect the results from each of the steps and compile a final report on the aircraft turnaround process. 
 4. You will return the final report to the user. 
             """ ${aaosa_instructions},
 
             "tools":[
-                "trackerAPI",
-                "/AirlineTurnaround/aircraft_traffic_controller",
-                "/AirlineTurnaround/aircraft_gate_selection", 
-                "/AirlineTurnaround/aircraft_ground_services", 
-                "/AirlineTurnaround/aircraft_landing",
-                "/AirlineTurnaround/aircraft_ground_traffic", 
-                "/AirlineTurnaround/aircraft_taxiing", 
-                "/AirlineTurnaround/aircraft_chocks_install", 
-                "/AirlineTurnaround/aircraft_engines_stop", 
-                "/AirlineTurnaround/aircraft_gpu_connect", 
+                "TrackerAPI",
                 "/AirlineTurnaround/aircraft_acu_connect", 
-                "/AirlineTurnaround/aircraft_jetbridge_connect", 
-                "/AirlineTurnaround/aircraft_door_opening", 
-                "/AirlineTurnaround/aircraft_disembark", 
                 "/AirlineTurnaround/aircraft_baggage_unload", 
+                "/AirlineTurnaround/aircraft_cabin_cleaning", 
+                "/AirlineTurnaround/aircraft_chocks_install", 
                 "/AirlineTurnaround/aircraft_crew_debrief", 
                 "/AirlineTurnaround/aircraft_crew_exit", 
-                "/AirlineTurnaround/aircraft_lavatory_service", 
-                "/AirlineTurnaround/aircraft_catering_loading", 
+                "/AirlineTurnaround/aircraft_disembark", 
+                "/AirlineTurnaround/aircraft_door_opening", 
+                "/AirlineTurnaround/aircraft_engines_stop", 
                 "/AirlineTurnaround/aircraft_inspection_maintenance", 
-                "/AirlineTurnaround/aircraft_fueling"
+                "/AirlineTurnaround/aircraft_jetbridge_connect", 
+                "/AirlineTurnaround/aircraft_fueling", 
+                "/AirlineTurnaround/aircraft_gate_selection", 
+                "/AirlineTurnaround/aircraft_ground_services",
+                "/AirlineTurnaround/aircraft_ground_traffic",  
+                "/AirlineTurnaround/aircraft_gpu_connect", 
+                "/AirlineTurnaround/aircraft_landing", 
+                "/AirlineTurnaround/aircraft_lavatory_service", 
+                "/AirlineTurnaround/aircraft_taxiing", 
+                "/AirlineTurnaround/aircraft_traffic_controller",
             ]
 
             # Specifying this allows specific sly_data keys from this agent network to be sent to downstream agent networks
             "allow": {
-                // "to_downstream": {
-                //     "sly_data": {
-                //         "aircraft_type": true, 
-                //         "flight_number": true, 
-                //         "flight_status": true, 
-                //         "ground_clearance_type": true, 
-                //         "gate_id": true, 
-                //         "assigned_runway_id": true, 
-                //         "ground_services_inquiry_type": true, 
-                //         "ground_services_request_type": true,       
-                //         "wheels_chocks_readiness_status": true, 
-                //         "wheels_chocks_installation_status": true, 
-                //         "gpu_readiness_status": true, 
-                //         "gpu_connection_status": true,     
-                //         "engines_stop_status": true, 
-                //         "jetbridge_connection_status": 
-                //         "door_opening_status": true, 
-                //         "passenger_disembarkation_status": true, 
-                //         "crew_exit_status": true,
-                //         "baggage_unload_status": true,
-                //         "ground_clearance_type": true,   
-                //         "ground_clearance_status": true,
-                //     }
-                // },
-                // "from_downstream": {
-                //     "sly_data": {
-                //         "aircraft_type": true, 
-                //         "flight_number": true, 
-                //         "flight_status": true, 
-                //         "ground_clearance_type": true, 
-                //         "gate_id": true, 
-                //         "assigned_runway_id": true, 
-                //         "ground_services_inquiry_type": true, 
-                //         "ground_services_request_type": true,       
-                //         "wheels_chocks_readiness_status": true, 
-                //         "wheels_chocks_installation_status": true, 
-                //         "gpu_readiness_status": true, 
-                //         "gpu_connection_status": true,     
-                //         "engines_stop_status": true, 
-                //         "jetbridge_connection_status": 
-                //         "door_opening_status": true, 
-                //         "passenger_disembarkation_status": true, 
-                //         "crew_exit_status": true,
-                //         "baggage_unload_status": true,
-                //         "ground_clearance_type": true,   
-                //         "ground_clearance_status": true,
-                //     }
-                // }
-
-#######
                 "from_downstream": {
                     "sly_data": {
                         "acu_connection_status" : true, 
@@ -472,6 +426,7 @@ When you receive a request to handle an aircraft turnaround, you will:
                         "assigned_runway_length": true,
                         "assigned_runway": true,
                         "baggage_unload_status" : true, 
+                        "cabin_cleaning_status": true,
                         "catering_loading_status" : true, 
                         "clearance_landing_valid": true,
                         "clearance_takeoff_valid" : true, 
@@ -489,7 +444,6 @@ When you receive a request to handle an aircraft turnaround, you will:
                         "gate_id" : true, 
                         "gate_id": true,
                         "gate_id": true,
-                        "gpu_connect_status": true,
                         "gpu_connection_status" : true, 
                         "gpu_connection_status": true
                         "gpu_readiness_status": true,
@@ -515,46 +469,32 @@ When you receive a request to handle an aircraft turnaround, you will:
                     "sly_data": {
                         "acu_connection_status" : true, 
                         "aircraft_direction": true,
-                        "aircraft_direction": true,
                         "aircraft_landing_report": true,
-                        "aircraft_type" : true, 
                         "aircraft_type": true,
                         "assigned_runway_id": true,
-                        "assigned_runway_id": true,
                         "assigned_runway_length": true,
-                        "assigned_runway_length": true,
-                        "assigned_runway": true,
                         "baggage_unload_status" : true, 
+                        "cabin_cleaning_status": true,
                         "catering_loading_status" : true, 
                         "clearance_landing_valid": true,
                         "clearance_takeoff_valid" : true, 
                         "clearance_type": true,
                         "crew_debrief_status" : true, 
                         "crew_exit_status" : true, 
-                        "door_opening_status" : true, 
                         "door_opening_status": true
                         "engines_stop_status" : true, 
                         "flight_number" : true, 
-                        "flight_number": true,
-                        "flight_status" : true, 
                         "flight_status": true,
                         "fueling_status" : true, 
-                        "gate_id" : true, 
                         "gate_id": true,
-                        "gate_id": true,
-                        "gpu_connect_status": true,
-                        "gpu_connection_status" : true, 
                         "gpu_connection_status": true
                         "gpu_readiness_status": true,
                         "ground_clearance_status": true,
-                        "ground_clearance_status": true,
                         "ground_clearance_type": true,
-                        "ground_services_inquiry_type" : true, 
-                        "ground_services_request_type" : true, 
+                        "ground_services_inquiry_type": true, 
                         "ground_services_request_type": true,
-                        "inspection_maintenance_status" : true, 
+                        "inspection_maintenance_status": true, 
                         "jetbridge_connection_status" : true, 
-                        "jetbridge_status" : true, 
                         "jetbridge_status": true,
                         "lavatory_service_status" : true, 
                         "passenger_disembarkation_status" : true, 
@@ -563,13 +503,11 @@ When you receive a request to handle an aircraft turnaround, you will:
                         "wheels_chocks_readiness_status": true,
                     }
                 }
-#######
-
             },
         },
 
         {
-            "name": "trackerAPI",
+            "name": "TrackerAPI",
             "function": {
 
                 "description": """
@@ -658,7 +596,7 @@ I am the flight tracker in charge of logging parameters during aircraft turnarou
                     }, 
                 }
             },
-            "class": "AirlineTurnaround.aircraft_turnaround.aircraft_turnaround.trackerAPI" 
+            "class": "AirlineTurnaround.aircraft_turnaround.aircraft_turnaround.TrackerAPI" 
         }, 
     ],
 }

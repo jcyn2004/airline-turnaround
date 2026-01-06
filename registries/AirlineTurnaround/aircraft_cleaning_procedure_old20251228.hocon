@@ -1,0 +1,442 @@
+# Copyright (C) 2023-2025 Cognizant Digital Business, Evolutionary AI.
+# All Rights Reserved.
+# Issued under the Academic Public License.
+#
+# You can be released from the terms, and requirements of the Academic Public
+# License by purchasing a commercial license.
+# Purchase of a commercial license is mandatory for any use of the
+# neuro-san-studio SDK Software in commercial settings.
+#
+{
+    include "registries/aaosa_basic.hocon" 
+
+    # Optional metadata describing this agent network
+    "metadata": {
+        "description": "Simple agent network using a single LLM-based agent",
+        "tags": ["example"],
+        "sample_queries": [
+            "I want to clean the cabin passenger seating area using bleach. what is the procedure?",
+        ]
+    },
+    
+    "llm_config": {
+        "model_name": "gpt-4o",
+    },
+    "instructions_prefix": """
+You are in charge of a portion of the cleaning services for an airline turnaround operation.
+Only answer inquiries that are directly within your area of expertise, 
+from the company's perspective. 
+Only use your tools to answer inquiries. 
+Do not try to help for personal matters.
+Do not mention what you can NOT do. Only mention what you can do.
+""",
+
+    "tools": [
+        # This first agent definition is regarded as the "Front Man", which
+        # does all the talking to the outside world/client.
+        #
+        # Some disqualifications from being a front man:
+        #   1) Cannot use a CodedTool "class" definition
+        #   2) Cannot use a Tool "toolbox" definition
+        #
+        # Besides the first agent being the front man, these tool definitions
+        # do not have to be in any particular order. How they are linked and
+        # call each other is defined within their own specs.
+        # This could be a graph, potentially even with cycles.
+        {
+            "name": "aircraft_cleaning_assistant",
+            "function": {
+                "description": """
+                Your name is aircraft cleaning assistant. You're in charge of aircraft's turnaround desk, answering 
+                staff' questions about aircraft cleaning policies, procedures, and resources that they can access.
+                """,                 
+            },
+            "instructions": ${instructions_prefix} """
+You are the top-level agent responsible for handling all aircraft cleaning related inquiries.
+When interacting with the user, act as the single point of interaction. 
+Store the user input as user_inquiry. 
+No need to mention the other tools or agents. 
+If there are any requirements that need user input, ask them one at a time, with clear examples of the choices available.
+Call your tools to help with user inquiry until their fulfillment or the final response. 
+Do not make things up. This is not a game.
+
+            """ ${aaosa_instructions},
+            "tools":    ["passenger_seating_area"]
+        },
+
+        {
+            "name": "passenger_seating_area",
+            "function": ${aaosa_call}, 
+            "instructions": ${instructions_prefix} """
+The name of this app is `cabin passenger seating area`. 
+Use only your tools to fulfill user inquiry. 
+Do not make things up. This is not a game.
+Your primary responsibility is to handle user inquiry. 
+Your find existing operational restrictions. 
+You ensure that user inquiry complies with existing operational restrictions. 
+Call ALL your downstream agents to see if they can help with the inquiry before answering.
+Ensure that inquiry complies with existing operational restriction. 
+            """,
+            "command": ${aaosa_command},
+            "tools": ["check_restriction","cleaning_tracker"]
+        },
+
+        {
+            "name": "check_restriction",
+            "function": ${aaosa_call}, 
+            "instructions": ${instructions_prefix} """
+Do not make things up. This is not a game.
+Use only your tools. 
+When you receive user inquiry, proceed in the following order: 
+1. Call your tool pull_restriction to find existing operational restriction. 
+2. If pull_restriction returns no existing operational restriction: call extract_docs_cabin_passenger_seating and return its response to user. 
+3. If pull_restriction returns any existing operational restriction: call execution and pass user inquiry and operational restriction that pull_restriction has returned. 
+            """,
+            "command": ${aaosa_command},
+            "tools": [ "pull_restriction","execution","cleaning_tracker"]
+        },
+
+        {
+            "name": "pull_restriction",
+            "function": {
+                "description": """
+Find existing operational restriction. 
+                """,
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "app_name": {
+                            "type": "string",
+                            "description": "The name of an app, website or tool"
+                        },
+                        "restriction_applies": {
+                            "type": "string",
+                            "description": "The determination if restriction applies"
+                        },
+                        "restriction_on_cleaning": {
+                            "type": "string",
+                            "description": "The restriction on cleaning"
+                        },
+                        "user_inquiry": {
+                            "type": "string",
+                            "description": "The user inquiry"
+                        },
+                    },
+                    "required": ["app_name"]
+                }
+            },
+            "class": "extract_docs_cabin_passenger_seating.pull_restriction"
+        },
+
+// ### Morning version of execution agent prior to discussion with Dan and modification
+//         {
+//             "name": "execution",
+//             "function": ${aaosa_call}, 
+//             "instructions": ${instructions_prefix} """
+// You are the execution agent. 
+// You propare the response to user inquiry. 
+// 1. Evaluate that user inquiry complies with existing operational restrictions. 
+// 2. If compliant, Call extract_docs_cabin_passenger_seating. Return the response to the user. 
+// 3. If not compliant
+//     a. Ask the user exactly this question and WAIT for the answer: 
+//         "Your request does not comply with restriction on cleaning. Would you like me to propose a compliant process? (yes/no)" 
+//     b. When the user replies, make sure that their response be exactly "yes" or "no". 
+//         - If response is "yes": Call extract_docs_cabin_passenger_seating. Return the response to the user. 
+//         - If response is "no": Call create_escalation. Return the response to the user. 
+//             """,
+//             "command": ${aaosa_command},
+//             "tools": [ "create_escalation","extract_docs_cabin_passenger_seating","cleaning_tracker"]
+//         },
+
+### Afternoon version of execution agent after discussion with Dan and modification
+        {
+            "name": "execution",
+            "function": {
+                "description": """
+I check that user inquiry complies with restriction_on_cleaning. 
+I make recommendation to user about alternate procedure when their inquiry does not comply with restriction_on_cleaning.
+                """,
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "Inquiry": {
+                            "type": "string",
+                            "description": "The user inquiry"
+                        },
+                        "restriction_on_cleaning": {
+                            "type": "string",
+                            "description": "The restriction on cleaning"
+                        },
+                    },
+                    "required": ["Inquiry","restriction_on_cleaning"]
+                }
+            },
+            "instructions": """
+You are the execution agent. 
+You prepare the response to user inquiry when there is operational restriction. 
+You receive existing operational restriction from check_restriction. 
+1. Determine if user inquiry complies with existing operational restriction that you have received from check_restriction. 
+2. If user inquiry complies: Call extract_docs_cabin_passenger_seating and return its response to the user. 
+3. If user inquiry does not comply: 
+    a. Ask the user exactly this question and WAIT for the answer: "Your inquiry does not comply with restriction on cleaning. Would you like me to propose a compliant process? (yes/no)" 
+    b. Wait for the user response
+    c. When the user replies, make sure that their response is exactly "yes" or "no". 
+        - If user response is "no": call escalation_agent and return the response to user. 
+        - If user response is "yes": call extract_docs_cabin_passenger_seating to create an escalation. Return the response to user. 
+            """,
+            // "command": ${aaosa_command},
+            "tools": [ "escalation_agent","extract_docs_cabin_passenger_seating","cleaning_tracker"]
+        },
+
+// ${instructions_prefix} 
+
+        {
+            "name": "escalation_agent",
+            "function": ${aaosa_call}, 
+//             "function": {
+//                 "description": """
+// I create an escalation when user response to proposed compliant cleaning process is "no". 
+//                 """,
+//                 "parameters": {
+//                     "type": "object",
+//                     "properties": {
+//                         "Inquiry": {
+//                             "type": "string",
+//                             "description": "The user inquiry"
+//                         },
+//                         "restriction_on_cleaning": {
+//                             "type": "string",
+//                             "description": "The restriction on cleaning"
+//                         },
+//                     },
+//                     "required": ["Inquiry","restriction_on_cleaning"]
+//                 }
+//             },
+            "instructions": ${instructions_prefix} """
+You responsibility is to create escalation. 
+Return result. 
+            """,
+            "command": ${aaosa_command},
+            "tools": ["create_escalation"]
+        },
+
+// Do not make things up. This is not a game.
+// Use only your tools. 
+// When you receive a request, call your tool to create an escalation. 
+
+        {
+            "name": "create_escalation",
+            "function": {
+                "description": """
+This agent creates escalation.
+                """,
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "app_name": {
+                            "type": "string",
+                            "description": "The name of an app, website or tool"
+                        },
+                        "restriction_on_cleaning": {
+                            "type": "string",
+                            "description": "This is the restriction on cleaning"
+                        },
+                        "restriction_applies": {
+                            "type": "string",
+                            "description": "This tells whether or not restriction applies to user inquiry. "
+                        },
+                        "response_to_recommendation": {
+                            "type": "string",
+                            "description": "The user response to the suggestion that could be either positive or negative."
+                        },
+                        "user_inquiry": {
+                            "type": "string",
+                            "description": "The user inquiry text"
+                        },
+                    },
+                    // "required": ["app_name","response_to_recommendation"]
+                }
+            },
+            "class": "extract_docs_cabin_passenger_seating.create_escalation"
+        },
+
+// "restriction_on_cleaning","restriction_applies",
+
+        {
+            "name": "extract_docs_cabin_passenger_seating",
+            "function": {
+                "description": """
+
+This agent returns the text contents of operational procedures when user inquiry complies with operational restriction or when the user response to execution agent question is "yes". 
+It returns the text content of the escalation message.
+                """,
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "app_name": {
+                            "type": "string",
+                            "description": "The name of an app, website or tool"
+                        },
+                        "response_to_recommendation": {
+                            "type": "string",
+                            "description": "The user response to recommendation."
+                        },
+                        "restriction_applies": {
+                            "type": "string",
+                            "description": "The determination of restricton applicability."
+                        },
+                        "restriction_on_cleaning": {
+                            "type": "string",
+                            "description": "The restriction on cleaning."
+                        },
+                        "user_inquiry_compliant": {
+                            "type": "string",
+                            "description": "The user inquiry compliance status."
+                        },
+                        "user_inquiry": {
+                            "type": "string",
+                            "description": "The user inquiry text"
+                        },
+                    },
+                    "required": ["app_name"]
+                }
+            },
+            "class": "extract_docs_cabin_passenger_seating.ExtractDocs"
+        },
+
+        {
+            "name": "cleaning_tracker",
+            "function": {
+                "description": """
+Store and track parameters and states of the cleaning process. 
+                """,
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "app_name": {
+                            "type": "string",
+                            "description": "The name of an app, website or tool"
+                        },
+                        "restriction_on_cleaning": {
+                            "type": "string",
+                            "description": "The restriction on cleaning"
+                        },
+                        "escalation_on_cleaning": {
+                            "type": "string",
+                            "description": "The escalation on cleaning"
+                        },
+                        "restriction_applies": {
+                            "type": "string",
+                            "description": "The user requesrt restraction status"
+                        },
+                        "response_to_recommendation": {
+                            "type": "string",
+                            "description": "The user response toi recommendation"
+                        },
+                        "user_inquiry_compliant": {
+                            "type": "string",
+                            "description": "The user inquiry compliance to restriction on cleaning"
+                        },
+                        "user_inquiry": {
+                            "type": "string",
+                            "description": "The user inquiry text"
+                        },
+                    },
+                    // "required": ["app_name","restriction_on_cleaning"]
+                }
+            },
+            "class": "extract_docs_cabin_passenger_seating.cleaning_tracker"
+        },
+
+// #########
+//         {
+//             "name": "trackerAPI",
+//             "function": {
+
+//                 "description": """
+// I am the flight tracker in charge of logging parameters during aircraft turnaround. 
+// I check passenders disembarkation status as passenger_disembarkation_status. 
+// I check crew exit status as crew_exit_status. 
+// I check baggage unload status as baggage_unload_status. 
+//                 """
+
+//                 "parameters": {
+//                     "type": "object", 
+//                     "properties": {
+//                         "flight_number": {
+//                             "type": "string", 
+//                             "description": "This is the flight number of the incoming aicraft."
+//                         },   
+//                         "aircraft_type": {
+//                             "type": "string", 
+//                             "description": "This is the type of the incoming aircraft."
+//                         },     
+//                         "flight_status": {
+//                             "type": "string", 
+//                             "description": "This is the flight status."
+//                         },          
+//                         "gate_id": {
+//                             "type": "string", 
+//                             "description": "This is the gate assigned to the aircraft parking."
+//                         },     
+//                         "ground_services_request_type": {
+//                             "type": "string", 
+//                             "description": "This is the type of the inquiry received for grand services."
+//                         },         
+//                         "wheels_chocks_readiness_status": {
+//                             "type": "string", 
+//                             "description": "This is the wheels chocks readiness status."
+//                         },   
+//                         "wheels_chocks_installation_status": {
+//                             "type": "string", 
+//                             "description": "This is the wheels chocks installation status."
+//                         },   
+//                         "gpu_readiness_status": {
+//                             "type": "string", 
+//                             "description": "This is the gpu readiness status."
+//                         },     
+//                         "acu_connection_status": {
+//                             "type": "string", 
+//                             "description": "This is the acu connection status."
+//                         },     
+//                         "gpu_connection_status": {
+//                             "type": "string", 
+//                             "description": "This is the gpu connection status."
+//                         },     
+//                         "engines_stop_status": {
+//                             "type": "string", 
+//                             "description": "This is the engines stop status."
+//                         },    
+//                         "jetbridge_connection_status": {
+//                             "type": "string", 
+//                             "description": "This is the jetbridge connection status."
+//                         },    
+//                         "door_opening_status": {
+//                             "type": "string", 
+//                             "description": "This is the door opening status."
+//                         },    
+//                         "passenger_disembarkation_status": {
+//                             "type": "string", 
+//                             "description": "This is the passenger disembarkation status."
+//                         },    
+//                         "crew_debrief_status": {
+//                             "type": "string", 
+//                             "description": "This is the crew debrief status."
+//                         },    
+//                         "crew_exit_status": {
+//                             "type": "string", 
+//                             "description": "This is the crew exit status."
+//                         },    
+//                         "baggage_unload_status": {
+//                             "type": "string", 
+//                             "description": "This is the baggage unload status."
+//                         }
+//                     }, 
+//                     // "required": ["flight_number", "aircraft_type","flight_status","assigned_runway_id","gate_id","ground_services_request_type"] 
+//                 }
+//             },
+//             "class": "aircraft_crew_exit.trackerAPI" 
+//         }, 
+// #########
+    ]
+}

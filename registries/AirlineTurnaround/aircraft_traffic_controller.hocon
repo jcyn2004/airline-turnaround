@@ -7,11 +7,11 @@
         "tags": ["example"],
         "sample_queries": [
             "Incoming flight AF84, a B747, needs clearance for landing.", 
-            "Clear incoming flight AF84 for landing. The aircraft is a B747."
-            "Incoming flight AF84, a B747, needs clearance for landing. It has fire and smoke in 2 engines.", 
             ""
         ]
     },
+
+            // "Clear incoming flight AF84 for landing. The aircraft is a B747."
 
     "llm_config": {
         "model_name": "gpt-4o",
@@ -39,13 +39,17 @@ DO NOT make things up.
 Use ONLY YOUR TOOLS to fulfill your tasks. 
 
 When you receive a user request for clearance, 
-1. Determine the followings information from prompt. 
+1. Determine if the followings information is provided in the prompt. 
 - flight number as flight_number
 - aircraft type as aircraft_type
-- aircraft direction as incoming or departing as aircraft_direction 
-2. Call trackerAPI and log all the available parameters. 
-3. Call aircraft_traffic_controller to request clearance.
-4. Display summary as follows: 
+- aircraft direction as aircraft_direction with value such incoming or departing
+2. Call TrackerAPI and log all the available parameters. 
+3. If any flight_number is None, or aircraft_type is None, or aircraft_direction is None, ask the user to provide the missing information.
+4. If any flight_number is not None, and aircraft_type is not None, and aircraft_direction is notNone, then 
+    a. call aircraft_traffic_controller to request clearance for landing.
+    b. Wait for the response on your request. 
+5. Call TrackerAPI and log all the available parameters.
+6. Provide the clearance summary as follows:    
 ** aircraft direction **: [aircraft_direction]
 ** flight number **: [flight_number]
 ** aircraft type **: [aircraft_type]
@@ -112,7 +116,7 @@ When you receive a user request for clearance,
                         "aircraft_direction": true,
                         "flight_status": true, 
                         "clearance_type": true, 
-                        "assigned_runway": true, 
+                        "assigned_runway_id": true, 
                         "runway_length": true, 
                     }
                 },
@@ -130,7 +134,7 @@ When you receive a user request for clearance,
                 },
             },
 
-            "tools": ["aircraft_traffic_controller","trackerAPI"]
+            "tools": ["aircraft_traffic_controller","TrackerAPI"]
         },
 
         {
@@ -235,7 +239,7 @@ This agent gives aircraft clearance for landing.
         }, 
 
         {
-            "name": "trackerAPI",
+            "name": "TrackerAPI",
             "function": {
 
                 "description": """
@@ -313,7 +317,7 @@ I am the flight tracker in charge of logging parameters during aircraft turnarou
                     "required": [] 
                 }
             },
-            "class": "AirlineTurnaround.aircraft_traffic_controller.aircraft_traffic_controller.trackerAPI" 
+            "class": "AirlineTurnaround.aircraft_traffic_controller.aircraft_traffic_controller.TrackerAPI" 
         }, 
     ],
 }

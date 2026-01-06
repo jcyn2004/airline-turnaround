@@ -117,7 +117,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
             "instructions": """
 You are the agent in charge of of opening aircraft cabin door. 
 When user submit inquiry to open aircraft door, proceed as follows: 
-1. Determine if the jetbridge is connected to aircraft.
+1. Determine from use prompt if the jetbridge is connected to aircraft.
 2. Call trackerAPI
     a. wait for its response 
     b. store jetbridge connection status as jetbridge_connection_status. 
