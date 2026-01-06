@@ -7,6 +7,7 @@
         "tags": ["example"],
         "sample_queries": [
             "The B747 aircraft of flight AF84 is on blocks at gate A1. The plane has been connected to the jetbridge. The aircraft door is open. Exit the crew.",
+            "The B747 aircraft of flight AF84 is on blocks at gate A1. Exit the crew.",
         ]
     },
 
@@ -124,27 +125,36 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
             },
 
             "instructions": """
-You are the agent in charge of disembarking passengers from aircraft. 
+You are the agent in charge of exiting crew in the aircraft. 
 When user submits inquiry, proceed as follows: 
 1. Determine if the followings are provided by the user: 
-    a. jetbridge connection status such as'connected'
-    b. door opening status such as 'open' 
-    c. flight status status such as 'on blocks' 
-2. If jetbridge_connection_status = 'connected' and door_opening_status includes 'open' then go to step 5.
-3. If jetbridge_connection_status is not 'connected', or door_opening_status does not includes 'open'
-    a. call your tools to make sure that jetbridge_connection_status is connected and door_opening_status is open
-    b. wait for their responses 
-4. Call trackerAPI
+    a. jetbridge connection status as jetbridge_connection_status with value such as'connected'
+    b. door opening status as door_opening_status with value such as 'open' 
+    c. flight status as flight_status with value such as 'on blocks' 
+2. Call TrackerAPI to get the latest value of jetbridge_connection_status and door_opening_status and flight status
     a. wait for its response 
-    b. store jetbridge connection status as jetbridge_connection_status, store door opening status as door_opening_status
-    c. if jetbridge_connection_status is not connected or gpu_connection_status is not connected, go back to step 3.
-5. If jetbridge_connection_status = 'connected' and door_opening_status includes 'open' 
-    a. call crew_exit_operator to exit crew from the aircraft
+    b. store jetbridge connection status as jetbridge_connection_status, store door opening status as door_opening_status and flight status as flight_status
+3. If jetbridge_connection_status = 'connected' and door_opening_status includes 'open' then go to step 6.
+4. If jetbridge_connection_status is not 'connected',
+    a. call aircraft_jetbridge_connect to connect jetbridge
+    b. wait for its response 
+    c. Return to step 2.
+5. If door_opening_status does not includes 'open'
+    a. call aircraft_door_open to open the door
+    b. wait for its response    
+    c. Return to step 2.
+6. If jetbridge_connection_status = 'connected' and door_opening_status includes 'open' 
+    a. call crew_exit_operator to debrief crew in the aircraft
     b. Wait for its response and save it as crew_exit_status
     c. Report crew_exit_status
-6. Provide the crew exit status report summary as: 
-    ** crew exit status summary **: 
-    [crew_exit_status]
+7. Call TrackerAPI to get the latest value of jetbridge_connection_status and door_opening_status and crew_exit_status
+    a. wait for its response 
+    b. store jetbridge connection status as jetbridge_connection_status, store door opening status as door_opening_status, flight status as flight_status and crew exit status as crew_exit_status
+8. Provide the crew exit status report summary as: 
+    ** flight status **: [flight_status]
+    ** jet bridge connection status **: [jetbridge_connection_status]
+    ** door opening status **: [door_opening_status]
+    ** crew exit status **: [crew_exit_status]
             """ ${aaosa_instructions},
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
@@ -152,12 +162,17 @@ When user submits inquiry, proceed as follows:
                 "to_upstream": {
                     "sly_data": {
                         "crew_exit_status": true
+                        "flight_status": true
+                        "door_opening_status": true 
+                        "jetbridge_connection_status": true
                     }
                 }
                 "to_downstream": {
                     "sly_data": {
                         "crew_exit_status": true
-                        // "engines_stop_status": true
+                        "flight_status": true
+                        "door_opening_status": true
+                        "jetbridge_connection_status": true
                     }
                 }
                 "from_upstream": {
@@ -195,7 +210,7 @@ When user submits inquiry, proceed as follows:
                 }
             },
 
-            "tools":    ["trackerAPI","crew_exit_operator","/AirlineTurnaround/aircraft_door_opening","/AirlineTurnaround/aircraft_jetbridge_connect"]
+            "tools":    ["TrackerAPI","crew_exit_operator","/AirlineTurnaround/aircraft_door_opening","/AirlineTurnaround/aircraft_jetbridge_connect"]
         },
 
         {
@@ -239,7 +254,7 @@ This agent exits crew from the aircraft.
         }, 
 
         {
-            "name": "trackerAPI",
+            "name": "TrackerAPI",
             "function": {
 
                 "description": """
@@ -319,7 +334,7 @@ I check door opening status as door_opening_status.
                     }, 
                 }
             },
-            "class": "AirlineTurnaround.aircraft_crew_exit.aircraft_crew_exit.trackerAPI" 
+            "class": "AirlineTurnaround.aircraft_crew_exit.aircraft_crew_exit.TrackerAPI" 
         }, 
     ],
 }
