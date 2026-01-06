@@ -7,6 +7,7 @@
         "tags": ["example"],
         "sample_queries": [
             "Flight AF84 is on blocks at gate A1. ACU and GPU are connected to this B747. Connect the jet bridge.", 
+            "Flight AF84 is on blocks at gate A1. Connect the jet bridge."
         ]
     },
 
@@ -127,25 +128,31 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
 You are the agent in charge of connecting jetbridge to aircraft. 
 When user submits inquiry, proceed as follows: 
 1. Determine if the followings are provided bythe user: 
-    a. flights status such as 'on blocks'
+    a. flights status such as 'on blocks' or 'landed'
     b. acu connection status such as 'connected' 
     c. gpu connection status such as 'connected' 
-    d. jetbridge connection status such as'connected'
-2. If jetbridge_connection_status = 'connected', then go to step 6.
-3. If acu_connection_status is not connected or gpu_connection_status is not connected
-    a. call your tools to make sure that acu_connection_status is connected and gpu_connection_status is connected
+2. Call TrackerAPI and wait for its response 
+3. If flight status is not 'on blocks', the respond to user that jetbridge cannot be connected as flight status is not 'on blocks'.
+4. If acu_connection_status is not 'connected', or gpu_connection_status is not 'connected'
+    a. call your tools to make sure that acu_connection_status is 'connected' and gpu_connection_status is 'connected'
     b. wait for their responses 
-4. Call trackerAPI
+5. Call TrackerAPI
     a. wait for its response 
-    b. store acu connection status as acu_connection_status, store gpu connection status as gpu_connection_status, store flight status as flight_status, store jetbridge connection status as jetbridge_connection_status
-    c. if acu_connection_status is not connected or gpu_connection_status is not connected, go back to step 3.
-5. If acu_connection_status = 'connected' and gpu_connection_status = 'connected' and jetbridge_connection_status is not connected
+    b. store acu connection status as acu_connection_status, store gpu connection status as gpu_connection_status, 
+    c. if acu_connection_status is not 'connected' or gpu_connection_status is not 'connected', go back to step 3.
+6. If acu_connection_status is 'connected', and gpu_connection_status is 'connected', and jetbridge_connection_status is not 'connected'
     a. call jetbridge_operator to connect jetbridge to aircraft
     b. Wait for its response and save it as jetbridge_connection_status
     c. Report jetbridge_connection_status
-6. Provide the acu connection status report summary as: 
+7. Call TrackerAPI and wait for its response 
+8. If acu_connection_status is not 'connected' or gpu_connection_status is not 'connected' or jetbridge_connection_status is not 'connected'
+    a. Report that jetbridge connection failed due to acu or gpu not connected
+9. Provide the jetbridge connection status report summary as: 
     ** jetbridge connection status summary **: 
-    [jetbridge_connection_status]
+    ** flight_status **: [flight_status]
+    ** acu_connection_status **: [acu_connection_status]
+    ** gpu_connection_status **: [gpu_connection_status]
+    ** jetbridge_connection_status **: [jetbridge_connection_status]
             """ ${aaosa_instructions},
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
@@ -184,7 +191,7 @@ When user submits inquiry, proceed as follows:
                 }
             },
 
-            "tools": ["trackerAPI","jetbridge_operator","/AirlineTurnaround/aircraft_acu_connect","/AirlineTurnaround/aircraft_gpu_connect"]
+            "tools": ["TrackerAPI","jetbridge_operator","/AirlineTurnaround/aircraft_acu_connect","/AirlineTurnaround/aircraft_gpu_connect"]
         },
 
         {
@@ -228,7 +235,7 @@ This agent connects jetbridge to the aircraft.
         }, 
 
         {
-            "name": "trackerAPI",
+            "name": "TrackerAPI",
             "function": {
 
                 "description": """
@@ -298,7 +305,7 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                     "required": [] 
                 }
             },
-            "class": "AirlineTurnaround.aircraft_jetbridge_connect.aircraft_jetbridge_connect.trackerAPI" 
+            "class": "AirlineTurnaround.aircraft_jetbridge_connect.aircraft_jetbridge_connect.TrackerAPI" 
         }, 
     ],
 }

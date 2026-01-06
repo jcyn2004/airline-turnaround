@@ -103,33 +103,44 @@ I assign gate to incoming flight by selecing the deplaning equipment for their p
                         "aircraft_type": {
                             "type": "string", 
                             "description": "This is the type of the incoming aircraft."
-                        },       
-                        "flight_status": {
+                        },      
+                        "execution_mode": {
                             "type": "string", 
-                            "description": "This is the status of the incoming flight."
-                        },                               
+                            "description": "This is the mode that agent should operate in."
+                        },                                
                     }, 
                     "required": ["flight_number","aircraft_type"], 
                 }
             },
 
             "instructions": """
-You are the top-level agent responsible for assigning gate to incoming aircraft.  
-Only perform the tasks that fall under your responsibility. Use ONLY your tools to complete your tasks. 
-Take in the use inquiry and make sure that it contains flight number as flight_number and aircraft type as aircraft_type. 
-- If any of these information is missing, ask the user to provide them.
-When you receive a user request, do the following in the given order:
-(1) Determine flight_number and aircraft_type from the user request.
-(2) Send the user request to your tools in 'read' execution mode asking for available deplaning equipment: 
-(3) Collect your tools responses, select the equipment with the highest score and set it as deplaning equipment. 
-- report its gate id as gate_id
-- report its equipment type as deplaning_equipment_type
-- report its equipment id as deplaning_equipment_id
-- report its readiness time as deplaning_equipment_readiness_time
-- report its score as deplaning_equipment_score
-(4) Send a request to your tools in 'write' execution with both deplaning_equipment_id and gate_id. 
-- report gate_id    
-            """ ${aaosa_instructions},
+
+You are the agent in charge of selecting a gate to incoming aircraft. 
+When user submits inquiry, proceed as follows: 
+1. Determine if the followings are provided by the user: 
+    a. flight number as flight_number
+    b. aircraft type as aircraft_type 
+2. Call TrackerAPI to get the latest value of flight_number and aircraft_type
+    a. wait for its response 
+    b. store flight number as flight_number, and store aircraft type as aircraft_type
+3. If flight_number is not None and aircraft_type is not None, then go to step 6. 
+4. If flight_number is None or aircraft_type is None,
+    a. ask youserr to provide the missing information.
+    b. wait for their responses 
+    c. goto step 1. 
+5. If flight_number is not None and aircraft_type is not None
+    a. set execution_mode value to 'inquiry' and call deplaning_path_selector in 'inquiry' execution mode to select a deplaning path.
+    b. Wait for its response and save it as fueling_status
+    c. Report gate id as gate_id, deplaning equipment type as deplaning_equipment_type, deplaning equipment id as deplaning_equipment_id, deplaning equipment readiness time as deplaning_equipment_readiness_time, and deplaning equipment score as deplaning_equipment_score
+6. Call TrackerAPI to log all the available parameters.
+7. set execution_mode value to 'write' and call deplaning_path_selector in 'write' execution mode to update the status of deplaning equipment providing deplaning_equipment_type, deplaning_equipment_id and gate_id.
+8. Provide the gate selection report summary as: 
+    ** gate id **: [gate_id]
+    ** deplaning equipment type **: [deplaning_equipment_type]
+    ** deplaning equipment id **: [deplaning_equipment_id]
+    ** deplaning equipment readiness time **: [deplaning_equipment_readiness_time]
+    ** deplaning equipment score **: [deplaning_equipment_score]
+            """ ${aaosa_instructions}, 
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
@@ -146,7 +157,7 @@ When you receive a user request, do the following in the given order:
                 }
             },
 
-            "tools":    ["deplaning_path_selector"]
+            "tools":    ["deplaning_path_selector","TrackerAPI"]
         },
 
         {
@@ -154,6 +165,7 @@ When you receive a user request, do the following in the given order:
            "function": {
                 "description": """
                 I select deplaning equipment for passengers disembarking. 
+                I update the status of deplaning equipment after selection.
                 """
                 "parameters": {
                     "type": "object", 
@@ -165,23 +177,45 @@ When you receive a user request, do the following in the given order:
                         "aircraft_type": {
                             "type": "string", 
                             "description": "This is the type incoming aircraft type."
-                        },                                           
+                        },       
+                        "execution_mode": {
+                            "type": "string", 
+                            "description": "This is the mode that agent should operate in."
+                        },          
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate assigned to the aircraft parking."
+                        },     
+                        "deplaning_equipment_id": {
+                            "type": "string", 
+                            "description": "This is the deplaning equipment id at the assigned gate. "
+                        },    
+                        "deplaning_equipment_type": {
+                            "type": "string", 
+                            "description": "This is the deplaning equipment type at the assigned gate. "
+                        },                                 
                     }, 
-                    "required": ["flight_number","aircraft_type"], 
+                    "required": ["flight_number","aircraft_type","execution_mode"], 
                 },
             },
 
             "instructions": """
-When you receive a user request, do the following in the given order:
-(1) Send the user request to your tools in 'read' execution mode asking for available deplaning equipment: 
-(2) Collect your tools responses, select the equipment with the highest score and set it as deplaning equipment. 
-- report its gate id as gate_id
-- report its equipment type as deplaning_equipment_type
-- report its equipment id as deplaning_equipment_id
-- report its readiness time as deplaning_equipment_readiness_time
-- report its score as deplaning_equipment_score
-(3) Send a request to your tools in 'write' execution with both deplaning_equipment_id and gate_id. 
-- report gate_id 
+A. When you receive a user request for aircraft gate selection, do the following in the given order:
+    1. Send the user request to both jetway_agent and stairtruck_agent in 'read' execution mode asking for available deplaning equipment. 
+    2. Wait for their responses. 
+    3. If neither of them can provide available deplaning equipment, inform the user that no deplaning equipment is available at the moment.
+    4. If one or both of them can provide available deplaning equipment:
+        a. If only one of them can provide available deplaning equipment, select it as deplaning equipment.
+        b. If both of them can provide available deplaning equipment, select the equipment with the highest score as deplaning equipment.
+    5. Respond to the user with the following information:  
+        - report its gate id as gate_id
+        - report its equipment type as deplaning_equipment_type
+        - report its equipment id as deplaning_equipment_id
+        - report its readiness time as deplaning_equipment_readiness_time
+        - report its score as deplaning_equipment_score
+B. When you receive a user request in write execution mode for aircraft gate selection, do the following in the given order:
+    1. Call your tools in 'write' execution mode to update the status of deplaning equipment status providing deplaning_equipment_type, deplaning_equipment_id and gate_id.
+    2. Wait for their responses.
             """ ${aaosa_instructions},
 
             "tools":["jetway_agent","stairtruck_agent"]
@@ -193,6 +227,7 @@ When you receive a user request, do the following in the given order:
 
                 "description": """
                 This agent selects jetway equipment available for incoming aircraft deplaning. 
+                It updates deplaning equipment status after selection of jetway. 
                 """
                 "parameters": {
                     "type": "object", 
@@ -204,15 +239,23 @@ When you receive a user request, do the following in the given order:
                         "aircraft_type": {
                             "type": "string", 
                             "description": "This is the type of the incoming aircraft."
-                        },                              
+                        },     
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate assigned to the aircraft parking."
+                        },     
                         "deplaning_equipment_id": {
                             "type": "string", 
-                            "description": "This is the deplaning equipment id that needs status updated."
-                        },             
+                            "description": "This is the deplaning equipment id at the assigned gate. "
+                        },    
+                        "deplaning_equipment_type": {
+                            "type": "string", 
+                            "description": "This is the deplaning equipment type at the assigned gate. "
+                        },                                    
                         "execution_mode": {
                             "type": "string", 
                             "description": "This is the mode that agent should operate in."
-                        },                    
+                        },                 
                     }, 
                     "required": ["execution_mode","flight_number","aircraft_type"], 
                 },
@@ -221,16 +264,16 @@ When you receive a user request, do the following in the given order:
             "instructions": """
 You are the agent responsible for proposing a deplaning equipment of jetway type. 
 When handling a user request in 'read' execution mode proceed in the following order:
-(1) FULFILL the request alway using your tools onlys. 
-(2) Respond to the request when execution mode is 'read' using only your tools by providing the followings: 
+1. Fulfill the request alway using your tools onlys. 
+2. Respond to the request when execution mode is 'read' using only your tools by providing the followings: 
     - report equipment type as equipment_type 
     - report jetway id as jetway_id 
     - report jetway availability as jetway_availability 
     - report jetway readiness time as jetway_readiness_time 
     - report jetway score as jetway_score
     - report jetway gate id at jetway_gate_id
-(3) Send a request to your tools in 'write' execution with both deplaning_equipment_id. 
-- report deplaning_equipment_report.
+When handling a user request in 'write' execution mode, proceed in the following order:
+3. Send the request to your tool in 'write' execution providing deplaning_equipment_type, deplaning_equipment_id and gate_id. 
             """ ${aaosa_instructions},
 
             "tools":["jetway_park_agent"]
@@ -241,6 +284,7 @@ When handling a user request in 'read' execution mode proceed in the following o
             "function": {
                 "description": """
                 This agent selects stairtruck equipment available for incoming aircraft deplaning. 
+                It updates deplaning equipment status after selection of stairtruck. 
                 """
                 "parameters": {
                     "type": "object", 
@@ -253,10 +297,18 @@ When handling a user request in 'read' execution mode proceed in the following o
                             "type": "string", 
                             "description": "This is the type of the incoming aircraft."
                         },    
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate assigned to the aircraft parking."
+                        },     
                         "deplaning_equipment_id": {
                             "type": "string", 
-                            "description": "This is the deplaning equipment id that needs status updated."
-                        },             
+                            "description": "This is the deplaning equipment id at the assigned gate. "
+                        },    
+                        "deplaning_equipment_type": {
+                            "type": "string", 
+                            "description": "This is the deplaning equipment type at the assigned gate. "
+                        },            
                         "execution_mode": {
                             "type": "string", 
                             "description": "This is the mode that agent should operate in."
@@ -267,19 +319,18 @@ When handling a user request in 'read' execution mode proceed in the following o
             },
 
             "instructions": """
-You are the agent responsible for proposing a deplaning equipment of stairtruck type. 
-When handling a user request in 'read' execution mode proceed in the following order:
-(1) FULFILL the request alway using your tools onlys. 
-(2) Respond to the request when execution mode is 'read' using ONLY your tools by providing the followings: 
-    (a) gate id as gate_id
-    (b) equipment type as equipment_type 
-    (c) stairtruck id as stairtruck_id 
-    (d) stairtruck availability as stairtruck_availability 
-    (e) stairtruck readiness time as stairtruck_readiness_time 
-    (f) stairtruck score as stairtruck_score
-    (g) stairtruck gate id as stairtruck_gate_id
-(3) Send a request to your tools in 'write' execution with both deplaning_equipment_id. 
-- report deplaning_equipment_report.
+You are the agent responsible for proposing a deplaning equipment of stairtruck type, and for updating the status of the selected stairtruck. 
+1. When execution_mode is 
+1. Fulfill the request alway using your tools onlys. 
+2. Respond to the request when execution mode is 'read' using ONLY your tools by providing the followings: 
+    - equipment type as equipment_type 
+    - stairtruck id as stairtruck_id 
+    - stairtruck availability as stairtruck_availability 
+    - stairtruck readiness time as stairtruck_readiness_time 
+    - stairtruck score as stairtruck_score
+    - stairtruck gate id as stairtruck_gate_id
+When handling a user request in 'write' execution mode proceed in the following order:
+3. Send the request to your tool in 'write' execution providing deplaning_equipment_type, deplaning_equipment_id and gate_id. 
             """ ${aaosa_instructions},
 
             "tools":["stairtruck_park_agent"]
@@ -289,7 +340,8 @@ When handling a user request in 'read' execution mode proceed in the following o
             "name": "jetway_park_agent",
             "function": {
                 "description": """
-This agent provides the inventory of jet jetway park and return the fastest available unit. 
+This agent provides the inventory of jetway park, return the fastest available unit. 
+It also updates the status of selected jetway unit. 
                 """, 
                 "parameters": {
                     "type": "object", 
@@ -306,12 +358,20 @@ This agent provides the inventory of jet jetway park and return the fastest avai
                             "type": "string", 
                             "description": "This is the mode that agent should operate in."
                         },      
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate assigned to the aircraft parking."
+                        },     
                         "deplaning_equipment_id": {
                             "type": "string", 
-                            "description": "This is the deplaning equipment id that needs status updated."
-                        },                             
+                            "description": "This is the deplaning equipment id at the assigned gate. "
+                        },    
+                        "deplaning_equipment_type": {
+                            "type": "string", 
+                            "description": "This is the deplaning equipment type at the assigned gate. "
+                        },                          
                     }, 
-                    "required": ["flight_number","aircraft_type"], 
+                    "required": ["flight_number","aircraft_type","execution_mode"], 
                 }
             }, 
             "class": "AirlineTurnaround.aircraft_gate_selection.aircraft_gate_selection.jetway_park_inquiry"
@@ -321,7 +381,8 @@ This agent provides the inventory of jet jetway park and return the fastest avai
             "name": "stairtruck_park_agent",
             "function": {
                 "description": """
-This agent provides the inventory of stairtruck park and return the fastest available unit. 
+This agent provides the inventory of stairtruck park, return the fastest available unit. 
+It also updates the status of selected stairtruck unit. 
                 """, 
                 "parameters": {
                     "type": "object", 
@@ -338,15 +399,103 @@ This agent provides the inventory of stairtruck park and return the fastest avai
                             "type": "string", 
                             "description": "This is the mode that agent should operate in."
                         },                  
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate assigned to the aircraft parking."
+                        },     
                         "deplaning_equipment_id": {
                             "type": "string", 
-                            "description": "This is the deplaning equipment id that needs status updated."
+                            "description": "This is the deplaning equipment id at the assigned gate. "
+                        },    
+                        "deplaning_equipment_type": {
+                            "type": "string", 
+                            "description": "This is the deplaning equipment type at the assigned gate. "
                         },                 
                     }, 
-                    "required": ["flight_number","aircraft_type"], 
+                    "required": ["flight_number","aircraft_type","execution_mode"], 
                 }
             }, 
             "class": "AirlineTurnaround.aircraft_gate_selection.aircraft_gate_selection.stairtruck_park_inquiry"
+        }, 
+
+        {
+            "name": "TrackerAPI",
+            "function": {
+
+                "description": """
+I am the flight tracker in charge of logging parameters during aircraft turnaround. 
+I check engines stop status as statusengines_stop_status. 
+I check wheels chucks installation status as wheels_chucks_installation_status. 
+                """
+
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },     
+                        "flight_status": {
+                            "type": "string", 
+                            "description": "This is the flight status."
+                        },          
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate assigned to the aircraft parking."
+                        },     
+                        "deplaning_equipment_id": {
+                            "type": "string", 
+                            "description": "This is the deplaning equipment id at the assigned gate. "
+                        },    
+                        "deplaning_equipment_type": {
+                            "type": "string", 
+                            "description": "This is the deplaning equipment type at the assigned gate. "
+                        },   
+                        "ground_services_request_type": {
+                            "type": "string", 
+                            "description": "This is the type of the inquiry received for grand services."
+                        },         
+                        "wheels_chocks_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks readiness status."
+                        },   
+                        "wheels_chocks_installation_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks installation status."
+                        },   
+                        "gpu_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the gpu readiness status."
+                        },     
+                        "acu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the acu connection status."
+                        },     
+                        "gpu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the gpu connection status."
+                        },     
+                        "engines_stop_status": {
+                            "type": "string", 
+                            "description": "This is the engines stop status."
+                        },    
+                        "jetbridge_connection_status": {
+                            "type": "string", 
+                            "description": "This is the jetbridge connection status."
+                        },    
+                        "door_opening_status": {
+                            "type": "string", 
+                            "description": "This is the door opening status."
+                        },    
+                    }, 
+                    "required": [] 
+                }
+            },
+            "class": "AirlineTurnaround.aircraft_gate_selection.aircraft_gate_selection.TrackerAPI" 
         }, 
     ],
 }

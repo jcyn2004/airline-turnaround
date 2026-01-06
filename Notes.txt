@@ -1,0 +1,1 @@
+After the cloning of the repo, the user needs to update a few links in all files by proceeding as follows: Find and replace the following path in all files under /airline-turnaround/ with its equivalent on their own computer. “/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/runways_base.csv”
