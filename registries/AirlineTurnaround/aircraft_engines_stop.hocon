@@ -120,19 +120,33 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
             },
 
             "instructions": """
+
 You are the agent in charge of stopping engines when aircraft reaches the gate. 
-When user submit inquiry to stop engines, proceed as follows: 
-Make sure that user provides flight status such as on blocks or landed. 
-1. Call trackerAPI
+When user submits inquiry, proceed as follows: 
+1. Determine if the followings are provided by the user: 
+    a. flight status as flight_status with value such as 'on blocks' 
+2. Call TrackerAPI to get the latest value of flight status
     a. wait for its response 
-    b. store flight_status as flight status
-2. If flight status is on blocks
-    a. call engines stop operator to stop engines 
-    b. Wait for its response 
-    c. Report the status of engines stop 
-3. Provides the engines stop report summary as: 
-    ** Engines stop status summary **: 
-    [engines_stop_status]
+    b. store flight status as flight_status
+3. If flight_status includes 'on blocks' then go to step 6.
+4. If flight_status does not includes 'on blocks' 
+    a. return to user that engines cannot be stopped while aircraft is not on blocks
+    b. wait for their responses 
+    c. Return to step 2.
+5. Call TrackerAPI
+    a. wait for its response 
+    b. store flight status as flight_status
+    c. if flight_status does not include 'on blocks', go back to step 4.
+6. If flight_status includes 'on blocks'  
+    a. call engines_stop_operator to stop the engines
+    b. Wait for its response and save it as engines_stop_status
+    c. Report engines_stop_status
+7. Call TrackerAPI to get the latest value of flight_status and engines_stop_status
+    a. wait for its response 
+    b. store flight status as flight_status, and store engines stop status as engines_stop_status
+8. Provide the engines stop status report summary as: 
+    ** flight status **: [flight_status]
+    ** engines stop status **: [engines_stop_status]
             """ ${aaosa_instructions},
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
@@ -149,11 +163,32 @@ Make sure that user provides flight status such as on blocks or landed.
                         "flight_status": true
                         "gate_id": true 
                         "engines_stop_status": true
+                        "assigned_runway_id": true
+                    }
+                }
+                "from_downstream": {
+                    "sly_data": {
+                        "flight_number": true
+                        "aircraft_type": true
+                        "flight_status": true
+                        "gate_id": true 
+                        "engines_stop_status": true
+                        "assigned_runway_id": true
+                    }
+                }
+                "to_downstream": {
+                    "sly_data": {
+                        "flight_number": true
+                        "aircraft_type": true
+                        "flight_status": true
+                        "gate_id": true 
+                        "engines_stop_status": true
+                        "assigned_runway_id": true
                     }
                 }
             },
 
-            "tools":    ["trackerAPI","engines_stop_operator"]
+            "tools":    ["TrackerAPI","engines_stop_operator"]
         },
 
         {
@@ -194,7 +229,7 @@ This agent stops aircraft engines upon arrival at the gate.
         }, 
 
         {
-            "name": "trackerAPI",
+            "name": "TrackerAPI",
             "function": {
 
                 "description": """
@@ -261,7 +296,7 @@ I check the flight status.
                     "required": [] 
                 }
             },
-            "class": "AirlineTurnaround.aircraft_engines_stop.aircraft_engines_stop.trackerAPI" 
+            "class": "AirlineTurnaround.aircraft_engines_stop.aircraft_engines_stop.TrackerAPI" 
         }, 
     ],
 }

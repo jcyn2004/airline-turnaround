@@ -6,7 +6,8 @@
         "description": "Simple agent network using a single LLM-based agent",
         "tags": ["example"],
         "sample_queries": [
-            "The B747 aircraft of flight AF84 is on blocks at gate A1. Baggages have been unloaded. All passengers have disembarked. The crew has exited the aircraft. Perform inspection and maintenance.",
+            "The B747 aircraft of flight AF84 is on blocks at gate A1. Baggages have been unloaded. All passengers have disembarked. The crew has exited the aircraft. Perform inspection and maintenance.", 
+            "The B747 aircraft of flight AF84 is on blocks at gate A1. Perform inspection and maintenance"
         ]
     },
 
@@ -123,36 +124,50 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "description": "This is the baggage unload status."
                         },  
                     }, 
-                    "required": ["flight_number", "aircraft_type","gate_id","passenger_disembarkation_status","crew_exit_status","baggage_unload_status"]        
+                    // "required": ["flight_number", "aircraft_type","gate_id","passenger_disembarkation_status","crew_exit_status","baggage_unload_status"]        
+                    "required": ["flight_number", "aircraft_type","gate_id"]    
                 }
             },
 
             "instructions": """
 You are the agent in charge of inspection and maintenance of aircraft at the gate. 
 When user submits inquiry, proceed as follows: 
-1. Determine if the followings are provided by the user: 
-    a. flight_number 
-    b. aircraft_type
-    c. flight statuys such as 'on blocks'
-    d. gate_id
-    e. passenger disembarkation status such as'completed'
-    f. crew exit status such as 'completed' or 'exited'
-    g. baggage unload status such as 'completed' or 'unloaded'
-2. If passenger_disembarkation_status = 'completed' and crew_exit_status includes 'completed' and baggage_unload_status includes 'completed' then go to step 5.
-3. If passenger_disembarkation_status is not 'completed', or crew_exit_status does not includes 'completed' or 'exited' or baggage_unload_status does not includes 'completed' or 'unloaded'
-    a. call your tools to make sure that passenger_disembarkation_status is completed and crew_exit_status is 'completed or 'exited' and baggage_unload_status is 'completed' or 'unloaded'
+1. Determine if the inquiry prompt provides the following information: 
+    a. flight number as flight_number 
+    b. aircraft type as aircraft_type
+    c. flight status as flight_status with value such as 'on blocks'
+    d. gate id as gate_id
+    e. passenger disembarkation status as passenger_disembarkation_status with value such as'completed'
+    f. crew exit status as crew_exit_status with value such as 'completed' or 'exited'
+    g. baggage unload status as baggage_unload_status with value such as 'completed' or 'unloaded'
+2. Call TrackerAPI and log all the available parameters.
+3. If passenger_disembarkation_status includes 'completed', and crew_exit_status includes 'completed', and baggage_unload_status includes 'completed' then go to step 7.
+4. If passenger_disembarkation_status is not 'completed',
+    a. call aircraft_disembark to make sure that passenger disembarkation status is completed
+    b. wait for its response 
+    c. return to step 2. 
+5. If crew_exit_status does not includes 'completed', 
+    a. call aircraft_crew_exit to make sure that crew exit status is 'completed or 'exited',
     b. wait for their responses 
-4. Call trackerAPI
-    a. wait for its response 
-    b. store passenger disembarkation status as passenger_disembarkation_status, store crew exit status as crew_exit_status, and store baggage unload status as baggage_unload_status. 
-    c. If passenger_disembarkation_status is not 'completed', or crew_exit_status does not includes 'completed' or 'exited' or baggage_unload_status does not includes 'completed' or 'unloaded', then go back to step 3.
-5. If passenger_disembarkation_status = 'completed' and crew_exit_status includes 'completed' and baggage_unload_status includes 'completed'
+    c. return to step 2. 
+6. If baggage_unload_status does not includes 'completed' or 'unloaded'
+    a. call aircraft_baggage_unload to make sure that baggage unload status is 'completed' or 'unloaded'
+    b. wait for their responses 
+    c. return to step 2. 
+7. If passenger_disembarkation_status includes 'completed', and crew_exit_status includes 'completed', and baggage_unload_status includes 'completed'
     a. call inspection_maintenance_operator to inspect aircraft and perform maintenance as needed.
     b. Wait for its response and save it as inspection_maintenance_status
     c. Report inspection_maintenance_status
-6. Provide the inspection maintenance status report summary as: 
+8. Provide the inspection maintenance status report summary as: 
     ** inspection maintenance summary **: 
-    [inspection_maintenance_status]
+    ** flight number **: [flight_number]
+    ** aircraft type **: [aircraft_type]    
+    ** gate id **: [gate_id]
+    ** flight status **: [flight_status]
+    ** passenger disembarkation status **: [passenger_disembarkation_status]
+    ** crew exit status **: [crew_exit_status]
+    ** baggage unload status **: [baggage_unload_status]
+    ** inspection maintenance status **: [inspection_maintenance_status]
             """ ${aaosa_instructions},
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
@@ -197,7 +212,7 @@ When user submits inquiry, proceed as follows:
                 }
             },
 
-            "tools": ["trackerAPI","inspection_maintenance_operator","/AirlineTurnaround/aircraft_disembark","/AirlineTurnaround/aircraft_crew_exit","/AirlineTurnaround/aircraft_baggage_unload"]
+            "tools": ["TrackerAPI","inspection_maintenance_operator","/AirlineTurnaround/aircraft_disembark","/AirlineTurnaround/aircraft_crew_exit","/AirlineTurnaround/aircraft_baggage_unload"]
         },
 
         {
@@ -245,7 +260,7 @@ This agent inspects aircraft and performs maintenance at the gate.
         }, 
 
         {
-            "name": "trackerAPI",
+            "name": "TrackerAPI",
             "function": {
 
                 "description": """
@@ -326,7 +341,7 @@ I check baggage unload status as baggage_unload_status.
                     "required": [] 
                 }
             },
-            "class": "AirlineTurnaround.aircraft_inspection_maintenance.aircraft_inspection_maintenance.trackerAPI" 
+            "class": "AirlineTurnaround.aircraft_inspection_maintenance.aircraft_inspection_maintenance.TrackerAPI" 
         }, 
     ],
 }

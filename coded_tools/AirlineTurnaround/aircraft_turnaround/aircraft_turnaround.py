@@ -184,7 +184,7 @@ class inspection_maintenance_operator(CodedTool):
 # tool will be edited for each agents so that it aonly returns the relevant # 
 # one for the agent.                                                        #
 #############################################################################
-class trackerAPI(CodedTool):
+class TrackerAPI(CodedTool):
     """
     Read and return sly data in read mode, or write and update sly data in write. 
     """

@@ -7,7 +7,6 @@
         "tags": ["example"],
         "sample_queries": [
             "The B747 aircraft of flight AF84 has landed on runway 19R. The clearance to taxi in has been granted. Both gpu and the wheels chocks are ready. Please taxi in the plane to gate A1.",
-            "The B747 aircraft of flight AF84 has landed on runway 19R. Please taxi in the plane to gate A1.", 
         ]
     },
 
@@ -115,6 +114,10 @@ You are in charge of aircraft taxi in to or out of the gate at the airport.
                             "type": "string", 
                             "description": "This is the wheels chocks readiness status."
                         },   
+                        "acu_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the acu readiness status."
+                        },
                         "gpu_readiness_status": {
                             "type": "string", 
                             "description": "This is the gpu readiness status."
@@ -137,45 +140,58 @@ You are the top-level agent responsible for aircraft taxi at the airport.
 Do not make things up. 
 Use your own tools only. 
 When you receive a user request to taxi the aircraft, proceed as follows:
-1. Determine the followings information from prompt. 
+1. Determine if the followings information in given in the user prompt. 
     - flight number as flight_number
     - aircraft type as aircraft_type
-    - traffic direction as traffic_direction such as 'incoming' or 'departing'
-    - flight status as flight_status such as 'landed', 'on blocks', 'off blocks', etc.
+    - aircraft direction as aircraft_direction with value such as 'incoming' or 'departing'
+    - flight status as flight_status with value such as 'landed', 'on blocks', 'off blocks', etc.
     - assigned runway id as assigned_runway_id
     - gate id as gate_id 
-    - ground clearance type as ground_clearance_type
-    - ground clearance status as ground_clearance_status 
-    - GPU readiness as gpu_readiness_status
-    - Wheels chocks readiness as wheels_chocks_readiness_status
-2. Call trackerAPI and log all the available parameters.
-3. If flight_status is not 'landed' or 'off blocks', then 
-    - respond to user that the aircraft is not yet landed or off blocks and can not taxi in.
+    - ground clearance type as ground_clearance_type with value such as 'taxi', 'taxi in' or 'taxi out'
+    - ground clearance status as ground_clearance_status with value such as 'granted, 'cleared' or 'not cleared'
+    - ACU readiness as acu_readiness_status with value such as 'ready' or 'not ready'
+    - GPU readiness as gpu_readiness_status with value such as 'ready' or 'not ready'
+    - Wheels chocks readiness as wheels_chocks_readiness_status with value such as 'ready' or 'not ready'
+2. Call TrackerAPI and log all the available parameters.
+3. If flight_status is does not contain 'landed' or 'off blocks' or 'blocks', then 
+    - respond to user that aicraft cannot taxi as flight status is not 'landed' or 'off blocks'.
     - ask the user to confirm that aircraft has landed or is off blocks.
     - return to step 1 above.
 4. If ground_clearance_status does not contain 'cleared' and 'taxi', 
     - Call aircraft_ground_traffic to request clearance for taxiing.
     - Wait for the response from aircraft_ground_traffic.
     - return to step 2 above. 
-5. If gpu_readiness_status is not ready,
-    - Call aircraft_ground_services to request GPU readiness.
+5. If acu_readiness_status does not contain 'ready',
+    - Call aircraft_ground_services to request ACU readiness.
     - Wait for the response from aircraft_ground_services.
     - return to step 2 above. 
-6. If wheels_chocks_readiness_status is not ready,
+6. If gp_readiness_status does not contain 'ready',
+    - Call aircraft_ground_services to request AGPU readiness.
+    - Wait for the response from aircraft_ground_services.
+    - return to step 2 above. 
+7. If wheels_chocks_readiness_status does not contain 'ready',
     - Call aircraft_ground_services to request wheels chocks readiness.
     - Wait for the response from aircraft_ground_services.
     - return to step 2 above. 
-7. If flight_status is not 'landed' or 'off blocks', or ground_clearance_status does not contain 'cleared' and 'taxi', or gpu_readiness_status is not ready or wheels_chocks_readiness_status is not ready,
+8. If flight_status is not 'landed' or 'off blocks', or ground_clearance_status does not contain 'cleared' and 'taxi', or acu_readiness_status does not contain 'ready', or gpu_readiness_status does not contain 'ready', or wheels_chocks_readiness_status does not contain 'ready',
     - Call you tools to get ground clearance to taxi the aircraft.
     - Wait for the response from your tools.
     - return to step 2 above. 
-8. If flight_status is 'landed' or 'off blocks', and ground_clearance_status contains 'cleared' and 'taxi', or gpu_readiness_status is ready, and wheels_chocks_readiness_status is ready,
+9. If flight_status is 'landed' or 'off blocks', and ground_clearance_status contains 'cleared' and 'taxi', and acu_readiness_status is ready, and gpu_readiness_status is ready, and wheels_chocks_readiness_status is ready,
     - Call aircraft_taxiing_agent to perform the aircraft taxiing operation.
     - Wait for the response from aircraft_taxiing_agent.
+10. Call TrackerAPI and log all the available parameters.
     - Display the results as follows:
     ** flight number **: [flight_number]
     ** aircraft type **: [aircraft_type]    
     ** gate id **: [gate_id]    
+    ** aircraft direction **: [aircraft_direction]
+    ** assigned runway id **: [assigned_runway_id]
+    ** ground clearance type **: [ground_clearance_type]
+    ** ground clearance status **: [ground_clearance_status] 
+    ** ACU readiness **: [acu_readiness_status]
+    ** GPU readiness **: [gpu_readiness_status]
+    ** Wheels chocks readiness **: [wheels_chocks_readiness_status]
     ** flight status **: [flight_status] 
 
             """ ${aaosa_instructions},
@@ -190,11 +206,11 @@ When you receive a user request to taxi the aircraft, proceed as follows:
                         "ground_clearance_type": true, 
                         "gate_id": true, 
                         "assigned_runway_id": true, 
-                        "ground_services_inquiry_type": true
                     }
                 }
                 "from_downstream": {
                     "sly_data": {
+                        "acu_readiness_status": true, 
                         "gpu_readiness_status": true, 
                         "wheels_chocks_readiness_status": true, 
                         "ground_clearance_type": true, 
@@ -204,7 +220,7 @@ When you receive a user request to taxi the aircraft, proceed as follows:
                 }
             },
 
-            "tools":    ["aircraft_taxiing_agent","trackerAPI","/AirlineTurnaround/aircraft_ground_services","/AirlineTurnaround/aircraft_ground_traffic"], 
+            "tools":    ["aircraft_taxiing_agent","TrackerAPI","/AirlineTurnaround/aircraft_ground_services","/AirlineTurnaround/aircraft_ground_traffic"], 
         }, 
 
         {
@@ -244,24 +260,28 @@ I am the pilot in charge of taxiing the aircraft on the ground at the airport.
                         "gate_id": {
                             "type": "string", 
                             "description": "This is the gate assigned to the aircraft parking."
-                        },             
+                        },    
+                        "acu_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the acu readiness status."
+                        },         
                         "gpu_readiness_status": {
                             "type": "string", 
                             "description": "This is the gpu readiness status."
                         },       
-                        "chocks_readiness_status": {
+                        "wheels_chocks_readiness_status": {
                             "type": "string", 
-                            "description": "This is the chocks readiness status."
+                            "description": "This is the wheels chocks readiness status."
                         },        
                     }, 
-                    "required": ["flight_number", "aircraft_type","ground_clearance_type","ground_clearance_type","flight_status","assigned_runway_id","gate_id","gpu_readiness_status","chocks_readiness_status"] 
+                    "required": ["flight_number", "aircraft_type","ground_clearance_type","ground_clearance_type","flight_status","assigned_runway_id","gate_id","gpu_readiness_status","wheels_chocks_readiness_status"] 
                 },
             },
             "class": "AirlineTurnaround.aircraft_taxiing.aircraft_taxiing.execute_aircraft_taxiing" 
         }, 
 
         {
-            "name": "trackerAPI",
+            "name": "TrackerAPI",
             "function": {
 
                 "description": """
@@ -305,7 +325,11 @@ I check baggage unload status as baggage_unload_status.
                         "gpu_readiness_status": {
                             "type": "string", 
                             "description": "This is the gpu readiness status."
-                        },     
+                        },   
+                        "acu_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the acu readiness status."
+                        },    
                         "acu_connection_status": {
                             "type": "string", 
                             "description": "This is the acu connection status."
@@ -354,7 +378,7 @@ I check baggage unload status as baggage_unload_status.
                     "required": [] 
                 }
             },
-            "class": "AirlineTurnaround.aircraft_taxiing.aircraft_taxiing.trackerAPI" 
+            "class": "AirlineTurnaround.aircraft_taxiing.aircraft_taxiing.TrackerAPI" 
         }, 
     ],
 }
