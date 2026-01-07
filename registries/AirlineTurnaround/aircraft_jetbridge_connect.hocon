@@ -131,7 +131,9 @@ When user submits inquiry, proceed as follows:
     a. flights status such as 'on blocks' or 'landed'
     b. acu connection status such as 'connected' 
     c. gpu connection status such as 'connected' 
-2. Call TrackerAPI and wait for its response 
+2. Call TrackerAPI 
+    a. wait for its response 
+    b. store all the available parameters.
 3. If flight status is not 'on blocks', the respond to user that jetbridge cannot be connected as flight status is not 'on blocks'.
 4. If acu_connection_status is not 'connected', or gpu_connection_status is not 'connected'
     a. call your tools to make sure that acu_connection_status is 'connected' and gpu_connection_status is 'connected'
@@ -144,7 +146,9 @@ When user submits inquiry, proceed as follows:
     a. call jetbridge_operator to connect jetbridge to aircraft
     b. Wait for its response and save it as jetbridge_connection_status
     c. Report jetbridge_connection_status
-7. Call TrackerAPI and wait for its response 
+7. Call TrackerAPI 
+    a. wait for its response 
+    b. store all the available parameters.
 8. If acu_connection_status is not 'connected' or gpu_connection_status is not 'connected' or jetbridge_connection_status is not 'connected'
     a. Report that jetbridge connection failed due to acu or gpu not connected
 9. Provide the jetbridge connection status report summary as: 

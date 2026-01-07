@@ -7,6 +7,7 @@ from enum import Enum
 from dataclasses import dataclass
 import re
 import pandas as pd
+from pathlib import Path
 
 
 # =========================
@@ -90,9 +91,12 @@ class execute_air_clearance(CodedTool):
 
     def __init__(
         self,
-        aircraft_base: str = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/aircraft_base.csv",
-        runway_base: str = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/runways_base.csv",
-        log_path: str = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt",
+        # aircraft_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/aircraft_base.csv"
+        aircraft_base = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_traffic_controller" / "aircraft_base.csv",
+        # runway_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/runways_base.csv"
+        runway_base = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_traffic_controller" / "runways_base.csv",
+        # log_path: str = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt",
+        log_path = Path.cwd() / "test_debug" / "airlineturnaround.txt",
     ):
         super().__init__()
         self.aircraft_base = aircraft_base
@@ -234,7 +238,8 @@ class tracker_aircraft_traffic_controller(CodedTool):
         """
         print(">>>>>>>>>>>>>>>>>>> trackerAPI flight operation agent >>>>>>>>>>>>>>>>>>")
 
-        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
 
         # ground clearance type is required to fulfill the request.
         flight_status: str = args.get("flight_status", None)

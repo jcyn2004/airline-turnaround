@@ -90,7 +90,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
             "function": {
                 "description": """
  I am in charge of catering loading for the aircraft at the gate. 
-                """
+                """,
                 "parameters": {
                     "type": "object", 
                     "properties": {
@@ -114,7 +114,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "This is the passenger disembarkation status."
                         },    
-                        crew_exit_status:  {
+                        "crew_exit_status":  {
                             "type": "string", 
                             "description": "This is the crew exit status." 
                         },
@@ -128,7 +128,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
             },
 
             "instructions": """
-You are the agent in charge of lavatory service for aircraft. 
+You are the agent in charge of catering loading to the aircraft. 
 When user submits inquiry, proceed as follows: 
 1. Determine if the followings are provided by the user: 
     a. passenger disembarkation status as passenger_disembarkation_status with valuesuch as'completed'
@@ -139,7 +139,9 @@ When user submits inquiry, proceed as follows:
     f. flight number as flight_number
     g. aircraft type as aircraft_type
 2. Call TrackerAPI and get the latest value of parameters
-3. If passenger_disembarkation_status = 'completed' and crew_exit_status includes 'completed' and baggage_unload_status includes 'completed' then go to step 5.
+    a. wait for its response 
+    b. store all the available parameters.
+3. If passenger_disembarkation_status contains 'completed' and crew_exit_status includes 'completed' and baggage_unload_status includes 'completed' then go to step 6.
 4. If passenger_disembarkation_status is not 'completed', or crew_exit_status does not includes 'completed' or 'exited' or baggage_unload_status does not includes 'completed' or 'unloaded'
     a. call your tools to make sure that passenger_disembarkation_status is completed and crew_exit_status is 'completed or 'exited' and baggage_unload_status is 'completed' or 'unloaded'
     b. wait for their responses 
@@ -152,6 +154,8 @@ When user submits inquiry, proceed as follows:
     b. Wait for its response and save it as catering_loading_status
     c. Report catering_loading_status
 7. Call TrackerAPI and get the latest value of parameters 
+    a. wait for its response 
+    b. store all the available parameters.
 8. Provide the lavatory service status report summary as: 
     ** flight number **: [flight_number]
     ** aircraft type **: [aircraft_type]
@@ -237,7 +241,7 @@ This agent services catering loading on the aircraft at the gate.
                             "type": "string", 
                             "description": "This is the passenger disembarkation status."
                         },    
-                        crew_exit_status:  {
+                        "crew_exit_status":  {
                             "type": "string", 
                             "description": "This is the crew exit status." 
                         },
@@ -261,7 +265,7 @@ I am the flight tracker in charge of logging parameters during aircraft turnarou
 I check passenger disembarkation status as passenger_disembarkation_status. 
 I check crew exit status as crew_exit_status. 
 I check baggage unload status as baggage_unload_status. 
-                """
+                """,
 
                 "parameters": {
                     "type": "object", 
@@ -322,7 +326,7 @@ I check baggage unload status as baggage_unload_status.
                             "type": "string", 
                             "description": "This is the passenger disembarkation status."
                         },    
-                        crew_exit_status:  {
+                        "crew_exit_status":  {
                             "type": "string", 
                             "description": "This is the crew exit status." 
                         },

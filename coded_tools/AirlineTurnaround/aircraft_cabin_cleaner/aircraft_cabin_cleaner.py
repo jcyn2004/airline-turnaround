@@ -12,6 +12,7 @@ import fcntl
 from typing import Dict, Any, Union
 import asyncio
 import re
+from pathlib import Path
 
 class execute_time_estimator(CodedTool):
     """
@@ -22,8 +23,10 @@ class execute_time_estimator(CodedTool):
         pass
 
     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
-        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
-        ground_equipments_base = "/Users/971244/workspace/airline-turnaround/coded_tools/ground_services/ground_equipments_base.csv"
+        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
+        # ground_equipments_base = "/Users/971244/workspace/airline-turnaround/coded_tools/ground_services/ground_equipments_base.csv"
+        ground_equipments_base = Path.cwd() / "coded_tools" / "ground_services" / "ground_equipments_base.csv"
 
         # Check parameters in sly data
         aircraft_type: str = sly_data.get("aircraft_type", None)   
@@ -86,8 +89,10 @@ class execute_staff_provider(CodedTool):
         pass
 
     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
-        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
-        ground_equipments_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaroundground_services/ground_equipments_base.csv"
+        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
+        # ground_equipments_base = "/Users/971244/workspace/airline-turnaround/coded_tools/ground_services/ground_equipments_base.csv"
+        ground_equipments_base = Path.cwd() / "coded_tools" / "ground_services" / "ground_equipments_base.csv"
 
         # Check parameters in sly data
         aircraft_type: str = sly_data.get("aircraft_type", None)   
@@ -150,8 +155,10 @@ class execute_wheels_chocks_operator(CodedTool):
         pass
 
     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
-        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
-        ground_equipments_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlinesTurnaround/ground_services/ground_equipments_base.csv"
+        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
+        # ground_equipments_base = "/Users/971244/workspace/airline-turnaround/coded_tools/ground_services/ground_equipments_base.csv"
+        ground_equipments_base = Path.cwd() / "coded_tools" / "ground_services" / "ground_equipments_base.csv"
 
         # Check parameters in sly data
         aircraft_type: str = sly_data.get("aircraft_type", None)   
@@ -255,8 +262,10 @@ class execute_tug_operator(CodedTool):
         pass
 
     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
-        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
-        ground_equipments_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/ground_services/ground_equipments_base.csv"
+        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
+        # ground_equipments_base = "/Users/971244/workspace/airline-turnaround/coded_tools/ground_services/ground_equipments_base.csv"
+        ground_equipments_base = Path.cwd() / "coded_tools" / "ground_services" / "ground_equipments_base.csv"
 
         # Check parameters in sly data
         aircraft_type: str = sly_data.get("aircraft_type", None)   

@@ -144,6 +144,8 @@ When you receive user inquiry, proceed as follows:
     f. crew exit status as crew_exit_status with value such as 'completed' or 'exited'
     g. baggage unload status as baggage_unload_status with value such as 'completed' or 'unloaded'
 2. Call TrackerAPI and log all the available parameters.
+    a. wait for its response 
+    b. store all the available parameters.
 3. If flight_status is not 'on blocks', 
     a. report that the aircraft is not yet on blocks and cabin cleaning can not proceed.
     b. end process here.

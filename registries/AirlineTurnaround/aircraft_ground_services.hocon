@@ -113,11 +113,15 @@ When user submits inquiry, proceed as follows:
 5. If gate_id is not None and aircraft_type is not None and flight_number is not None, then
     a. Call ground_readiness_coordinator to request acu readiness status, gpu readiness status, and wheels chocks readiness status, including flight_number, aircraft_type, gate_id. 
     b. Wait for ground_readiness_coordinator to return acu_readiness_status and gpu_readiness_status and wheels_chocks_readiness_status. 
-    c. Store the returned acu_readiness_status as acu_readiness_status. 
-    d. Store the returned gpu_readiness_status as gpu_readiness_status. 
-    e. Store the returned wheels_chocks_readiness_status as wheels_chocks_readiness_status
-6.  Call TrackerAPI and log all the available parameters.
-7.  Provide the ground services report summary as: 
+    c. Store acu readiness status as the returned acu_readiness_status. 
+    d. Store gpu readiness status as the returned gpu_readiness_status. 
+    e. Store wheels chocks readiness status as the returned wheels_chocks_readiness_status
+6.  Call TrackerAPI 
+    a. wait for its response 
+    b. store all the available parameters.
+7. If acu_readiness_status is not 'ready', or gpu_readiness_status is not 'ready', or wheels_chocks_readiness_status is not 'rady'
+    a. return to step 5.
+8.  Provide the ground services report summary as: 
     ** flight number **: [flight_number]
     ** aircraft type **: [aircraft_type]
     ** gate id **: [gate_id]

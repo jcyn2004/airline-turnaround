@@ -7,6 +7,7 @@ from enum import Enum
 from dataclasses import dataclass
 import re
 import pandas as pd
+from pathlib import Path
 
 class execute_cpu_acu_operator(CodedTool):
     """
@@ -25,8 +26,10 @@ class execute_cpu_acu_operator(CodedTool):
         print("################################################################")
 
     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
-        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
-        ground_equipments_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_gate_selection/gate_equipments_base.csv"
+        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
+        # ground_equipments_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_gate_selection/gate_equipments_base.csv"
+        ground_equipments_base = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_gate_selection" / "gate_equipments_base.csv"
 
         print("\n")
         print("\n")
@@ -109,8 +112,10 @@ class execute_cpu_gpu_operator(CodedTool):
         print("################################################################")
 
     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
-        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
-        ground_equipments_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_gate_selection/gate_equipments_base.csv"
+        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
+        # ground_equipments_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_gate_selection/gate_equipments_base.csv"
+        ground_equipments_base = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_gate_selection" / "gate_equipments_base.csv"
 
         print("\n")
         print("\n")
@@ -193,8 +198,10 @@ class execute_wheels_chocks_operator(CodedTool):
         print("################################################################")
 
     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
-        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
-        ground_equipments_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_gate_selection/gate_equipments_base.csv"
+        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
+        # ground_equipments_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_gate_selection/gate_equipments_base.csv"
+        ground_equipments_base = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_gate_selection" / "gate_equipments_base.csv"
 
         print("\n")
         print("\n")

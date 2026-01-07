@@ -13,6 +13,7 @@ import asyncio
 import re
 from enum import Enum
 from dataclasses import dataclass
+from pathlib import Path
 
 def _from_args_or_sly(args: Dict[str, Any], sly: Dict[str, Any], key: str) -> Any:
     """Prefer args[key]; fallback to sly_data[key]."""
@@ -33,9 +34,12 @@ class execute_aircraft_landing(CodedTool):
         pass
 
     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
-        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
-        aircraft_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/aircraft_base.csv"
-        runway_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/runways_base.csv"
+        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
+        # aircraft_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/aircraft_base.csv"
+        aircraft_base = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_traffic_controller" / "aircraft_base.csv"
+        # runway_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/runways_base.csv"
+        runway_base = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_traffic_controller" / "runways_base.csv"
 
         # Check aircraft type parameter passed by the agent
         flight_status: str = args.get("flight_status", None) 
