@@ -7,6 +7,7 @@ from enum import Enum
 from dataclasses import dataclass
 import re
 import pandas as pd
+from pathlib import Path
 
 # ---------- helpers ----------
 
@@ -46,7 +47,8 @@ class catering_loading_operator(CodedTool):
         :return: None in write mode or any of the parameters in read mode
         """
 
-        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
         catering_loading_status = 'pending'
 
         print("\n")
@@ -475,7 +477,6 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
     "flight_status",
     "fueling_status", 
     "gate_id",
-    "",
     "gpu_connection_status", 
     "gpu_readiness_status",
     "ground_clearance_status",
@@ -500,7 +501,7 @@ FLIGHT_TURNAROUND_RETURN_FIELDS = [
     "flight_number",
     "flight_status",
     "gate_id",
-    "passenger_disembarkation_status", 
+    "catering_loading_status", 
 ]
 
 # =============================================================================

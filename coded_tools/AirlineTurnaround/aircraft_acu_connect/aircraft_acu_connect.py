@@ -7,6 +7,7 @@ from enum import Enum
 from dataclasses import dataclass
 import re
 import pandas as pd
+from pathlib import Path
 
 # ---------- helpers ----------
 
@@ -46,7 +47,8 @@ class acu_operator(CodedTool):
         :return: None in write mode or any of teh parameters in read mode
         """
         
-        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
         acu_connection_status = 'pending'
 
         print("\n")
@@ -161,7 +163,7 @@ class acu_operator(CodedTool):
             print("\n")
 
         if engines_stop_status is not None: 
-            engines_stop_status = engines_stop_status.lower()
+            engines_stop_status = engines_stop_status.lower() 
         if wheels_chocks_installation_status is not None: 
             wheels_chocks_installation_status = wheels_chocks_installation_status.lower() 
 

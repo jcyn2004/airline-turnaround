@@ -127,12 +127,14 @@ When user submits inquiry, proceed as follows:
 4. If flight_number is None or aircraft_type is None,
     a. ask youserr to provide the missing information.
     b. wait for their responses 
-    c. goto step 1. 
+    c. goto step 2. 
 5. If flight_number is not None and aircraft_type is not None
     a. set execution_mode value to 'inquiry' and call deplaning_path_selector in 'inquiry' execution mode to select a deplaning path.
     b. Wait for its response and save it as fueling_status
     c. Report gate id as gate_id, deplaning equipment type as deplaning_equipment_type, deplaning equipment id as deplaning_equipment_id, deplaning equipment readiness time as deplaning_equipment_readiness_time, and deplaning equipment score as deplaning_equipment_score
-6. Call TrackerAPI to log all the available parameters.
+6. Call TrackerAPI 
+    a. wait for its response 
+    b. store all the available parameters.
 7. set execution_mode value to 'write' and call deplaning_path_selector in 'write' execution mode to update the status of deplaning equipment providing deplaning_equipment_type, deplaning_equipment_id and gate_id.
 8. Provide the gate selection report summary as: 
     ** gate id **: [gate_id]

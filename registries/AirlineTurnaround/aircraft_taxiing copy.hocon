@@ -153,7 +153,9 @@ When you receive a user request to taxi the aircraft, proceed as follows:
     - ACU readiness as acu_readiness_status with value such as 'ready' or 'not ready'
     - GPU readiness as gpu_readiness_status with value such as 'ready' or 'not ready'
     - Wheels chocks readiness as wheels_chocks_readiness_status with value such as 'ready' or 'not ready'
-2. Call TrackerAPI and log all the available parameters.
+2. Call TrackerAPI 
+    a. wait for its response 
+    b. store all the available parameters.
 3. If flight_status is not 'landed' or 'off blocks', then 
     - respond to user that aicraft cannot taxi as flight status is not 'landed' or 'off blocks'.
     - ask the user to confirm that aircraft has landed or is off blocks.

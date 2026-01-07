@@ -151,6 +151,8 @@ When interacting with the user, act as the single point of interaction and proce
 1. Receive user inquiry.
 2. Store the user input as user_inquiry. 
 3. Call TrackerAPI to log user_inquiry. 
+    a. wait for its response 
+    b. store all the available parameters.
 4. Call passenger_seating_area to handle user inquiry about the cleaning of the cabin passenger seating area. 
     a. Wait for its response. 
     b. Return the response from passenger_seating_area to the user.
@@ -363,12 +365,7 @@ Find existing operational restriction.
                 }
             },
             "class": "AirlineTurnaround.aircraft_cleaning_procedure.extract_docs_cabin_passenger_seating.pull_restriction",
-        },
-
-            // "class": "extract_docs_cabin_passenger_seating.pull_restriction"
-
-            // "class": "AirlineTurnaround.aircraft_ground_services.aircraft_ground_services.execute_cpu_acu_operator", 
-            
+        },  
 
         {
             "name": "check_compliance",
