@@ -6,7 +6,7 @@
         "description": "Simple agent network using a single LLM-based agent",
         "tags": ["example"],
         "sample_queries": [
-            "The B747 aircraft of flight AF84 is on blocks at gate A1. The jetbridge has been connected to the place. Open the aircraft door.",
+            "The B747 aircraft of flight AF84 is on blocks at gate A1. The jetbridge is connected to the plane. Open the aircraft door.",
             "The B747 aircraft of flight AF84 is on blocks at gate A1. Open the aircraft door.",
         ]
     },

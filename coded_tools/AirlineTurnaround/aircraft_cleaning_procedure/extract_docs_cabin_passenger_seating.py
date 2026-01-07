@@ -18,6 +18,7 @@ from enum import Enum
 from dataclasses import dataclass
 import re
 import pandas as pd
+from pathlib import Path
 
 ## findRestriction
 ## Addtion to check restriction per discussion with Risto 

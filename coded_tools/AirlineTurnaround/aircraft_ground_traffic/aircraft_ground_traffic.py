@@ -7,6 +7,7 @@ from enum import Enum
 from dataclasses import dataclass
 import re
 import pandas as pd
+from pathlib import Path
 
 
 # =========================
@@ -99,9 +100,12 @@ class execute_ground_clearance(CodedTool):
 
     def __init__(
         self,
-        aircraft_base: str = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/aircraft_base.csv",
-        runway_base: str = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/runways_base.csv",
-        log_path: str = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt",
+        # aircraft_base: str = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/aircraft_base.csv",
+        aircraft_base = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_traffic_controller" / "aircraft_base.csv",
+        # runway_base: str = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/runways_base.csv", 
+        runway_base = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_traffic_controller" / "runways_base.csv", 
+        # log_path: str = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt",
+        log_path = Path.cwd() / "test_debug" / "airlineturnaround.txt",
     ):
         super().__init__()
         self.aircraft_base = aircraft_base

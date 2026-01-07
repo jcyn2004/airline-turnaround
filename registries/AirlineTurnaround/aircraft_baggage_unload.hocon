@@ -132,6 +132,8 @@ When user submits inquiry, proceed as follows:
     b. door opening status as door_opening_status with value such as 'open' 
     c. flight status as flight_status with value such as 'on blocks' 
 2. Call TrackerAPI and obtain the latest jetbridge_connection_status and door_opening_status and flight_status.
+    a. wait for its response 
+    b. store all the available parameters.
 3. If jetbridge_connection_status = 'connected' and door_opening_status includes 'open' then go to step 6.
 4. If jetbridge_connection_status is not 'connected',
     a. call aircraft_jetbridge_connect to connect jetbridge
@@ -146,6 +148,8 @@ When user submits inquiry, proceed as follows:
     b. Wait for its response and save it as baggage_unload_status
     c. Report baggage_unload_status
 7. Call TrackerAPI and obtain the latest value of jetbridge_connection_status, door_opening_status and flight_status, and baggage_unload_status.
+    a. wait for its response 
+    b. store all the available parameters.
 8. Provide the baggage unload status status report summary as: 
     ** flight status **: [flight_status]
     ** jetbridge connection status **: [jetbridge_connection_status]

@@ -7,6 +7,7 @@ from enum import Enum
 from dataclasses import dataclass
 import re
 import pandas as pd
+from pathlib import Path
 
 # ---------- helpers ----------
 
@@ -44,7 +45,8 @@ class wheels_chocks_operator(CodedTool):
         :return: None in write mode or any of the parameters in read mode
         """
         
-        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
         wheels_chocks_installation_status = 'pending'
 
         print("\n")

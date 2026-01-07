@@ -2,6 +2,7 @@ from typing import Any, Dict, Union
 from datetime import datetime
 import time
 from neuro_san.interfaces.coded_tool import CodedTool
+from pathlib import Path
 
 #############################################################################
 # Tracker API for all parameters in the aircraft turnaround agentic system  #
@@ -39,7 +40,8 @@ class trackerAPI(CodedTool):
         :return: None in write mode or any of teh parameters in read mode
         """
         
-        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
 
         print("\n")
         print("\n")

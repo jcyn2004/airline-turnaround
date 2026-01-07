@@ -7,6 +7,7 @@ from enum import Enum
 from dataclasses import dataclass
 import re
 import pandas as pd
+from pathlib import Path
 
 # ---------- helpers ----------
 
@@ -38,7 +39,8 @@ class execute_aircraft_taxiing(CodedTool):
         super().__init__()
 
     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
-        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
 
         # Read inputs (sly_data first, then args)
         flight_status         = _from_sly_or_args(sly_data, args, "flight_status")

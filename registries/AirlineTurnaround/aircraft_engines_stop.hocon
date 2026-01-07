@@ -120,7 +120,6 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
             },
 
             "instructions": """
-
 You are the agent in charge of stopping engines when aircraft reaches the gate. 
 When user submits inquiry, proceed as follows: 
 1. Determine if the followings are provided by the user: 

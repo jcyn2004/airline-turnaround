@@ -192,22 +192,6 @@ pip install -r requirements-build.txt
 pip install -r plugins/phoenix/requirements.txt
 ```
 
-### 3) Set path to data files
-
-Find and replace the following path in all files under `/airline-turnaround/` with its equivalent on your own computer.
-
-Basically, use `/Edit/Replace in Files/` menu to find `/Users/971244/workspace/airline-turnaround/` and replace it with the equivalent path on your computer so that a data file path such as:
-
-```
-/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/runways_base.csv
-```
-
-is replaced by:
-
-```
-/Location of the package folder on your computer/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/runways_base.csv
-```
-
 ## Run
 
 From repo root:
