@@ -91,7 +91,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
             "function": {
                 "description": """
  I am in charge of fueling the aircraft at the gate. 
-                """
+                """,
                 "parameters": {
                     "type": "object", 
                     "properties": {
@@ -115,7 +115,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "This is the passenger disembarkation status."
                         },    
-                        crew_exit_status:  {
+                        "crew_exit_status":  {
                             "type": "string", 
                             "description": "This is the crew exit status." 
                         },
@@ -152,7 +152,9 @@ When user submits inquiry, proceed as follows:
     a. call fueling_operator to fuel aircraft as needed.
     b. Wait for its response and save it as fueling_status
     c. Report fueling_status
-7. Call TrackerAPI to log all the available parameters.
+7. Call TrackerAPI 
+    a. wait for its response 
+    b. store all the available parameters.
 8. Provide the fueling status report summary as: 
     ** flight status **: [flight_status]
     ** passenger disembarkation status **: [passenger_disembarkation_status]
@@ -235,7 +237,7 @@ This agent fuels the aircraft at the gate.
                             "type": "string", 
                             "description": "This is the passenger disembarkation status."
                         },    
-                        crew_exit_status:  {
+                        "crew_exit_status":  {
                             "type": "string", 
                             "description": "This is the crew exit status." 
                         },
@@ -320,7 +322,7 @@ I check baggage unload status as baggage_unload_status.
                             "type": "string", 
                             "description": "This is the passenger disembarkation status."
                         },    
-                        crew_exit_status:  {
+                        "crew_exit_status":  {
                             "type": "string", 
                             "description": "This is the crew exit status." 
                         },

@@ -7,6 +7,7 @@ from enum import Enum
 from dataclasses import dataclass
 import re
 import pandas as pd
+from pathlib import Path
 
 # ---------- helpers ----------
 
@@ -46,7 +47,8 @@ class passenger_disembark_operator(CodedTool):
         """
 
 
-        file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
         passenger_disembarkation_status = 'pending'
 
         print("\n")

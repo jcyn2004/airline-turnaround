@@ -7,6 +7,7 @@
     "AirlineTurnaround/aircraft_acu_connect.hocon": true, 
     "AirlineTurnaround/aircraft_baggage_unload.hocon": true, 
     "AirlineTurnaround/aircraft_cabin_cleaning.hocon": true, 
+    "AirlineTurnaround/aircraft_catering_loading.hocon": true, 
     "AirlineTurnaround/aircraft_cleaning_procedure.hocon": true, 
     "AirlineTurnaround/aircraft_chocks_install.hocon": true, 
     "AirlineTurnaround/aircraft_crew_debrief.hocon": true, 

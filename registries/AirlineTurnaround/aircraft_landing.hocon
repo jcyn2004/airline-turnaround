@@ -149,14 +149,18 @@ When you receive user request to land an aircraft, proceed as follows:
 - clearance type with value such as "cleared for landing", "cleared for takeoff", etc as clearance_type
 - assigned runway id as assigned_runway_id
 - assigned runway id as assigned_runway_length
-2. Call TrackerAPI and log all the available parameters.
+2. Call TrackerAPI 
+    a. wait for its response 
+    b. store all the available parameters.
 3. If flight_status is None, or clearance_type is not "cleared for landing", or assigned_runway_id is None, or assigned_runway_length is None, then:
     a. call aircraft_traffic_controller to request the clearance for landing. 
     b. Wait for the response on your request. 
     c. return to step 2. 
 4. If aircraft has been cleared for landing or clearance_type is "cleared for landing", and assigned_runway_id is not None, and assigned_runway_length is not None, then:
     - Land the aircraft. 
-5. Call TrackerAPI and log all the available parameters.
+5. Call TrackerAPI 
+    a. wait for its response 
+    b. store all the available parameters.
 6. Provide the landing summary as follows:
     ** flight number **: [flight_number]
     ** aircraft type **: [aircraft_type]

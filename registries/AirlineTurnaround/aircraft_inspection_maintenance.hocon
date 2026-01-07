@@ -141,6 +141,8 @@ When user submits inquiry, proceed as follows:
     f. crew exit status as crew_exit_status with value such as 'completed' or 'exited'
     g. baggage unload status as baggage_unload_status with value such as 'completed' or 'unloaded'
 2. Call TrackerAPI and log all the available parameters.
+    a. wait for its response 
+    b. store all the available parameters.
 3. If passenger_disembarkation_status includes 'completed', and crew_exit_status includes 'completed', and baggage_unload_status includes 'completed' then go to step 7.
 4. If passenger_disembarkation_status is not 'completed',
     a. call aircraft_disembark to make sure that passenger disembarkation status is completed

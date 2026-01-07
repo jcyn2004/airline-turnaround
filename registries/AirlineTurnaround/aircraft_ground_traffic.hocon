@@ -108,6 +108,8 @@ When you receive a user request for clearance to taxi in or taxi out, proceed as
     - assigned runway id as assigned_runway_id
     - gate id as gate_id 
 2. Call TrackerAPI and log all the available parameters. 
+    a. wait for its response 
+    b. store all the available parameters.
 3. If flight_status is not 'landed' or 'off blocks', 
     - Do not send request for ground clearance. 
     - Use your tools to confirm that flight status indicates that the aircraft is on the ground. 
@@ -116,6 +118,8 @@ When you receive a user request for clearance to taxi in or taxi out, proceed as
     - Call ground_traffic_controller to request taxiing clearance. 
     - Wait for the response from ground_traffic_controller. 
 5. Call TrackerAPI and log all the available parameters. 
+    a. wait for its response 
+    b. store all the available parameters.
 6. Finally, compile all the gathered information and ground clearance results and display the results as follows:
     ** flight number **: [flight_number]
     ** aircraft type **: [aircraft_type]

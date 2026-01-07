@@ -7,6 +7,8 @@ from enum import Enum
 from dataclasses import dataclass
 import re
 import pandas as pd
+from pathlib import Path
+from pathlib import Path
 
 
 # =========================
@@ -191,8 +193,11 @@ class jetway_park_inquiry(CodedTool):
 
     def __init__(
         self,
-        equipments_csv_path: str = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_gate_selection/gate_equipments_base.csv",
-        log_path: str = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt",
+        # equipments_csv_path: str = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_gate_selection/gate_equipments_base.csv",
+        equipments_csv_path = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_gate_selection" / "gate_equipments_base.csv", 
+
+        # log_path: str = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt", 
+        log_path = Path.cwd() / "test_debug" / "airlineturnaround.txt", 
     ):
         super().__init__()
         self.equipments_csv_path = equipments_csv_path
@@ -345,8 +350,11 @@ class stairtruck_park_inquiry(CodedTool):
 
     def __init__(
         self,
-        equipments_csv_path: str = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_gate_selection/gate_equipments_base.csv",
-        log_path: str = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt",
+        # equipments_csv_path: str = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_gate_selection/gate_equipments_base.csv",
+        equipments_csv_path = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_gate_selection" / "gate_equipments_base.csv", 
+
+        # log_path: str = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt", 
+        log_path = Path.cwd() / "test_debug" / "airlineturnaround.txt", 
     ):
         super().__init__()
         self.equipments_csv_path = equipments_csv_path
