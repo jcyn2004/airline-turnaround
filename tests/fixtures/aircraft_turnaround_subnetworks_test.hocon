@@ -18,13 +18,15 @@
 # Tests basic network support inquiry handling
 {
     # Describes what agent to test against
-    "agent": "AirlineTurnaround/aircraft_traffic_controller",
+    "agent": "AirlineTurnaround/aircraft_turnaround",
 
     # Connect to the agent directly (no server required for testing)
     "connections": ["direct"],
 
     # Timeout for the entire test (5 minutes)
     "timeout_in_seconds": 300,
+
+    "success_ratio": "20/20", 
 
     # Interactions are a series of dictionaries with request elements paired with
     # descriptions of response checks
@@ -46,7 +48,42 @@
     "interactions": [
         {
             # This is what we send as input to streaming_chat()
-            "text": "Incoming flight AF84, a B747, needs clearance for landing.",
+            "text": "The B747 aircraft of flight AF84 is incoming. Execute the turnaround process.",
+
+            # The response block treats how we are going to test what comes back
+            "response": {
+                # Text block says how we are going to examine the text of the response.
+                // "text": {
+                //     # Keywords says we are going to look for exact matches for each
+                //     # element in a list of strings.  All elements need to show up
+                //     # in order to pass.
+                //     "gist": "flight number should be AF84"
+                // }
+
+                "sly_data": {
+
+                    # Each key here corresponds to a key in the sly_data itself
+                    # that is returned.
+                    // "equals": {
+                    "flight_number": {
+                        # Value says we are going to look for exact values for each
+                        # element in a list of strings.  All elements need to show up
+                        # in order to pass.
+                        // "aircraft_direction": [INCOMING]
+                        "value": "AF85"
+                        // 
+                        // "flight_status": [APPROACH]
+                        // "clearance_type": [CLEARED_FOR_LANDING]
+                        // "assigned_runway_id": [19R]
+                        // "assigned_runway_length": [2350 meters]
+                        // "clearance_report": [The flight 'AF84' with aircraft type 'B747' is in 'APPROACH' status. It has been cleared for landing on runway '19R', which has a length of 2350 meters.]
+                    },
+                    "aircraft_type": {
+                        "value": "B748"
+                    }
+                }
+
+            }
 
             // "sly_data": {
             //     "x": 847,
@@ -54,29 +91,30 @@
             // },
 
             # The response block treats how we are going to test what comes back
-            "response": {
+            // "response": {
 
-                # Text block says how we are going to examine the text of the response.
-                "sly_data": {
+            //     # Text block says how we are going to examine the text of the response.
+            //     "sly_data": {
 
-                    # Each key here corresponds to a key in the sly_data itself
-                    # that is returned.
-                    // "equals": {
-                    "contains": {
-                        # Value says we are going to look for exact values for each
-                        # element in a list of strings.  All elements need to show up
-                        # in order to pass.
-                        "aircraft_direction": [INCOMING]
-                        "flight_number": [AF84]
-                        "aircraft_type": [B747]
-                        "flight_status": [APPROACH]
-                        "clearance_type": [CLEARED_FOR_LANDING]
-                        "assigned_runway_id": [19R]
-                        "assigned_runway_length": [2350 meters]
-                        "clearance_report": [The flight 'AF84' with aircraft type 'B747' is in 'APPROACH' status. It has been cleared for landing on runway '19R', which has a length of 2350 meters.]
-                    }
-                }
-            }
+            //         # Each key here corresponds to a key in the sly_data itself
+            //         # that is returned.
+            //         // "equals": {
+            //         "contains": {
+            //             # Value says we are going to look for exact values for each
+            //             # element in a list of strings.  All elements need to show up
+            //             # in order to pass.
+            //             // "aircraft_direction": [INCOMING]
+            //             "flight_number": [AF85]
+            //             // "aircraft_type": [B747]
+            //             // "flight_status": [APPROACH]
+            //             // "clearance_type": [CLEARED_FOR_LANDING]
+            //             // "assigned_runway_id": [19R]
+            //             // "assigned_runway_length": [2350 meters]
+            //             // "clearance_report": [The flight 'AF84' with aircraft type 'B747' is in 'APPROACH' status. It has been cleared for landing on runway '19R', which has a length of 2350 meters.]
+            //         }
+            //     }
+            // }
+
         }
     ]
 

@@ -248,7 +248,9 @@ class tracker_aircraft_traffic_controller(CodedTool):
             flight_status = sly_data.get("flight_status")   
         else: 
             sly_data["flight_status"] = flight_status
-
+        if flight_status: 
+            flight_status = flight_status.lower().replace("_", " ").strip()
+            
         # ground clearance status is required to fulfill the request.
         clearance_type: str = args.get("clearance_type", None)
         if not clearance_type:
@@ -607,7 +609,11 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
 FLIGHT_TURNAROUND_RETURN_FIELDS = [
     "aircraft_direction",
     "aircraft_type", 
+    "assigned_runway_id", 
+    "assigned_runway_length", 
     "flight_number",
+    "flight_status", 
+    "clearance_type",
 ]
 
 # =============================================================================

@@ -90,7 +90,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
             "function": {
                 "description": """
 I manage ground services during aircraft turnaround at the airport. 
-I check and report the grounbd services readiness including gpu readiness, acu readiness, and wheels chocks readiness.
+I check and report the ground services readiness including gpu, acu, and wheels chocks.
                 """
             },
 

@@ -92,6 +92,7 @@ class trackerAPI(CodedTool):
             print("flight_status has not been provided in user inquiry. Trying to get it from sly_data")
             flight_status = sly_data.get("flight_status")
             if flight_status: 
+                flight_status = flight_status.lower().replace("_", " ").strip()
                 print("\n")
                 print("\n")
                 print("####### flight_status read from sly data: #######", flight_status)
@@ -113,7 +114,7 @@ class trackerAPI(CodedTool):
             if gate_id: 
                 print("\n")
                 print("\n")
-                print("####### gate_id read from sly data: #######", flight_status)
+                print("####### gate_id read from sly data: #######", gate_id)
                 print("\n")
                 print("\n")
         else: 

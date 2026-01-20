@@ -91,11 +91,13 @@ class lavatory_service_operator(CodedTool):
         if not flight_status:
             error = "Error: Please provide a flight status for the request."
             print(error)
-            return error  
-        
+            return error     
+        if flight_status: 
+            flight_status = flight_status.lower().replace("_", " ").strip()
+
         # gate id is required to fulfill the request.
         gate_id: str = args.get("gate_id", None)
-        if not flight_status:
+        if not gate_id:
             print("No gate id provided. Trying to get it from sly_data")
             gate_id = sly_data.get("gate_id")
         if not gate_id:
@@ -494,8 +496,12 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
 
 # Define which fields should be returned from the API
 FLIGHT_TURNAROUND_RETURN_FIELDS = [
-    "baggage_unload_status"
+    "aircraft_type", 
+    "baggage_unload_status", 
     "crew_exit_status", 
+    "flight_number", 
+    "flight_status", 
+    "gate_id", 
     "lavatory_service_status", 
     "passenger_disembarkation_status", 
 ]

@@ -1,0 +1,320 @@
+(venv) 971244@US-GJ9WM7F92H-CTS airline-turnaround % python parse_test_hocon_log_summary.py             
+Found 22 CSV file(s) to process.
+Processing: test_hocon_log_data_summary_aircraft_engines_stop.csv
+Processing: test_hocon_log_data_summary_aircrfat_acu_connect.csv
+Processing: test_hocon_log_data_summary_aircraft_jetbridge_connect.csv
+Processing: test_hocon_log_data_summary_aircraft_fueling.csv
+Processing: test_hocon_log_data_summary_aircraft_gate_selection.csv
+Processing: test_hocon_log_data_summary_aircraft_catering_loading.csv
+Processing: test_hocon_log_data_summary_aircraft_gpu_connect.csv
+Processing: test_hocon_log_data_summary_aircraft_traffic_controller.csv
+Processing: test_hocon_log_data_summary_aircraft_crew_exit.csv
+Processing: test_hocon_log_data_summary_aircraft_chocks_install.csv
+Processing: test_hocon_log_data_summary_aircraft_landing.csv
+Processing: test_hocon_log_data_summary_aircraft_inspection_maintenance.csv
+Processing: test_hocon_log_data_summary_aircraft_disembark.csv
+Processing: test_hocon_log_data_summary_aircraft_ground_traffic.csv
+Processing: test_hocon_log_data_summary_aircraft_ground_services.csv
+Processing: test_hocon_log_data_summary_aircraft_door_opening.csv
+Processing: test_hocon_log_data_summary_aircraft_taxiing.csv
+Processing: test_hocon_log_data_summary_aircraft_cleaning_procedure.csv
+Processing: test_hocon_log_data_summary_aircraft_cabin_cleaning.csv
+Processing: test_hocon_log_data_summary_aircraft_lavatory_service.csv
+Processing: test_hocon_log_data_summary_aircraft_crew_debrief.csv
+Processing: test_hocon_log_data_summary_aircraft_baggage_unload.csv
+
+Column 'timestamp': 730 unique values
+
+Column 'acu_connection_status': 4 unique values
+
+Column 'acu_readiness_status': 3 unique values
+
+Column 'aircraft_direction': 1 unique values
+
+Column 'aircraft_landing_report': 0 unique values
+
+Column 'aircraft_type': 1 unique values
+
+Column 'assigned_runway_id': 2 unique values
+
+Column 'assigned_runway_length': 2 unique values
+
+Column 'baggage_unload_status': 2 unique values
+
+Column 'catering_loading_status': 1 unique values
+
+Column 'cleaning_cabin_status': 0 unique values
+
+Column 'clearance_landing_valid': 0 unique values
+
+Column 'clearance_takeoff_valid': 0 unique values
+
+Column 'clearance_type': 3 unique values
+
+Column 'crew_debrief_status': 1 unique values
+
+Column 'crew_exit_status': 2 unique values
+
+Column 'deplaning_equipment_type': 1 unique values
+
+Column 'door_opening_status': 1 unique values
+
+Column 'engines_stop_status': 1 unique values
+
+Column 'flight_number': 1 unique values
+
+Column 'flight_status': 9 unique values
+
+Column 'fueling_status': 1 unique values
+
+Column 'gate_id': 4 unique values
+
+Column 'gpu_connection_status': 2 unique values
+
+Column 'gpu_readiness_status': 1 unique values
+
+Column 'ground_clearance_status': 5 unique values
+
+Column 'ground_clearance_type': 5 unique values
+
+Column 'ground_services_inquiry_type': 0 unique values
+
+Column 'ground_services_request_type': 11 unique values
+
+Column 'inspection_maintenance_status': 0 unique values
+
+Column 'jetbridge_connection_status': 1 unique values
+
+Column 'jetbridge_status': 0 unique values
+
+Column 'lavatory_service_status': 1 unique values
+
+Column 'passenger_disembarkation_status': 1 unique values
+
+Column 'runway_length': 0 unique values
+
+Column 'wheels_chocks_installation_status': 1 unique values
+
+Column 'wheels_chocks_readiness_status': 1 unique values
+
+Column 'deplaning_equipment_id': 3 unique values
+
+Column 'deplaning_equipment_readiness_time': 0 unique values
+
+Column 'deplaning_equipment_score': 0 unique values
+
+Column 'user_inquiry': 1 unique values
+
+Column 'app_name': 8 unique values
+
+Column 'restriction_on_cleaning': 11 unique values
+
+Column 'user_response_to_recommendation': 0 unique values
+
+Column 'compliance_response': 0 unique values
+
+Column 'cleaning_procedure': 0 unique values
+
+Column 'escalation_response': 0 unique values
+
+Column 'cabin_cleaning_status': 0 unique values
+
+==================================================
+RESULTS
+==================================================
+
+timestamp:
+  Count: 730
+  Values: ['2026-01-08 11:55:39,823', '2026-01-08 11:55:43,367', '2026-01-08 11:55:48,430', '2026-01-08 11:55:52,494', '2026-01-08 11:55:58,448', '2026-01-08 11:56:02,850', '2026-01-08 11:56:07,272', '2026-01-08 11:56:11,031', '2026-01-08 11:56:15,859', '2026-01-08 11:56:19,743']
+  ... and 720 more
+
+acu_connection_status:
+  Count: 4
+  Values: ['Connected', 'connected', 'pending', 'ready']
+
+acu_readiness_status:
+  Count: 3
+  Values: ['not ready', 'ready', 'yes']
+
+aircraft_direction:
+  Count: 1
+  Values: ['incoming']
+
+aircraft_landing_report:
+  Count: 0
+  Values: []
+
+aircraft_type:
+  Count: 1
+  Values: ['B747']
+
+assigned_runway_id:
+  Count: 2
+  Values: ['19L', '19R']
+
+assigned_runway_length:
+  Count: 2
+  Values: [2350.0, 12000.0]
+
+baggage_unload_status:
+  Count: 2
+  Values: ['completed', 'unloaded']
+
+catering_loading_status:
+  Count: 1
+  Values: ['completed']
+
+cleaning_cabin_status:
+  Count: 0
+  Values: []
+
+clearance_landing_valid:
+  Count: 0
+  Values: []
+
+clearance_takeoff_valid:
+  Count: 0
+  Values: []
+
+clearance_type:
+  Count: 3
+  Values: ['CLEARED_FOR_LANDING', 'CLEARED_FOR_TAXIING_IN', 'cleared for landing']
+
+crew_debrief_status:
+  Count: 1
+  Values: ['completed']
+
+crew_exit_status:
+  Count: 2
+  Values: ['completed', 'exited']
+
+deplaning_equipment_type:
+  Count: 1
+  Values: ['Stairtruck']
+
+door_opening_status:
+  Count: 1
+  Values: ['open']
+
+engines_stop_status:
+  Count: 1
+  Values: ['stopped']
+
+flight_number:
+  Count: 1
+  Values: ['AF84']
+
+flight_status:
+  Count: 9
+  Values: ['APPROACH', 'ON_BLOCKS', 'approach', 'approaching', 'incoming', 'landed', 'on approach', 'on blocks', 'taxiing']
+
+fueling_status:
+  Count: 1
+  Values: ['completed']
+
+gate_id:
+  Count: 4
+  Values: ['A1', 'B1', 'B4', 'B5']
+
+gpu_connection_status:
+  Count: 2
+  Values: ['Connected', 'connected']
+
+gpu_readiness_status:
+  Count: 1
+  Values: ['ready']
+
+ground_clearance_status:
+  Count: 5
+  Values: ['Cleared', 'GRANTED', 'Granted', 'cleared', 'granted']
+
+ground_clearance_type:
+  Count: 5
+  Values: ['CLEARED_FOR_TAXIING_IN', 'Cleared for Taxiing In', 'Taxi In', 'taxi in', 'taxiing in']
+
+ground_services_inquiry_type:
+  Count: 0
+  Values: []
+
+ground_services_request_type:
+  Count: 11
+  Values: ['ACU readiness', 'Wheels Chocks Installation', 'crew exit', 'gpu connection', 'install wheels chocks', 'lavatory service', 'lavatory_service', 'status_update', 'taxi', 'taxi in']
+  ... and 1 more
+
+inspection_maintenance_status:
+  Count: 0
+  Values: []
+
+jetbridge_connection_status:
+  Count: 1
+  Values: ['connected']
+
+jetbridge_status:
+  Count: 0
+  Values: []
+
+lavatory_service_status:
+  Count: 1
+  Values: ['completed']
+
+passenger_disembarkation_status:
+  Count: 1
+  Values: ['completed']
+
+runway_length:
+  Count: 0
+  Values: []
+
+wheels_chocks_installation_status:
+  Count: 1
+  Values: ['installed']
+
+wheels_chocks_readiness_status:
+  Count: 1
+  Values: ['ready']
+
+deplaning_equipment_id:
+  Count: 3
+  Values: ['stairtruck_1', 'stairtruck_4', 'stairtruck_5']
+
+deplaning_equipment_readiness_time:
+  Count: 0
+  Values: []
+
+deplaning_equipment_score:
+  Count: 0
+  Values: []
+
+user_inquiry:
+  Count: 1
+  Values: ['I want to clean the cabin passenger seating area using bleach. what is the procedure?']
+
+app_name:
+  Count: 8
+  Values: ['Bleach Cleaning Inquiry', 'Cabin Cleaning App', 'CleaningApp', 'cabin passenger seating area', 'cleaning_app', 'cleaning_application', 'cleaning_procedure_app', 'passenger_seating_area_cleaning']
+
+restriction_on_cleaning:
+  Count: 11
+  Values: ['Avoid bleach and fabric softeners, as they can damage the fire-retardant properties.', 'Caution: Avoid bleach and fabric softeners, as they can damage the fire-retardant properties of the cabin passenger seating area.', 'Caution: Avoid bleach and fabric softeners, as they can damage the fire-retardant properties of the passenger seating area.', 'Caution: Avoid bleach and fabric softeners, as they can damage the fire-retardant properties.', 'Caution: Avoid using bleach and fabric softeners when cleaning the cabin passenger seating area, as they can damage the fire-retardant properties.', 'The current restriction on cleaning the cabin passenger seating area advises against using bleach and fabric softeners, as they can damage the fire-retardant properties of the materials. Therefore, it is not recommended to use bleach for cleaning the passenger seating area.', 'The restriction on cleaning the cabin passenger seating area is to avoid using bleach and fabric softeners, as they can damage the fire-retardant properties.', 'There is a restriction on cleaning the cabin passenger seating area using bleach. It is advised to avoid bleach and fabric softeners, as they can damage the fire-retardant properties of the seating materials.', 'There is a restriction on using bleach for cleaning the cabin passenger seating area. Caution: Avoid bleach and fabric softeners, as they can damage the fire-retardant properties.', 'There is a restriction on using bleach for cleaning the cabin passenger seating area. It is advised to avoid bleach and fabric softeners, as they can damage the fire-retardant properties of the materials.']
+  ... and 1 more
+
+user_response_to_recommendation:
+  Count: 0
+  Values: []
+
+compliance_response:
+  Count: 0
+  Values: []
+
+cleaning_procedure:
+  Count: 0
+  Values: []
+
+escalation_response:
+  Count: 0
+  Values: []
+
+cabin_cleaning_status:
+  Count: 0
+  Values: []
+(venv) 971244@US-GJ9WM7F92H-CTS airline-turnaround % 
