@@ -15,16 +15,16 @@ from pathlib import Path
 # =========================
 
 # Allowed clearance values
-ClearanceType = Literal["CLEARED_FOR_TAXIING_IN", "CLEARED_FOR_TAXIING_OUT", "HOLD", "DENY"]
-ClearanceStatus = Literal["GRANTED", "DENIED", "PENDING"]
+GroundClearanceType = Literal["CLEARED_FOR_TAXIING_IN", "CLEARED_FOR_TAXIING_OUT", "HOLD", "DENY"]
+GroundClearanceStatus = Literal["GRANTED", "DENIED", "PENDING"]
 
 # Structured payload returned to other agents/tools
 class ClearanceDict(TypedDict):
     flight_status: str                 # e.g., "APPROACH" or "DEPARTING"
     flight_number: str                 # canonical uppercase
     aircraft_type: str                 # canonical uppercase
-    clearance_type: ClearanceType
-    clearance_status: ClearanceStatus
+    ground_clearance_type: GroundClearanceType
+    ground_clearance_status: GroundClearanceStatus
     assigned_runway_id: str            # e.g., "28L"
     assigned_runway_length: int        # meters
 
@@ -36,8 +36,8 @@ def build_clearance(
     flight_status: str,
     flight_number: str,
     aircraft_type: str,
-    clearance_type: ClearanceType,
-    clearance_status: ClearanceStatus, 
+    ground_clearance_type: GroundClearanceType,
+    ground_clearance_status: GroundClearanceStatus, 
     assigned_runway_id: str,
     assigned_runway_length: Union[int, float],
     clearance_report: str
@@ -50,8 +50,8 @@ def build_clearance(
     if not flight_number or not aircraft_type or not flight_status:
         raise ValueError("flight_number, aircraft_type, and flight_status are required")
 
-    if clearance_type not in ("CLEARED_FOR_TAXIING_IN", "CLEARED_FOR_TAXIING_OUT", "HOLD", "DENY"):
-        raise ValueError("clearance_type must be one of CLEARED_FOR_TAXIING_IN, CLEARED_FOR_TAXIING_OUT, HOLD, DENY")
+    if ground_clearance_type not in ("CLEARED_FOR_TAXIING_IN", "CLEARED_FOR_TAXIING_OUT", "HOLD", "DENY"):
+        raise ValueError("ground_clearance_type must be one of CLEARED_FOR_TAXIING_IN, CLEARED_FOR_TAXIING_OUT, HOLD, DENY")
 
     rwy = (assigned_runway_id or "").strip().upper()
     if not _RUNWAY_RE.match(rwy):
@@ -69,8 +69,8 @@ def build_clearance(
         "flight_status": flight_status.strip().upper(),
         "flight_number": flight_number.strip().upper(),
         "aircraft_type": aircraft_type.strip().upper(),
-        "clearance_type": clearance_type,
-        "clearance_status": clearance_status,
+        "ground_clearance_type": ground_clearance_type,
+        "ground_clearance_status": ground_clearance_status,
         "assigned_runway_id": rwy,
         "assigned_runway_length": length_m,
         "clearance_report": clearance_report
@@ -179,8 +179,8 @@ class execute_ground_clearance(CodedTool):
             assigned_runway_id = str(candidates["unit_id"].iloc[0])
             assigned_runway_length = int(candidates["length(m)"].iloc[0])
             flight_status = "TAXIING_IN"
-            clearance_type: ClearanceType = "CLEARED_FOR_TAXIING_IN"
-            clearance_status: ClearanceStatus = "GRANTED"
+            ground_clearance_type: GroundClearanceType = "CLEARED_FOR_TAXIING_IN"
+            ground_clearance_status: GroundClearanceStatus = "GRANTED"
 
         else:  # departing
             min_len = int(ac_rows["Takeoff(m)"].iloc[0])
@@ -191,12 +191,12 @@ class execute_ground_clearance(CodedTool):
             assigned_runway_id = str(candidates["unit_id"].iloc[-1])
             assigned_runway_length = int(candidates["length(m)"].iloc[-1])
             flight_status = "TAXIING_OUT"
-            clearance_type: ClearanceType = "CLEARED_FOR_TAXIING_OUT"
-            clearance_status: ClearanceStatus = "GRANTED"
+            ground_clearance_type: GroundClearanceType = "CLEARED_FOR_TAXIING_OUT"
+            ground_clearance_status: GroundClearanceStatus = "GRANTED"
 
         # Log and stash
         ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-        line1 = f"{ts} :flight {flight_number.upper()} request for {clearance_type} is {clearance_status} for runway {assigned_runway_id}"
+        line1 = f"{ts} :flight {flight_number.upper()} request for {ground_clearance_type} is {ground_clearance_status} for runway {assigned_runway_id}"
         line2 = f"{ts} :flight {flight_number.upper()} status updated to {flight_status}"
         self._log(self.log_path, line1)
         self._log(self.log_path, line2) 
@@ -204,8 +204,8 @@ class execute_ground_clearance(CodedTool):
         clearance_report = line1 + line2,
 
         sly_data.update({
-            "clearance_type": clearance_type,
-            "clearance_status": clearance_status,
+            "ground_clearance_type": ground_clearance_type,
+            "ground_clearance_status": ground_clearance_status,
             "assigned_runway_id": assigned_runway_id,
             "assigned_runway_length": assigned_runway_length,  # keep numeric
             "flight_status": flight_status,
@@ -214,16 +214,16 @@ class execute_ground_clearance(CodedTool):
 
         # sly_data update by classic method pending validation that update command above works fine
         sly_data["flight_status"] = flight_status    
-        sly_data["clearance_type"] = clearance_type    
-        sly_data["clearance_status"] = clearance_status    
+        sly_data["ground_clearance_type"] = ground_clearance_type    
+        sly_data["ground_clearance_status"] = ground_clearance_status    
 
         try:
             return build_clearance(
                 flight_status=flight_status,
                 flight_number=flight_number,
                 aircraft_type=aircraft_type,
-                clearance_type=clearance_type,
-                clearance_status=clearance_status,
+                ground_clearance_type=ground_clearance_type,
+                ground_clearance_status=ground_clearance_status,
                 assigned_runway_id=assigned_runway_id,
                 assigned_runway_length=assigned_runway_length, 
                 clearance_report=clearance_report
@@ -517,7 +517,7 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
     "cleaning_cabin_status", 
     "clearance_landing_valid",
     "clearance_takeoff_valid", 
-    "clearance_type",
+    "ground_clearance_type",
     "crew_debrief_status", 
     "crew_exit_status", 
     "door_opening_status", 

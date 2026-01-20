@@ -1,5 +1,5 @@
 {
-    include "registries/aaosa_basic.hocon",
+    include "registries/aaosa_basic.hocon" 
 
     # Optional metadata describing this agent network
     "metadata": {
@@ -197,6 +197,90 @@ When you receive a user request to handle an aircraft turnaround, you will proce
     c. display the response to the user.
             """ ${aaosa_instructions},
 
+            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
+            "allow": {
+                "to_downstream": {
+                    "sly_data": {
+                        "acu_connection_status": true, 
+                        "acu_readiness_status": true,
+                        "aircraft_direction": true,
+                        "aircraft_landing_report": true,
+                        "aircraft_type": true,
+                        "assigned_runway_id": true,
+                        "assigned_runway_length": true,
+                        "baggage_unload_status": true, 
+                        "catering_loading_status": true, 
+                        "cleaning_cabin_status": true, 
+                        "clearance_landing_valid": true,
+                        "clearance_takeoff_valid": true, 
+                        "clearance_type": true,
+                        "crew_debrief_status": true, 
+                        "crew_exit_status": true, 
+                        "deplaning_equipment_type": true,
+                        "door_opening_status": true, 
+                        "engines_stop_status": true, 
+                        "flight_number": true,
+                        "flight_status": true,
+                        "fueling_status": true, 
+                        "gate_id": true,
+                        "gpu_connection_status": true, 
+                        "gpu_readiness_status": true,
+                        "ground_clearance_status": true,
+                        "ground_clearance_type": true,
+                        "ground_services_inquiry_type": true, 
+                        "ground_services_request_type": true,
+                        "inspection_maintenance_status": true, 
+                        "jetbridge_connection_status": true, 
+                        "jetbridge_status": true, 
+                        "lavatory_service_status": true, 
+                        "passenger_disembarkation_status": true, 
+                        "runway_length": true,
+                        "wheels_chocks_installation_status": true, 
+                        "wheels_chocks_readiness_status": true,
+                    }
+                }
+                "from_downstream": {
+                    "sly_data": {
+                        "acu_connection_status": true, 
+                        "acu_readiness_status": true,
+                        "aircraft_direction": true,
+                        "aircraft_landing_report": true,
+                        "aircraft_type": true,
+                        "assigned_runway_id": true,
+                        "assigned_runway_length": true,
+                        "baggage_unload_status": true, 
+                        "catering_loading_status": true, 
+                        "cleaning_cabin_status": true, 
+                        "clearance_landing_valid": true,
+                        "clearance_takeoff_valid": true, 
+                        "clearance_type": true,
+                        "crew_debrief_status": true, 
+                        "crew_exit_status": true, 
+                        "deplaning_equipment_type": true,
+                        "door_opening_status": true, 
+                        "engines_stop_status": true, 
+                        "flight_number": true,
+                        "flight_status": true,
+                        "fueling_status": true, 
+                        "gate_id": true,
+                        "gpu_connection_status": true, 
+                        "gpu_readiness_status": true,
+                        "ground_clearance_status": true,
+                        "ground_clearance_type": true,
+                        "ground_services_inquiry_type": true, 
+                        "ground_services_request_type": true,
+                        "inspection_maintenance_status": true, 
+                        "jetbridge_connection_status": true, 
+                        "jetbridge_status": true, 
+                        "lavatory_service_status": true, 
+                        "passenger_disembarkation_status": true, 
+                        "runway_length": true,
+                        "wheels_chocks_installation_status": true, 
+                        "wheels_chocks_readiness_status": true,
+                    }
+                }
+            },
+
             "tools":    [
                         "aircraft_turnaround_operator", "TrackerAPI"
                         ], 
@@ -361,6 +445,7 @@ When you receive a request to handle an aircraft turnaround, you will:
         i. provide it with flight_number, aircraft_type, flight_status, and gate_id.
         ii. wait for its response and store door_opening_status.
         iii. Call TrackerAPI to log all the available parameters.
+        iv. wait for TrackerAPI to complete its task
     m. call aircraft_disembark to disembark the passengers:
         i. provide it with flight_number, aircraft_type, flight_status, and gate_id.
         ii. wait for its response and store passenger_disembarkation_status.

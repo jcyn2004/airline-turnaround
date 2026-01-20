@@ -49,7 +49,7 @@ class acu_operator(CodedTool):
         
         # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
-        acu_connection_status = 'pending'
+        # acu_connection_status = 'pending'
 
         print("\n")
         print("\n")
@@ -57,8 +57,8 @@ class acu_operator(CodedTool):
         print("\n")
         print("\n")
 
-        engines_stop_status_temp = 'running'
-        wheels_chocks_installation_status_temp = 'preparing'
+        # engines_stop_status_temp = 'running'
+        # wheels_chocks_installation_status_temp = 'preparing'
 
         # flight number is needed in particular. 
         flight_number: str = args.get("flight_number", None)
@@ -100,7 +100,9 @@ class acu_operator(CodedTool):
         if not flight_status:
             error = "Error: Please provide a flight status for the request."
             print(error)
-            return error  
+            return error          
+        if flight_status: 
+            flight_status = flight_status.lower().replace("_", " ").strip()
         
         print("\n")
         print("\n")
@@ -110,7 +112,7 @@ class acu_operator(CodedTool):
          
         # gate id is required to fulfill the request.
         gate_id: str = args.get("gate_id", None)
-        if not flight_status:
+        if not gate_id:
             print("No gate id provided. Trying to get it from sly_data")
             gate_id = sly_data.get("gate_id")
         if not gate_id:

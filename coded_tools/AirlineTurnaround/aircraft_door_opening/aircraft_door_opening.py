@@ -94,7 +94,9 @@ class door_operator(CodedTool):
             error = "Error: Please provide a flight status for the request."
             print(error)
             return error  
-        
+        if flight_status: 
+            flight_status = flight_status.lower().replace("_", " ").strip()
+
         print("\n")
         print("\n")
         print("flight_status: ", flight_status)
@@ -103,7 +105,7 @@ class door_operator(CodedTool):
          
         # flight status is required to fulfill the request.
         gate_id: str = args.get("gate_id", None)
-        if not flight_status:
+        if not gate_id:
             print("No gate id provided. Trying to get it from sly_data")
             gate_id = sly_data.get("gate_id")
         if not gate_id:

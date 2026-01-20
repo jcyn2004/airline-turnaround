@@ -44,11 +44,18 @@ class execute_aircraft_taxiing(CodedTool):
 
         # Read inputs (sly_data first, then args)
         flight_status         = _from_sly_or_args(sly_data, args, "flight_status")
+        if flight_status: 
+            flight_status = flight_status.lower().replace("_", " ").strip()
+            
         aircraft_type         = _from_sly_or_args(sly_data, args, "aircraft_type")
         flight_number         = _from_sly_or_args(sly_data, args, "flight_number")
         gate_id               = _from_sly_or_args(sly_data, args, "gate_id")
         ground_clearance_type = _from_sly_or_args(sly_data, args, "ground_clearance_type")
+        if ground_clearance_type: 
+            ground_clearance_type = ground_clearance_type.lower().replace("_", " ").strip()
         ground_clearance_status = _from_sly_or_args(sly_data, args, "ground_clearance_status")
+        if ground_clearance_status: 
+            ground_clearance_status = ground_clearance_status.lower().replace("_", " ").strip()
         assigned_runway_id    = _from_sly_or_args(sly_data, args, "assigned_runway_id")
         gpu_readiness_status      = _from_sly_or_args(sly_data, args, "gpu_readiness_status")
         wheels_chocks_readiness_status = _from_sly_or_args(sly_data, args, "wheels_chocks_readiness_status")
@@ -73,7 +80,8 @@ class execute_aircraft_taxiing(CodedTool):
         gct = _norm(ground_clearance_type)
 
         # Mitigate LLM variability on ground clearance 
-        if (('in' not in ground_clearance_type) & ('landed' in flight_status)):
+        # if (('in' not in ground_clearance_type) & ('landed' in flight_status)):
+        if (('taxi' in ground_clearance_type) & (('landed' in flight_status) | ('taxi' in flight_status))):
             gct = "taxi in"
 
         print("\n")
@@ -88,7 +96,7 @@ class execute_aircraft_taxiing(CodedTool):
 
         # ----- TAXI IN -----
         if ("taxi" in gct):
-            time.sleep(0.5)
+            # time.sleep(0.5)
             new_status = "ON_BLOCKS"
 
             # Log
@@ -109,7 +117,7 @@ class execute_aircraft_taxiing(CodedTool):
 
         # ----- TAXI OUT -----
         if "taxi out" in gct:
-            time.sleep(0.5)
+            # time.sleep(0.5)
             new_status = "TAKEOFF_READY"
 
             # Log

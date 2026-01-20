@@ -62,6 +62,8 @@ class execute_aircraft_landing(CodedTool):
 
         if flight_status is None: 
             flight_status: str = sly_data.get(flight_status, None)
+        if flight_status: 
+            flight_status = flight_status.lower().replace("_", " ").strip() 
 
         if aircraft_type is None: 
             aircraft_type: str = sly_data.get(aircraft_type, None)
@@ -95,7 +97,7 @@ class execute_aircraft_landing(CodedTool):
             clearance_type = clearance_type.lower().strip().replace("_", " ")
             flight_status = flight_status.lower().strip().replace("_", " ")
 
-            if (((clearance_type == 'cleared for landing') | ('landing' in clearance_type)) & ((flight_status is None) | (flight_status == 'approach'))):    
+            if ((('cleared' in clearance_type) | ('landing' in clearance_type)) & ((flight_status is None) | ('approach' in flight_status ))):    
                 time.sleep(0.5) 
                 flight_status = 'landed'
 
@@ -114,23 +116,23 @@ class execute_aircraft_landing(CodedTool):
                 print("flight_status: ", flight_status)
                 print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$") 
 
-            else: 
-                flight_status = 'pending'
+            # else: 
+            #     flight_status = 'pending'
 
-                print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft operation status $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-                print("flight_status: ", flight_status)
+            #     print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft operation status $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+            #     print("flight_status: ", flight_status)
 
-                timenow = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-                line = f"{timenow}: flight {flight_number} needs clearance for landing"
+            #     timenow = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+            #     line = f"{timenow}: flight {flight_number} needs clearance for landing"
 
-                with open(file_path_log, mode="a", encoding="utf-8") as f:  
-                    f.write(line + "\n")
+            #     with open(file_path_log, mode="a", encoding="utf-8") as f:  
+            #         f.write(line + "\n")
 
-                sly_data["flight_status"] = flight_status 
+            #     sly_data["flight_status"] = flight_status 
 
-                print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft operation status update $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-                print("flight_status: ", flight_status)
-                print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$") 
+            #     print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft operation status update $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+            #     print("flight_status: ", flight_status)
+            #     print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$") 
 
         return flight_status
 
@@ -455,10 +457,6 @@ FLIGHT_TURNAROUND_RETURN_FIELDS = [
     "flight_number",
     "flight_status",
 ]
-
-
-
-
 
 # =============================================================================
 # Usage Examples
