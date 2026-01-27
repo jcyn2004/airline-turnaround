@@ -165,6 +165,9 @@ When interacting with the user, act as the single point of interaction and proce
     ** Restricsion on cleaning ** 
     [restriction_on_cleaning]
     ** Procedure for cabin passenger seating area cleaning ** 
+    ******************************************
+    * Summary of aircraft cleaning procedure *
+    ******************************************
     [cleaning_procedure]
     ** Escalation response ** 
     [escalation_response]

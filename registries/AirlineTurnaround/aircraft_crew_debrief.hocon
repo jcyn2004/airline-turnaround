@@ -151,6 +151,9 @@ When user submits inquiry, proceed as follows:
     a. wait for its response 
     b. store jetbridge connection status as jetbridge_connection_status, store door opening status as door_opening_status, store crew debrief status as crew_debrief_status
 8. Provide the crew debrief status report summary as: 
+    ************************************
+    * Summary of aircraft crew debrief *
+    ************************************
     ** flight status **: [flight_status]
     ** jet bridge connection status **: [jetbridge_connection_status]
     ** door opening status **: [door_opening_status]

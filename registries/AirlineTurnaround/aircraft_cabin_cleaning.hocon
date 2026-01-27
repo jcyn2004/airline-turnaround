@@ -167,6 +167,9 @@ When you receive user inquiry, proceed as follows:
     b. Wait for its response and save it as cabin_cleaning_status
     c. Report cabin_cleaning_status
 9. Provide the cabin cleaning status report summary as: 
+    **************************************
+    * Summary of aircraft cabin cleaning *
+    **************************************
     ** cabin cleaning summary **: 
     ** flight number **: [flight_number]
     ** aircraft type **: [aircraft_type]    

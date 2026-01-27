@@ -19,12 +19,23 @@
 {
     # Describes what agent to test against
     "agent": "AirlineTurnaround/aircraft_turnaround",
+    # "AirlineTurnaround/aircraft_traffic_controller",
+    # "AirlineTurnaround/aircraft_turnaround",
+
+    # Use direct sessions for external agents
+    "use_direct": true,
 
     # Connect to the agent directly (no server required for testing)
-    "connections": ["direct"],
+    "connections": ["direct"], ## "http"
+
+    # Notes on this configuration: 
+    # "http" setting will enable connection thru the Neuro SAN http server that is running 
+    # "direct"  will enable direct communication to the hocon provided that both AGENT_TOOL_PATH and AGENT_MANIFEST_FILE are properly set 
+    # e.g. export AGENT_TOOL_PATH=path to agent tool path
+    # e.g. export AGENT_MANIFEST_FILE=manifest.hocon path to manifest
 
     # Timeout for the entire test (5 minutes)
-    "timeout_in_seconds": 300,
+    "timeout_in_seconds": 3000,
 
     "success_ratio": "20/20", 
 

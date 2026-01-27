@@ -53,6 +53,9 @@ When you receive a user request for clearance,
     a. wait for its response 
     b. store all the available parameters.
 6. Provide the clearance summary as follows:    
+******************************************
+* Summary of aircraft traffic controller *
+******************************************
 ** aircraft direction **: [aircraft_direction]
 ** flight number **: [flight_number]
 ** aircraft type **: [aircraft_type]

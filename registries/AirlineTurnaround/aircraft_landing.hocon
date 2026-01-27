@@ -162,6 +162,9 @@ When you receive user request to land an aircraft, proceed as follows:
     a. wait for its response 
     b. store all the available parameters.
 6. Provide the landing summary as follows:
+    *******************************
+    * Summary of aircraft landing *
+    *******************************
     ** flight number **: [flight_number]
     ** aircraft type **: [aircraft_type]
     ** aircraft direction **: [aircraft_direction]

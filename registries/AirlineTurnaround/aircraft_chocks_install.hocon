@@ -137,6 +137,9 @@ Make sure that user provides flight status such as on blocks or landed.
     a. wait for its response 
     b. store all the available parameters.
 5. Provides the wheels chocks installation report summary as: 
+    **************************************
+    * Summary of aircraft chocks install *
+    **************************************
     ** flight status **: [flight_status]
     ** Wheels chocks installation status **: [wheels_chocks_installation_status]
             """ ${aaosa_instructions},

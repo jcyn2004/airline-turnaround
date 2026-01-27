@@ -162,6 +162,9 @@ When user submits inquiry, proceed as follows:
     a. wait for its response 
     b. store lavatory_service_status as lavatory_service_status
 9. Provide the lavatory service status report summary as: 
+    ****************************************
+    * Summary of aircraft lavatory service *
+    ****************************************
     ** flight_number **: [flight_number]
     ** aircraft_type **: [aircraft_type]
     ** flight_status **: [flight_status]

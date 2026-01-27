@@ -1,9 +1,9 @@
-{
     # This set of agent networks is used for aircraft turnaround managemet at airports. 
     # Each agent network applies to a different phase of the turnaround process, and it can be called separately or as part of an overall orchestration. 
     # They are also subnetworks of the turnaround_orchestration.hocon agent network.
     # To use these agent networks, ensure that you have the necessary configurations and tools in place for airport operations management.
-   
+
+{   
     "AirlineTurnaround/aircraft_acu_connect.hocon": true, 
     "AirlineTurnaround/aircraft_baggage_unload.hocon": true, 
     "AirlineTurnaround/aircraft_cabin_cleaning.hocon": true, 
@@ -26,5 +26,5 @@
     "AirlineTurnaround/aircraft_lavatory_service.hocon": true, 
     "AirlineTurnaround/aircraft_taxiing.hocon": true, 
     "AirlineTurnaround/aircraft_traffic_controller.hocon": true,
-    "AirlineTurnaround/aircraft_turnaround.hocon": true,    
+    "AirlineTurnaround/aircraft_turnaround.hocon": true
 }
