@@ -152,6 +152,9 @@ When user submits inquiry, proceed as follows:
 8. If acu_connection_status is not 'connected' or gpu_connection_status is not 'connected' or jetbridge_connection_status is not 'connected'
     a. Report that jetbridge connection failed due to acu or gpu not connected
 9. Provide the jetbridge connection status report summary as: 
+    *****************************************
+    * Summary of aircraft jetbridge connect *
+    *****************************************
     ** jetbridge connection status summary **: 
     ** flight_status **: [flight_status]
     ** acu_connection_status **: [acu_connection_status]

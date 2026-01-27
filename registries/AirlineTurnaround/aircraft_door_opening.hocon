@@ -146,6 +146,9 @@ When user submits inquiry, proceed as follows:
     a. wait for its response 
     b. store jetbridge connection status as jetbridge_connection_status, and store door opening status as door_opening_status
 8. Provide the door opening status report summary as: 
+    ************************************
+    * Summary of aircraft door opening *
+    ************************************
     ** flight status **: [flight_status]
     ** jet bridge connection status **: [jetbridge_connection_status]
     ** door opening status **: [door_opening_status]

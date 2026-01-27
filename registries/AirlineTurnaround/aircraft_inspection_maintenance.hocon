@@ -161,6 +161,9 @@ When user submits inquiry, proceed as follows:
     b. Wait for its response and save it as inspection_maintenance_status
     c. Report inspection_maintenance_status
 8. Provide the inspection maintenance status report summary as: 
+    **********************************************
+    * Summary of aircraft inspection maintenance *
+    **********************************************
     ** inspection maintenance summary **: 
     ** flight number **: [flight_number]
     ** aircraft type **: [aircraft_type]    

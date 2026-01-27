@@ -118,9 +118,9 @@ You are in charge of aircraft turnaround at the airport.
                             "type": "string", 
                             "description": "This is the wheels chocks readiness status."
                         },   
-                        "gpu_readiness_status": {
+                        "ground_power_unit_readiness_status": {
                             "type": "string", 
-                            "description": "This is the gpu readiness status."
+                            "description": "This is the ground_power_unit readiness status."
                         },      
                         "ground_clearance_type": {
                             "type": "string", 
@@ -129,22 +129,18 @@ You are in charge of aircraft turnaround at the airport.
                         "ground_clearance_status": {
                             "type": "string", 
                             "description": "This is the ground clearance status of the aircraft"
-                        },        
-                        "ground_services_request_type": {
-                            "type": "string", 
-                            "description": "This is the type of the inquiry received for grand services."
-                        },         
+                        },              
                         "wheels_chocks_installation_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks installation status."
                         },     
-                        "acu_connection_status": {
+                        "air_conditioning_unit_connection_status": {
                             "type": "string", 
-                            "description": "This is the acu connection status."
+                            "description": "This is the air_conditioning_unit connection status."
                         },     
-                        "gpu_connection_status": {
+                        "ground_power_unit_connection_status": {
                             "type": "string", 
-                            "description": "This is the gpu connection status."
+                            "description": "This is the ground_power_unit connection status."
                         },     
                         "engines_stop_status": {
                             "type": "string", 
@@ -201,8 +197,8 @@ When you receive a user request to handle an aircraft turnaround, you will proce
             "allow": {
                 "to_downstream": {
                     "sly_data": {
-                        "acu_connection_status": true, 
-                        "acu_readiness_status": true,
+                        "air_conditioning_unit_connection_status": true, 
+                        "air_conditioning_unit_readiness_status": true,
                         "aircraft_direction": true,
                         "aircraft_landing_report": true,
                         "aircraft_type": true,
@@ -223,12 +219,10 @@ When you receive a user request to handle an aircraft turnaround, you will proce
                         "flight_status": true,
                         "fueling_status": true, 
                         "gate_id": true,
-                        "gpu_connection_status": true, 
-                        "gpu_readiness_status": true,
+                        "ground_power_unit_connection_status": true, 
+                        "ground_power_unit_readiness_status": true,
                         "ground_clearance_status": true,
                         "ground_clearance_type": true,
-                        "ground_services_inquiry_type": true, 
-                        "ground_services_request_type": true,
                         "inspection_maintenance_status": true, 
                         "jetbridge_connection_status": true, 
                         "jetbridge_status": true, 
@@ -241,8 +235,8 @@ When you receive a user request to handle an aircraft turnaround, you will proce
                 }
                 "from_downstream": {
                     "sly_data": {
-                        "acu_connection_status": true, 
-                        "acu_readiness_status": true,
+                        "air_conditioning_unit_connection_status": true, 
+                        "air_conditioning_unit_readiness_status": true,
                         "aircraft_direction": true,
                         "aircraft_landing_report": true,
                         "aircraft_type": true,
@@ -263,12 +257,10 @@ When you receive a user request to handle an aircraft turnaround, you will proce
                         "flight_status": true,
                         "fueling_status": true, 
                         "gate_id": true,
-                        "gpu_connection_status": true, 
-                        "gpu_readiness_status": true,
+                        "ground_power_unit_connection_status": true, 
+                        "ground_power_unit_readiness_status": true,
                         "ground_clearance_status": true,
                         "ground_clearance_type": true,
-                        "ground_services_inquiry_type": true, 
-                        "ground_services_request_type": true,
                         "inspection_maintenance_status": true, 
                         "jetbridge_connection_status": true, 
                         "jetbridge_status": true, 
@@ -320,9 +312,9 @@ You execute aircraft turnaround process at the airport.
                             "type": "string", 
                             "description": "This is the wheels chocks readiness status."
                         },   
-                        "gpu_readiness_status": {
+                        "ground_power_unit_readiness_status": {
                             "type": "string", 
-                            "description": "This is the gpu readiness status."
+                            "description": "This is the ground_power_unit readiness status."
                         },      
                         "ground_clearance_type": {
                             "type": "string", 
@@ -331,22 +323,18 @@ You execute aircraft turnaround process at the airport.
                         "ground_clearance_status": {
                             "type": "string", 
                             "description": "This is the ground clearance status of the aircraft"
-                        },        
-                        "ground_services_request_type": {
-                            "type": "string", 
-                            "description": "This is the type of the inquiry received for grand services."
-                        },         
+                        },                
                         "wheels_chocks_installation_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks installation status."
                         },     
-                        "acu_connection_status": {
+                        "air_conditioning_unit_connection_status": {
                             "type": "string", 
-                            "description": "This is the acu connection status."
+                            "description": "This is the air_conditioning_unit connection status."
                         },     
-                        "gpu_connection_status": {
+                        "ground_power_unit_connection_status": {
                             "type": "string", 
-                            "description": "This is the gpu connection status."
+                            "description": "This is the ground_power_unit connection status."
                         },     
                         "engines_stop_status": {
                             "type": "string", 
@@ -401,14 +389,14 @@ When you receive a request to handle an aircraft turnaround, you will:
         ii. wait for its response and store the value of gate_id.
         iii. Call TrackerAPI to log all the available parameters.
         iv. wait for TrackerAPI to complete its task
-    d. call aircraft_ground_services with ground_services_request_type set as 'inquiry' to inquire on ground services readiness at the gate: 
-        i. provide it with flight_number, aircraft_type, gate_id, and ground_services_request_type as 'inquiry'.
-        ii. wait for its response and store gpu_readiness_status and wheels_chocks_readiness_status. 
+    d. call aircraft_ground_services to inquire on ground services readiness at the gate: 
+        i. provide it with flight_number, aircraft_type, gate_id,
+        ii. wait for its response then store ground_power_unit_readiness_status, air_conditioning_unit_readiness_status and wheels_chocks_readiness_status. 
         iii. Call TrackerAPI to log all the available parameters.
         iv. wait for TrackerAPI to complete its task
-    e. call aircraft_ground_traffic to request taxiing clearance to the assigned gate:
+    e. call aircraft_ground_traffic to request clearance to taxi in
         i. provide it with flight_number, aircraft_type, flight_status, assigned_runway_id, and gate_id.
-        ii. wait for its response and store ground_clearance_type, ground_clearance_status, and the new value of flight_status. 
+        ii. wait for its response and store ground_clearance_type, ground_clearance_status, and flight_status. 
         iii. Call TrackerAPI to log all the available parameters.
         iv. wait for TrackerAPI to complete its task
     f. call aircraft_taxiing to taxi in the aircraft to the assigned gate:
@@ -426,14 +414,14 @@ When you receive a request to handle an aircraft turnaround, you will:
         ii. wait for its response and store engines_stop_status.
         iii. Call TrackerAPI to log all the available parameters.
         iv. wait for TrackerAPI to complete its task
-    i. call aircraft_gpu_connect to connect the gpu unit:
-        i. provide it with flight_number, aircraft_type, flight_status, gate_id, and gpu_readiness_status.
-        ii. wait for its response and store gpu_connection_status.
+    i. call aircraft_ground_power_unit_connect to connect the ground_power_unit unit:
+        i. provide it with flight_number, aircraft_type, flight_status, gate_id, and ground_power_unit_readiness_status.
+        ii. wait for its response and store ground_power_unit_connection_status.
         iii. Call TrackerAPI to log all the available parameters.
         iv. wait for TrackerAPI to complete its task
-    j. call aircraft_acu_connect to connect the acu unit:
+    j. call aircraft_air_conditioning_unit_connect to connect the air_conditioning_unit unit:
         i. provide it with flight_number, aircraft_type, flight_status, and gate_id.
-        ii. wait for its response and store acu_connection_status.
+        ii. wait for its response and store air_conditioning_unit_connection_status.
         iii. Call TrackerAPI to log all the available parameters.
         iv. wait for TrackerAPI to complete its task
     k. call aircraft_jetbridge_connect to connect the jetbridge:
@@ -524,7 +512,7 @@ When you receive a request to handle an aircraft turnaround, you will:
             "allow": {
                 "from_downstream": {
                     "sly_data": {
-                        "acu_connection_status": true, 
+                        "air_conditioning_unit_connection_status": true, 
                         "aircraft_direction": true,
                         "aircraft_landing_report": true,
                         "aircraft_type" : true, 
@@ -545,12 +533,10 @@ When you receive a request to handle an aircraft turnaround, you will:
                         "flight_status": true, 
                         "fueling_status" : true, 
                         "gate_id" : true, 
-                        "gpu_connection_status": true, 
-                        "gpu_readiness_status": true, 
+                        "ground_power_unit_connection_status": true, 
+                        "ground_power_unit_readiness_status": true, 
                         "ground_clearance_status": true,
                         "ground_clearance_type": true,
-                        "ground_services_inquiry_type": true, 
-                        "ground_services_request_type": true, 
                         "inspection_maintenance_status" : true, 
                         "jetbridge_connection_status" : true, 
                         "jetbridge_status": true, 
@@ -564,7 +550,7 @@ When you receive a request to handle an aircraft turnaround, you will:
 
                 "to_downstream": {
                     "sly_data": {
-                        "acu_connection_status" : true, 
+                        "air_conditioning_unit_connection_status" : true, 
                         "aircraft_direction": true,
                         "aircraft_landing_report": true,
                         "aircraft_type": true,
@@ -584,12 +570,10 @@ When you receive a request to handle an aircraft turnaround, you will:
                         "flight_status": true,
                         "fueling_status" : true, 
                         "gate_id": true,
-                        "gpu_connection_status": true, 
-                        "gpu_readiness_status": true,
+                        "ground_power_unit_connection_status": true, 
+                        "ground_power_unit_readiness_status": true,
                         "ground_clearance_status": true,
                         "ground_clearance_type": true,
-                        "ground_services_inquiry_type": true, 
-                        "ground_services_request_type": true,
                         "inspection_maintenance_status": true, 
                         "jetbridge_connection_status" : true, 
                         "jetbridge_status": true,
@@ -629,11 +613,7 @@ I am the flight tracker in charge of logging parameters during aircraft turnarou
                         "gate_id": {
                             "type": "string", 
                             "description": "This is the gate assigned to the aircraft parking."
-                        },     
-                        "ground_services_request_type": {
-                            "type": "string", 
-                            "description": "This is the type of the inquiry received for grand services."
-                        },         
+                        },      
                         "wheels_chocks_readiness_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks readiness status."
@@ -642,17 +622,17 @@ I am the flight tracker in charge of logging parameters during aircraft turnarou
                             "type": "string", 
                             "description": "This is the wheels chocks installation status."
                         },   
-                        "gpu_readiness_status": {
+                        "ground_power_unit_readiness_status": {
                             "type": "string", 
-                            "description": "This is the gpu readiness status."
+                            "description": "This is the ground_power_unit readiness status."
                         },     
-                        "acu_connection_status": {
+                        "air_conditioning_unit_connection_status": {
                             "type": "string", 
-                            "description": "This is the acu connection status."
+                            "description": "This is the air_conditioning_unit connection status."
                         },     
-                        "gpu_connection_status": {
+                        "ground_power_unit_connection_status": {
                             "type": "string", 
-                            "description": "This is the gpu connection status."
+                            "description": "This is the ground_power_unit connection status."
                         },     
                         "engines_stop_status": {
                             "type": "string", 

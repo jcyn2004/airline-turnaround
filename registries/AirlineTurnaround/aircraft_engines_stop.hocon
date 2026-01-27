@@ -6,7 +6,7 @@
         "description": "Simple agent network using a single LLM-based agent",
         "tags": ["example"],
         "sample_queries": [
-            "The B747 aircraft of flight AF84 is on blocks at gate A1. Stop its engines.",
+            "Flight AF84 is on blocks at gate A1. It's a B747 aircraft. Stop its engines.",
         ]
     },
 
@@ -144,6 +144,9 @@ When user submits inquiry, proceed as follows:
     a. wait for its response 
     b. store flight status as flight_status, and store engines stop status as engines_stop_status
 8. Provide the engines stop status report summary as: 
+    ************************************
+    * Summary of aircraft engines stop *
+    ************************************
     ** flight status **: [flight_status]
     ** engines stop status **: [engines_stop_status]
             """ ${aaosa_instructions},

@@ -137,6 +137,9 @@ When user submits inquiry, proceed as follows:
     b. store all the available parameters.
 7. set execution_mode value to 'write' and call deplaning_path_selector in 'write' execution mode to update the status of deplaning equipment providing deplaning_equipment_type, deplaning_equipment_id and gate_id.
 8. Provide the gate selection report summary as: 
+    **************************************
+    * Summary of aircraft gate selection *
+    **************************************
     ** gate id **: [gate_id]
     ** deplaning equipment type **: [deplaning_equipment_type]
     ** deplaning equipment id **: [deplaning_equipment_id]

@@ -156,6 +156,9 @@ When user submits inquiry, proceed as follows:
     a. wait for its response 
     b. store all the available parameters.
 8. Provide the fueling status report summary as: 
+    *******************************
+    * Summary of aircraft fueling *
+    *******************************
     ** flight status **: [flight_status]
     ** passenger disembarkation status **: [passenger_disembarkation_status]
     ** crew exit status **: [crew_exit_status]

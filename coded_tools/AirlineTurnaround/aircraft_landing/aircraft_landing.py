@@ -45,7 +45,8 @@ class execute_aircraft_landing(CodedTool):
         flight_status: str = args.get("flight_status", None) 
         aircraft_type: str = args.get("aircraft_type", None)   
         flight_number: str = args.get("flight_number", None)   
-        traffic_direction: str = args.get("traffic_direction", None) 
+        # traffic_direction: str = args.get("traffic_direction", None) 
+        aircraft_direction: str = args.get("aircraft_direction", None) 
         clearance_type: str = args.get("clearance_type", None)   
         assigned_runway_id: str = args.get("assigned_runway_id", None)  
         assigned_runway_length: str = args.get("assigned_runway_length", None)  
@@ -55,7 +56,8 @@ class execute_aircraft_landing(CodedTool):
         print("flight_status: ", flight_status)
         print("aircraft_type: ", aircraft_type)
         print("flight_number: ", flight_number)
-        print("traffic_direction: ", traffic_direction)
+        # print("traffic_direction: ", traffic_direction)
+        print("aircraft_direction: ", aircraft_direction)
         print("assigned_runway_id: ", assigned_runway_id)
         print("assigned_runway_length: ", assigned_runway_length)
         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
@@ -71,8 +73,11 @@ class execute_aircraft_landing(CodedTool):
         if flight_number is None: 
             flight_number: str = sly_data.get(flight_number, None)
 
-        if traffic_direction is None: 
-            traffic_direction: str = sly_data.get(traffic_direction, None)
+        # if traffic_direction is None: 
+        #     traffic_direction: str = sly_data.get(traffic_direction, None)
+
+        if aircraft_direction is None: 
+            aircraft_direction: str = sly_data.get(aircraft_direction, None)
 
         if clearance_type is None: 
             clearance_type: str = sly_data.get(clearance_type, None)
@@ -88,7 +93,8 @@ class execute_aircraft_landing(CodedTool):
         print("flight_status: ", flight_status)
         print("aircraft_type: ", aircraft_type)
         print("flight_number: ", flight_number)
-        print("traffic_direction: ", traffic_direction)
+        # print("traffic_direction: ", traffic_direction)
+        print("aircraft_direction: ", aircraft_direction)
         print("assigned_runway_id: ", assigned_runway_id)
         print("assigned_runway_length: ", assigned_runway_length)
         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
@@ -98,7 +104,7 @@ class execute_aircraft_landing(CodedTool):
             flight_status = flight_status.lower().strip().replace("_", " ")
 
             if ((('cleared' in clearance_type) | ('landing' in clearance_type)) & ((flight_status is None) | ('approach' in flight_status ))):    
-                time.sleep(0.5) 
+                # time.sleep(0.5) 
                 flight_status = 'landed'
 
                 print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft landing status update $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
@@ -411,51 +417,62 @@ class TrackerAPI(CodedTool):
 
 # Define tracked fields for flight turnaround operations
 FLIGHT_TURNAROUND_TRACKED_FIELDS = [
-    "acu_connection_status", 
-    "acu_readiness_status",
     "aircraft_direction",
-    "aircraft_landing_report",
-    "aircraft_type",
-    "assigned_runway_id",
-    "assigned_runway_length",
-    "baggage_unload_status", 
-    "catering_loading_status", 
-    "cleaning_cabin_status", 
-    "clearance_landing_valid",
-    "clearance_takeoff_valid", 
+    "aircraft_type", 
+    "assigned_runway_id", 
+    "assigned_runway_length", 
     "clearance_type",
-    "crew_debrief_status", 
-    "crew_exit_status", 
-    "door_opening_status", 
-    "engines_stop_status", 
     "flight_number",
-    "flight_status",
-    "fueling_status", 
-    "gate_id",
-    "gpu_connection_status", 
-    "gpu_readiness_status",
-    "ground_clearance_status",
-    "ground_clearance_type",
-    "ground_services_inquiry_type", 
-    "ground_services_request_type",
-    "inspection_maintenance_status", 
-    "jetbridge_connection_status", 
-    "jetbridge_status", 
-    "lavatory_service_status", 
-    "passenger_disembarkation_status", 
-    "wheels_chocks_installation_status", 
-    "wheels_chocks_readiness_status",
+    "flight_status", 
 ]
+
+# [
+#     "acu_connection_status", 
+#     "acu_readiness_status",
+#     "aircraft_direction",
+#     "aircraft_landing_report",
+#     "aircraft_type",
+#     "assigned_runway_id",
+#     "assigned_runway_length",
+#     "baggage_unload_status", 
+#     "catering_loading_status", 
+#     "cleaning_cabin_status", 
+#     "clearance_landing_valid",
+#     "clearance_takeoff_valid", 
+#     "clearance_type",
+#     "crew_debrief_status", 
+#     "crew_exit_status", 
+#     "door_opening_status", 
+#     "engines_stop_status", 
+#     "flight_number",
+#     "flight_status",
+#     "fueling_status", 
+#     "gate_id",
+#     "gpu_connection_status", 
+#     "gpu_readiness_status",
+#     "ground_clearance_status",
+#     "ground_clearance_type",
+#     "ground_services_inquiry_type", 
+#     "ground_services_request_type",
+#     "inspection_maintenance_status", 
+#     "jetbridge_connection_status", 
+#     "jetbridge_status", 
+#     "lavatory_service_status", 
+#     "passenger_disembarkation_status", 
+#     "runway_length",
+#     "wheels_chocks_installation_status", 
+#     "wheels_chocks_readiness_status",
+# ]
 
 # Define which fields should be returned from the API
 FLIGHT_TURNAROUND_RETURN_FIELDS = [
     "aircraft_direction",
-    "aircraft_type",
+    "aircraft_type", 
     "assigned_runway_id", 
-    "assigned_runway_length",
-    "clearance_type", 
+    "assigned_runway_length", 
+    "clearance_type",
     "flight_number",
-    "flight_status",
+    "flight_status", 
 ]
 
 # =============================================================================

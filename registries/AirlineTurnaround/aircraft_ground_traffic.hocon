@@ -6,7 +6,7 @@
         "description": "Simple agent network using a single LLM-based agent",
         "tags": ["example"],
         "sample_queries": [
-            "Provide ground clearance to incoming flight AF84. The aircraft is a B747 that has landed one minute ago on runway 28L. It will park at gate A1.", 
+            "Provide ground clearance flight AF84. The aircraft is a B747 that has landed one minute ago on runway 28L. It will park at gate A1.", 
             "Flight AF84 has landed on runway 28L. The aircraft is a B747 and it has been assigned to gate A1. "
         ]
     },
@@ -94,33 +94,79 @@ You are the ground traffic orchestrator.
 You coordinate ground traffic at the airport. 
                 """
             },
+//             "instructions": """
+// You are the agent responsible to giving aircraft the clearance to taxi in the gate of to taxi out of the gate. 
+// Only perform the tasks that fall under your responsibility. 
+// DO NOT make things up. 
+// Use ONLY YOUR TOOLS to fulfill your tasks. 
+// When you receive a user request for clearance to taxi in or taxi out, proceed as follows:
+// 1. Determine if the followings information is provided in the user prompt. 
+//     - flight number as flight_number
+//     - aircraft type as aircraft_type
+//     - flight status as flight_status with value such as 'landed', 'on final approach', 'taxiing', 'on blocks', 'off blocks', 'taking off', etc.
+//     - assigned runway id as assigned_runway_id
+//     - gate id as gate_id 
+// 2. Call TrackerAPI and log all the available parameters. 
+//     a. wait for its response 
+//     b. store all the available parameters. 
+// 3. If flight_status is 'landed' then set ground clearance type as ground_clearance_type with the value 'TAXI_IN' 
+// 4. If flight_status is 'off blocks' than set ground clearance type as ground_clearance_type with the value 'TAXI_OUT' 
+// 5. Call TrackerAPI and log all the available parameters. 
+//     a. wait for its response 
+//     b. store all the available parameters. 
+// 6. If flight_status is not 'landed' or 'off blocks', 
+//     - Do not send request for ground clearance. 
+//     - Ask the user to confirm tht flight status is either 'landed' or 'off blocks'
+//     - return to step 1 above.
+// 7. If flight_status is 'landed' or 'off blocks', 
+//     - Call ground_traffic_controller to request taxiing clearance. 
+//     - Wait for the response from ground_traffic_controller. 
+// 8. Call TrackerAPI and log all the available parameters. 
+//     a. wait for its response 
+//     b. store all the available parameters.
+// 9. Finally, compile all the gathered information and ground clearance results and display the results as follows:
+//     **************************************
+//     * Summary of aircraft ground traffic *
+//     **************************************
+//     ** flight number **: [flight_number]
+//     ** aircraft type **: [aircraft_type]
+//     ** flight status **: [flight_status] 
+//     ** gate_id **: [gate_id] 
+//     ** ground clearance type **: [ground_clearance_type]
+//     ** ground clearance status **: [ground_clearance_status]
+//             """ ${aaosa_instructions},
+
             "instructions": """
 You are the agent responsible to giving aircraft the clearance to taxi in the gate of to taxi out of the gate. 
 Only perform the tasks that fall under your responsibility. 
 DO NOT make things up. 
 Use ONLY YOUR TOOLS to fulfill your tasks. 
 When you receive a user request for clearance to taxi in or taxi out, proceed as follows:
-1. Determine the followings information from the user prompt. 
+1. Determine if the followings information is provided in the user prompt. 
     - flight number as flight_number
     - aircraft type as aircraft_type
-    - traffic direction as aircraft_direction with value such as 'incoming' or 'departing'
     - flight status as flight_status with value such as 'landed', 'on final approach', 'taxiing', 'on blocks', 'off blocks', 'taking off', etc.
     - assigned runway id as assigned_runway_id
     - gate id as gate_id 
+    - ground clearance type as ground_clearance_type with value such as 'taxi in', 'taxiing in', 'taxi out', 'taxiing out'
 2. Call TrackerAPI and log all the available parameters. 
     a. wait for its response 
-    b. store all the available parameters.
-3. If flight_status is not 'landed' or 'off blocks', 
+    b. store all the available parameters. 
+3. If ground_clearance_type is None, then ask the user to provide the ground_clearance_type that they want. 
+4. If flight_status is not 'landed' or 'off blocks', 
     - Do not send request for ground clearance. 
-    - Use your tools to confirm that flight status indicates that the aircraft is on the ground. 
+    - Use your tools to make sure that flight status is either 'landed' or 'off blocks' 
     - return to step 2 above.
-4. If flight_status is 'landed' or 'off blocks', 
+5. If flight_status is 'landed' or 'off blocks', 
     - Call ground_traffic_controller to request taxiing clearance. 
     - Wait for the response from ground_traffic_controller. 
-5. Call TrackerAPI and log all the available parameters. 
+6. Call TrackerAPI and log all the available parameters. 
     a. wait for its response 
     b. store all the available parameters.
-6. Finally, compile all the gathered information and ground clearance results and display the results as follows:
+7. Finally, compile all the gathered information and ground clearance results and display the results as follows:
+    **************************************
+    * Summary of aircraft ground traffic *
+    **************************************
     ** flight number **: [flight_number]
     ** aircraft type **: [aircraft_type]
     ** flight status **: [flight_status] 
@@ -144,10 +190,6 @@ When you receive a user request for clearance to taxi in or taxi out, proceed as
                         "type": "string", 
                         "description": "This is the flight status"
                     },     
-                    "aircraft_direction": {
-                        "type": "string", 
-                        "description": "This is the direction of the aircraft"
-                    },    
                     "assigned_runway_id": {
                         "type": "string", 
                         "description": "This is the runway assigned for either landing or takeoff"
@@ -243,10 +285,6 @@ Your role is to provide ground clearance for aircraft to taxi in or to taxi out 
                             "type": "string", 
                             "description": "This is the flight status"
                         },     
-                        "aircraft_direction": {
-                            "type": "string", 
-                            "description": "This is the direction of the aircraft"
-                        },    
                         "assigned_runway_id": {
                             "type": "string", 
                             "description": "This is the runway assigned for either landing or takeoff"
@@ -264,16 +302,16 @@ Your role is to provide ground clearance for aircraft to taxi in or to taxi out 
                             "description": "This is the ground clearance status of the aircraft"
                         },    
                     },  
-                    "required": ["aircraft_type", "flight_number", "flight_status","assigned_runway_id","gate_id"] 
+                    "required": ["aircraft_type", "flight_number", "flight_status","assigned_runway_id","gate_id","ground_clearance_type"] 
                 },
             },
 
             "instructions": """
-You are responsible for giving clearance to aircrafts for taxi in or taxi out. 
+You are responsible for giving aircraft the clearance to taxi in or to taxi out. 
 Only perform the tasks that fall under your responsibility. 
 DO NOT make things up. 
 Use ONLY YOUR TOOLS to fulfill your tasks. 
-Report back to the orchestrator with ground_clearance_type and ground_clearance_status.
+Report back to the orchestrator with ground_clearance_status.
             """ ${aaosa_instructions},
             "tools":["ground_clearance_agent"]
         },
@@ -299,10 +337,6 @@ This agent clears aircraft for taxi in or taxi out in the airport ground.
                             "type": "string", 
                             "description": "This is the flight status"
                         },      
-                        "aircraft_direction": {
-                            "type": "string", 
-                            "description": "This is the direction of the aircraft"
-                        },    
                         "assigned_runway_id": {
                             "type": "string", 
                             "description": "This is the runway assigned for either landing or takeoff"
@@ -320,7 +354,7 @@ This agent clears aircraft for taxi in or taxi out in the airport ground.
                             "description": "This is the ground clearance status of the aircraft"
                         },    
                     }, 
-                    "required": ["flight_number", "aircraft_type","flight_status","assigned_runway_id","gate_id"] 
+                    "required": ["flight_number", "aircraft_type","flight_status","assigned_runway_id","gate_id","ground_clearance_type"] 
                 }
             }, 
             "class": "AirlineTurnaround.aircraft_ground_traffic.aircraft_ground_traffic.execute_ground_clearance"

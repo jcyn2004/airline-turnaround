@@ -147,6 +147,9 @@ When user submit inquiry to connect gpu to aircraft, proceed as follows:
     c. Report gpu_connection_status
 7. Call TrackerAPI to log all the available parameters.
 8. Provide the fueling status report summary as: 
+    ***********************************
+    * Summary of aircraft gpu connect *
+    ***********************************
     ** flight status **: [flight_status]
     ** engines stop status **: [engines_stop_status]
     ** wheels chucks installation status **: [wheels_chucks_installation_status]

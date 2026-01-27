@@ -90,7 +90,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
             "function": {
                 "description": """
 I manage ground services during aircraft turnaround at the airport. 
-I check and report the ground services readiness including gpu, acu, and wheels chocks.
+I check and report the ground services readiness including ground_power_unit, air_conditioning_unit, and wheels chocks.
                 """
             },
 
@@ -111,23 +111,26 @@ When user submits inquiry, proceed as follows:
     b. wait for their responses 
     c. return to step 2. 
 5. If gate_id is not None and aircraft_type is not None and flight_number is not None, then
-    a. Call ground_readiness_coordinator to request acu readiness status, gpu readiness status, and wheels chocks readiness status, including flight_number, aircraft_type, gate_id. 
-    b. Wait for ground_readiness_coordinator to return acu_readiness_status and gpu_readiness_status and wheels_chocks_readiness_status. 
-    c. Store acu readiness status as the returned acu_readiness_status. 
-    d. Store gpu readiness status as the returned gpu_readiness_status. 
+    a. Call ground_readiness_coordinator to request air_conditioning_unit readiness status, ground_power_unit readiness status, and wheels chocks readiness status, including flight_number, aircraft_type, gate_id. 
+    b. Wait for ground_readiness_coordinator to return air_conditioning_unit_readiness_status and ground_power_unit_readiness_status and wheels_chocks_readiness_status. 
+    c. Store air_conditioning_unit readiness status as the returned air_conditioning_unit_readiness_status. 
+    d. Store ground_power_unit readiness status as the returned ground_power_unit_readiness_status. 
     e. Store wheels chocks readiness status as the returned wheels_chocks_readiness_status
 6.  Call TrackerAPI 
     a. wait for its response 
     b. store all the available parameters.
-7. If acu_readiness_status is not 'ready', or gpu_readiness_status is not 'ready', or wheels_chocks_readiness_status is not 'rady'
+7. If air_conditioning_unit_readiness_status is not 'ready', or ground_power_unit_readiness_status is not 'ready', or wheels_chocks_readiness_status is not 'rady'
     a. return to step 5.
 8.  Provide the ground services report summary as: 
+    ***************************************
+    * Summary of aircraft ground services *
+    ***************************************
     ** flight number **: [flight_number]
     ** aircraft type **: [aircraft_type]
     ** gate id **: [gate_id]
     ** wheels chocks readiness status **: [wheels_chocks_readiness_status]
-    ** gpu readiness status **: [gpu_readiness_status]
-    ** acu readiness status **: [acu_readiness_status]
+    ** ground_power_unit readiness status **: [ground_power_unit_readiness_status]
+    ** air_conditioning_unit readiness status **: [air_conditioning_unit_readiness_status]
             """ ${aaosa_instructions},  
 
             "parameters": {
@@ -149,13 +152,13 @@ When user submits inquiry, proceed as follows:
                         "type": "string", 
                         "description": "This is the wheels chocks readiness status."
                     },   
-                    "acu_readiness_status": {
+                    "air_conditioning_unit_readiness_status": {
                         "type": "string", 
-                        "description": "This is the acu readiness status."
+                        "description": "This is the air_conditioning_unit readiness status."
                     },   
-                    "gpu_readiness_status": {
+                    "ground_power_unit_readiness_status": {
                         "type": "string", 
-                        "description": "This is the gpu readiness status."
+                        "description": "This is the ground_power_unit readiness status."
                     },   
                 }, 
                 "required": ["flight_number","aircraft_type","gate_id"] 
@@ -165,8 +168,8 @@ When user submits inquiry, proceed as follows:
             "allow": {
                 "to_upstream": {
                     "sly_data": {
-                        "gpu_readiness_status": true, 
-                        "acu_readiness_status": true, 
+                        "ground_power_unit_readiness_status": true, 
+                        "air_conditioning_unit_readiness_status": true, 
                         "wheels_chocks_readiness_status": true, 
                         "wheels_chocks_installation_status": true
                     }
@@ -177,7 +180,6 @@ When user submits inquiry, proceed as follows:
                         "aircraft_type": true, 
                         "gate_id": true, 
                         "assigned_runway_id": true, 
-                        "ground_services_request_type": true
                     }
                 },
                 "from_downstream": {
@@ -186,8 +188,7 @@ When user submits inquiry, proceed as follows:
                         "aircraft_type": true, 
                         "gate_id": true, 
                         "assigned_runway_id": true, 
-                        "ground_services_request_type": true, 
-                        "gpu_readiness_status": true, 
+                        "ground_power_unit_readiness_status": true, 
                         "wheels_chocks_readiness_status": true, 
                         "wheels_chocks_installation_status": true
                     }
@@ -198,8 +199,8 @@ When user submits inquiry, proceed as follows:
                         "aircraft_type": true, 
                         "gate_id": true, 
                         "assigned_runway_id": true, 
-                        "acu_readiness_status": true, 
-                        "gpu_readiness_status": true, 
+                        "air_conditioning_unit_readiness_status": true, 
+                        "ground_power_unit_readiness_status": true, 
                         "wheels_chocks_readiness_status": true, 
                         "wheels_chocks_installation_status": true
                     }
@@ -215,8 +216,8 @@ When user submits inquiry, proceed as follows:
 
                 "description": """
 I respond to inquiries about ground services. 
-I check and report the acu readiness status.
-I check and report the gpu readiness status. 
+I check and report the air_conditioning_unit readiness status.
+I check and report the ground_power_unit readiness status. 
 I check and report the wheels chocks readiness status. 
                 """, 
 
@@ -239,13 +240,13 @@ I check and report the wheels chocks readiness status.
                             "type": "string", 
                             "description": "This is the wheels chocks readiness status."
                         },    
-                        "gpu_readiness_status": {
+                        "ground_power_unit_readiness_status": {
                             "type": "string", 
-                            "description": "This is the gpu readiness status."
+                            "description": "This is the ground_power_unit readiness status."
                         },   
-                        "acu_readiness_status": {
+                        "air_conditioning_unit_readiness_status": {
                             "type": "string", 
-                            "description": "This is the acu readiness status."
+                            "description": "This is the air_conditioning_unit readiness status."
                         },   
                     },
                     "required": ["flight_number", "aircraft_type","gate_id"]
@@ -253,26 +254,26 @@ I check and report the wheels chocks readiness status.
             },     
             "instructions": """
 When you received a request, proceed as follows: 
-1. Send request to cpu_acu_agent to inquire about acu readiness including flight number, aircraft type and gate id
-    - Wait for cpu_acu_agent response 
-    - Report the cpu_acu_agent response
-2. Send request to cpu_gpu_agent to inquire about gpu readiness including flight number, aircraft type and gate id
-    - Wait for cpu_gpu_agent response 
-    - Report the cpu_gpu_agent response
+1. Send request to air_conditioning_unit_agent to inquire about air_conditioning_unit readiness including flight number, aircraft type and gate id
+    - Wait for air_conditioning_unit_agent response 
+    - Report the air_conditioning_unit_agent response
+2. Send request to ground_power_unit_agent to inquire about ground_power_unit readiness including flight number, aircraft type and gate id
+    - Wait for ground_power_unit_agent response 
+    - Report the ground_power_unit_agent response
 3. Send request to wheels_chocks_agent to inquire about wheels chocks readiness including flight number, aircraft type and gate id
     - Wait for wheels_chocks_agent response 
     - Report the wheels_chocks_agent response
             """ ${aaosa_instructions},
 
-            "tools":["cpu_acu_agent","cpu_gpu_agent","wheels_chocks_agent"],
+            "tools":["air_conditioning_unit_agent","ground_power_unit_agent","wheels_chocks_agent"],
         },
 
         {
-            "name": "cpu_acu_agent",
+            "name": "air_conditioning_unit_agent",
             "function": {
                 "description": """
-This agent is in charge of the acu readiness at the gate. 
-It checks and reports the acu readiness status.
+This agent is in charge of the air_conditioning_unit readiness at the gate. 
+It checks and reports the air_conditioning_unit readiness status.
                 """, 
                 "parameters": {
                     "type": "object", 
@@ -289,9 +290,9 @@ It checks and reports the acu readiness status.
                             "type": "string", 
                             "description": "This is the gate assigned to the aicraft for parking."
                         },     
-                        "acu_readiness_status": {
+                        "air_conditioning_unit_readiness_status": {
                             "type": "string", 
-                            "description": "This is the acu readiness status."  
+                            "description": "This is the air_conditioning_unit readiness status."  
                         },
                     },
                     "required": ["flight_number", "aircraft_type", "gate_id"]
@@ -300,20 +301,20 @@ It checks and reports the acu readiness status.
             "instructions": """
 1. Use only your tools to fulfill the task. 
 2. Ask for any missing required data. 
-3. Send the request to cpu_acu_operator including flight number, aircraft type, and gate id
-    a. Wait for cpu_acu_operator response 
-    b. Report cpu_acu_operator response
+3. Send the request to air_conditioning_unit_operator including flight number, aircraft type, and gate id
+    a. Wait for air_conditioning_unit_operator response 
+    b. Report air_conditioning_unit_operator response
             """ ${aaosa_instructions},
 
-            "tools":["cpu_acu_operator"]
+            "tools":["air_conditioning_unit_operator"]
         },
 
         {
-            "name": "cpu_gpu_agent",
+            "name": "ground_power_unit_agent",
             "function": {
                 "description": """
-This agent is in charge of the gpu readiness at the gate. 
-It checks and reports the gpu readiness status.
+This agent is in charge of the ground_power_unit readiness at the gate. 
+It checks and reports the ground_power_unit readiness status.
                 """, 
                 "parameters": {
                     "type": "object", 
@@ -330,9 +331,9 @@ It checks and reports the gpu readiness status.
                             "type": "string", 
                             "description": "This is the gate assigned to the aicraft for parking."
                         },     
-                        "gpu_readiness_status": {
+                        "ground_power_unit_readiness_status": {
                             "type": "string", 
-                            "description": "This is the gpu readiness status."
+                            "description": "This is the ground_power_unit readiness status."
                         },    
                     },
                     "required": ["flight_number", "aircraft_type", "gate_id"]
@@ -341,19 +342,19 @@ It checks and reports the gpu readiness status.
             "instructions": """
 1. Use only your tools to fulfill the task. 
 2. Ask for any missing required data. 
-3. Send the request to cpu_gpu_operator including flight number, aircraft type, and gate id
-    a. Wait for cpu_gpu_operator response 
-    b. Report cpu_gpu_operator response
+3. Send the request to ground_power_unit_operator including flight number, aircraft type, and gate id
+    a. Wait for ground_power_unit_operator response 
+    b. Report ground_power_unit_operator response
             """ ${aaosa_instructions},
 
-            "tools":["cpu_gpu_operator"]
+            "tools":["ground_power_unit_operator"]
         },
 
         {
-            "name": "cpu_acu_operator",
+            "name": "air_conditioning_unit_operator",
             "function": {
                 "description": """
-This agent checks and reports the acu readiness status. 
+This agent checks and reports the air_conditioning_unit readiness status. 
                 """, 
                 "parameters": {
                     "type": "object", 
@@ -370,22 +371,22 @@ This agent checks and reports the acu readiness status.
                             "type": "string", 
                             "description": "This is the gate assigned to the incoming aicraft."
                         },      
-                        "acu_readiness_status": {
+                        "air_conditioning_unit_readiness_status": {
                             "type": "string", 
-                            "description": "This is the acu readiness status."
+                            "description": "This is the air_conditioning_unit readiness status."
                         },    
                     },
                     "required": ["flight_number", "aircraft_type","gate_id"]
                 },
             }, 
-            "class": "AirlineTurnaround.aircraft_ground_services.aircraft_ground_services.execute_cpu_acu_operator"
+            "class": "AirlineTurnaround.aircraft_ground_services.aircraft_ground_services.execute_air_conditioning_unit_operator"
         }, 
 
         {
-            "name": "cpu_gpu_operator",
+            "name": "ground_power_unit_operator",
             "function": {
                 "description": """
-This agent checks and reports the gpu readiness status. 
+This agent checks and reports the ground_power_unit readiness status. 
                 """, 
                 "parameters": {
                     "type": "object", 
@@ -402,15 +403,15 @@ This agent checks and reports the gpu readiness status.
                             "type": "string", 
                             "description": "This is the gate assigned to the incoming aicraft."
                         },     
-                        "gpu_readiness_status": {
+                        "ground_power_unit_readiness_status": {
                             "type": "string", 
-                            "description": "This is the gpu readiness status."
+                            "description": "This is the ground_power_unit readiness status."
                         },   
                     },
                     "required": ["flight_number", "aircraft_type","gate_id"]
                 },
             }, 
-            "class": "AirlineTurnaround.aircraft_ground_services.aircraft_ground_services.execute_cpu_gpu_operator"
+            "class": "AirlineTurnaround.aircraft_ground_services.aircraft_ground_services.execute_ground_power_unit_operator"
         }, 
 
         {
@@ -516,10 +517,6 @@ I check baggage unload status as baggage_unload_status.
                             "type": "string", 
                             "description": "This is the gate assigned to the aircraft parking."
                         },     
-                        "ground_services_request_type": {
-                            "type": "string", 
-                            "description": "This is the type of the inquiry received for grand services."
-                        },         
                         "wheels_chocks_readiness_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks readiness status."
@@ -528,17 +525,17 @@ I check baggage unload status as baggage_unload_status.
                             "type": "string", 
                             "description": "This is the wheels chocks installation status."
                         },   
-                        "gpu_readiness_status": {
+                        "ground_power_unit_readiness_status": {
                             "type": "string", 
-                            "description": "This is the gpu readiness status."
+                            "description": "This is the ground_power_unit readiness status."
                         },     
-                        "acu_connection_status": {
+                        "air_conditioning_unit_connection_status": {
                             "type": "string", 
-                            "description": "This is the acu connection status."
+                            "description": "This is the air_conditioning_unit connection status."
                         },     
-                        "gpu_connection_status": {
+                        "ground_power_unit_connection_status": {
                             "type": "string", 
-                            "description": "This is the gpu connection status."
+                            "description": "This is the ground_power_unit connection status."
                         },     
                         "engines_stop_status": {
                             "type": "string", 

@@ -27,117 +27,394 @@ def _norm(s: Union[str, None]) -> str:
 
 # ---------- tool ----------
 
+# The code below is the version of class execute_aircraft_taxiing developed after 20260123 
+# to address inconsistent behavour of the previous version. 
+
 class execute_aircraft_taxiing(CodedTool):
-    # """
-    # Update flight_status based on ground_clearance_type:
-    #   - contains 'taxi in'  -> flight_status = 'ON_BLOCKS'
-    #   - contains 'taxi out' -> flight_status = 'TAKEOFF_READY'
-    # Returns the new flight_status, or an error string.
-    # """
+    """
+    Read and return sly data in read mode, or write and update sly data in write. 
+    """
 
-    def __init__(self):
-        super().__init__()
+    def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
+        """
+        :param args: an empty dictionary (not used).
 
-    def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
+        :param sly_data: a dictionary with the following keys:
+            - aircraft_type
+            - flight_number
+            - flight_status
+            - gate_id
+            - assigned_runway_id 
+            - ground_clearance_type
+            - ground_clearance_status
+            - ground_power_unit_readiness_status
+            - wheels_chocks_readiness_status
+            - air_conditioning_unit_readiness_status
+
+        :return: None in write mode or any of teh parameters in read mode
+        """
+
+        print("\n")
+        print("\n")
+        print("$$$$$$$$$$$$$$$$$$$$$$$$$$$ CALLED AIRCRAFT TAXIING  $$$$$$$$$$$$$$$$$$$$$$$$$$$")
+        print("\n")
+        print("\n")
+
         # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
+        # door_opening_status = 'closed'
 
-        # Read inputs (sly_data first, then args)
-        flight_status         = _from_sly_or_args(sly_data, args, "flight_status")
-        if flight_status: 
-            flight_status = flight_status.lower().replace("_", " ").strip()
-            
-        aircraft_type         = _from_sly_or_args(sly_data, args, "aircraft_type")
-        flight_number         = _from_sly_or_args(sly_data, args, "flight_number")
-        gate_id               = _from_sly_or_args(sly_data, args, "gate_id")
-        ground_clearance_type = _from_sly_or_args(sly_data, args, "ground_clearance_type")
-        if ground_clearance_type: 
-            ground_clearance_type = ground_clearance_type.lower().replace("_", " ").strip()
-        ground_clearance_status = _from_sly_or_args(sly_data, args, "ground_clearance_status")
-        if ground_clearance_status: 
-            ground_clearance_status = ground_clearance_status.lower().replace("_", " ").strip()
-        assigned_runway_id    = _from_sly_or_args(sly_data, args, "assigned_runway_id")
-        gpu_readiness_status      = _from_sly_or_args(sly_data, args, "gpu_readiness_status")
-        wheels_chocks_readiness_status = _from_sly_or_args(sly_data, args, "wheels_chocks_readiness_status")
+        # flight number is needed in particular. 
+        flight_number = _from_sly_or_args(sly_data, args, "flight_number")
 
-        print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft taxiing agent $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+        # flight_number: str = args.get("flight_number", None)
+        # if not flight_number:
+        #     print("No flight number provided. Trying to get it from sly_data")
+        #     flight_number = sly_data.get("flight_number")
+        # if not flight_number:
+        #     error = "Error: Please provide a flight number for the request."
+        #     print(error)
+        #     return error       
+        
+        print("\n")
+        print("\n")
+        print("flight_number: ", flight_number)
+        print("\n")
+        print("\n")
+
+        # aircraft type is required to fulfill the request.
+        aircraft_type = _from_sly_or_args(sly_data, args, "aircraft_type") 
+
+        # aircraft_type: str = args.get("aircraft_type", None)
+        # if not aircraft_type:
+        #     print("No aircraft type provided. Trying to get it from sly_data")
+        #     aircraft_type = sly_data.get("aircraft_type")
+        # if not aircraft_type:
+        #     error = "Error: Please provide an aircraft type for the request."
+        #     print(error)
+        #     return error  
+        
+        print("\n")
+        print("\n")
+        print("aircraft_type: ", aircraft_type)
+        print("\n")
+        print("\n")
+
+        # flight status is required to fulfill the request.
+        flight_status = _from_sly_or_args(sly_data, args, "flight_status")  
+        flight_status = flight_status.lower().replace("_", " ").strip()
+
+        # flight_status: str = args.get("flight_status", None)
+        # if not flight_status:
+        #     print("No flight status provided. Trying to get it from sly_data")
+        #     flight_status = sly_data.get("flight_status")
+        # if not flight_status:
+        #     error = "Error: Please provide a flight status for the request."
+        #     print(error)
+        #     return error  
+        # if flight_status: 
+        #     flight_status = flight_status.lower().replace("_", " ").strip()
+
+        print("\n")
+        print("\n")
+        print("flight_status: ", flight_status)
+        print("\n")
+        print("\n")
+
+        # gate id is required to fulfill the request.
+        gate_id = _from_sly_or_args(sly_data, args, "gate_id")  
+
+        # gate_id: str = args.get("gate_id", None)
+        # if not gate_id:
+        #     print("No gate id provided. Trying to get it from sly_data")
+        #     gate_id = sly_data.get("gate_id")
+        # if not gate_id:
+        #     error = "Error: Please provide a gate id for the request."
+        #     print(error)
+        #     return error  
+        
+        print("\n")
+        print("\n")
+        print("gate_id: ", gate_id)
+        print("\n")
+        print("\n")
+
+        # assigned runway id is required to fulfill the request.
+        assigned_runway_id = _from_sly_or_args(sly_data, args, "assigned_runway_id")  
+
+        # assigned_runway_id: str = args.get("assigned_runway_id", None)
+        # if not assigned_runway_id:
+        #     print("No assigned runway id provided. Trying to get it from sly_data")
+        #     assigned_runway_id = sly_data.get("assigned_runway_id")
+        # if not assigned_runway_id:
+        #     error = "Error: Please provide assigned runway id for the request."
+        #     print(error)
+        #     return error  
+        
+        print("\n")
+        print("\n")
+        print("assigned_runway_id: ", assigned_runway_id)
+        print("\n")
+        print("\n")
+
+        # ground clearance type required to fulfill the request.
+        ground_clearance_type = _from_sly_or_args(sly_data, args, "ground_clearance_type")  
+
+        # ground_clearance_type: str = args.get("ground_clearance_type", None)
+        # if not ground_clearance_type:
+        #     print("No ground clearance type provided. Trying to get it from sly_data")
+        #     ground_clearance_type = sly_data.get("ground_clearance_type")
+        # if not ground_clearance_type:
+        #     error = "Error: Please provide ground clearance type for the request."
+        #     print(error)
+        #     return error  
+        
         print("\n")
         print("\n")
         print("ground_clearance_type: ", ground_clearance_type)
-        print("ground_clearance_status: ", ground_clearance_status)
-        print("flight_status: ", flight_status)
-        print("aircraft_type: ", aircraft_type)
-        print("flight_number: ", flight_number)
-        print("gate_id: ", gate_id)
-        print("assigned_runway_id: ", assigned_runway_id)
-        print("gpu_readiness_status: ", gpu_readiness_status)
+        print("\n")
+        print("\n")
+
+        # ground clearance status required to fulfill the request.
+        ground_clearance_status = _from_sly_or_args(sly_data, args, "ground_clearance_status")  
+
+        print("\n")
+        print("\n")
+        print("ground_clearance_status #1: ", ground_clearance_status)
+        print("\n")
+        print("\n")
+
+        ground_clearance_status = ground_clearance_status.lower().replace("_", " ").strip()
+
+        # original_string.lower()
+
+        # ground_clearance_status: str = args.get("ground_clearance_status", None)
+        # if not ground_clearance_status:
+        #     print("No ground clearance status provided. Trying to get it from sly_data")
+        #     ground_clearance_status = sly_data.get("ground_clearance_status")
+        # if not ground_clearance_status:
+        #     error = "Error: Please provide ground clearance status for the request."
+        #     print(error)
+        #     return error  
+        
+        print("\n")
+        print("\n")
+        print("ground_clearance_status #2: ", ground_clearance_status)
+        print("\n")
+        print("\n")
+
+        # ground power unit readiness status required to fulfill the request.
+        ground_power_unit_readiness_status = _from_sly_or_args(sly_data, args, "ground_power_unit_readiness_status")  
+
+        # ground_power_unit_readiness_status: str = args.get("ground_power_unit_readiness_status", None)
+        # if not ground_power_unit_readiness_status:
+        #     print("No ground power unit readiness status provided. Trying to get it from sly_data")
+        #     ground_power_unit_readiness_status = sly_data.get("ground_power_unit_readiness_status")
+        # if not ground_power_unit_readiness_status:
+        #     error = "Error: Please provide ground power unit readiness status for the request."
+        #     print(error)
+        #     return error  
+        
+        print("\n")
+        print("\n")
+        print("ground_power_unit_readiness_status: ", ground_power_unit_readiness_status)
+        print("\n")
+        print("\n")
+
+        # wheels chocks readiness status required to fulfill the request.
+        wheels_chocks_readiness_status = _from_sly_or_args(sly_data, args, "wheels_chocks_readiness_status")  
+
+        # wheels_chocks_readiness_status: str = args.get("wheels_chocks_readiness_status", None)
+        # if not wheels_chocks_readiness_status:
+        #     print("No wheels chocks readiness status provided. Trying to get it from sly_data")
+        #     wheels_chocks_readiness_status = sly_data.get("wheels_chocks_readiness_status")
+        # if not wheels_chocks_readiness_status:
+        #     error = "Error: Please provide wheels chocks readiness status for the request."
+        #     print(error)
+        #     return error  
+        
+        print("\n")
+        print("\n")
         print("wheels_chocks_readiness_status: ", wheels_chocks_readiness_status)
         print("\n")
         print("\n")
-        print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 
-        # Normalize for matching (prevents: TypeError: NoneType is not iterable)
-        gct = _norm(ground_clearance_type)
+        # air conditioning unit readiness status required to fulfill the request.
+        air_conditioning_unit_readiness_status = _from_sly_or_args(sly_data, args, "air_conditioning_unit_readiness_status")  
 
-        # Mitigate LLM variability on ground clearance 
-        # if (('in' not in ground_clearance_type) & ('landed' in flight_status)):
-        if (('taxi' in ground_clearance_type) & (('landed' in flight_status) | ('taxi' in flight_status))):
-            gct = "taxi in"
-
+        # air_conditioning_unit_readiness_status: str = args.get("air_conditioning_unit_readiness_status", None)
+        # if not air_conditioning_unit_readiness_status:
+        #     print("No air conditioning unit readiness status provided. Trying to get it from sly_data")
+        #     air_conditioning_unit_readiness_status = sly_data.get("air_conditioning_unit_readiness_status")
+        # if not air_conditioning_unit_readiness_status:
+        #     error = "Error: Please provide air conditioning unit readiness status for the request."
+        #     print(error)
+        #     return error  
+        
         print("\n")
         print("\n")
-        print("ground_clearance_type normalized as gct: ", gct)
-        print("------------------------------------------------------------")
+        print("air_conditioning_unit_readiness_status: ", air_conditioning_unit_readiness_status)
         print("\n")
         print("\n")
 
-        if not gct:
-            return "Error: ground_clearance_type is required."
+        if ((('landed' in flight_status) | ('taxi' in flight_status)) & (('clear' in ground_clearance_status) | ('grant' in ground_clearance_status))): 
+            flight_status = 'on blocks'
 
-        # ----- TAXI IN -----
-        if ("taxi" in gct):
-            # time.sleep(0.5)
-            new_status = "ON_BLOCKS"
+            message = f"Flight {flight_number} with airplane type {aircraft_type} has taied to gate {gate_id}. The flight status is now {flight_status}." 
+            print(message)
+            print("\n")
+            print("\n")
+            print("updated flight status: ", flight_status)
+            print("\n")
+            print("\n")
+            print(">>>>>>>>>>>>>>>>>>> DONE !!! >>>>>>>>>>>>>>>>>>")
 
-            # Log
-            ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-            line1 = f"{ts}: flight {flight_number} taxied from runway {assigned_runway_id} to gate {gate_id}"
-            line2 = f"{ts}: flight {flight_number} status updated to {new_status} at gate {gate_id}"
-            with open(file_path_log, "a", encoding="utf-8") as f:
-                f.write(line1 + "\n")
-                f.write(line2 + "\n")
+            timenow = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+            line = timenow + ": " + message
+            with open(file_path_log, mode="a", encoding="utf-8") as f:  
+                f.write(line + "\n")   
 
-            # Update context
-            sly_data["flight_status"] = new_status
-            sly_data["ground_clearance_status"] = ground_clearance_status
-            flight_status = new_status
+            sly_data["flight_status"] = flight_status
 
-            # return new_status
-            return flight_status, ground_clearance_status
+        return flight_status
 
-        # ----- TAXI OUT -----
-        if "taxi out" in gct:
-            # time.sleep(0.5)
-            new_status = "TAKEOFF_READY"
+    async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
+        """
+        Delegates to the synchronous invoke method because it's quick, non-blocking.
+        """
+        return self.invoke(args, sly_data)
 
-            # Log
-            ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-            line1 = f"{ts}: flight {flight_number} taxied from gate {gate_id} to runway {assigned_runway_id}"
-            line2 = f"{ts}: flight {flight_number} status updated to {new_status} at gate {gate_id}"
-            with open(file_path_log, "a", encoding="utf-8") as f:
-                f.write(line1 + "\n")
-                f.write(line2 + "\n")
+# The code below is the version of class execute_aircraft_taxiing available up to 20260123. 
 
-            # Update context
-            sly_data["flight_status"] = new_status
-            sly_data["ground_clearance_status"] = ground_clearance_status
-            flight_status = new_status
+# class execute_aircraft_taxiing(CodedTool):
+#     # """
+#     # Update flight_status based on ground_clearance_type:
+#     #   - contains 'taxi in'  -> flight_status = 'ON_BLOCKS'
+#     #   - contains 'taxi out' -> flight_status = 'TAKEOFF_READY'
+#     # Returns the new flight_status, or an error string.
+#     # """
 
-            # return new_status
-            return flight_status, ground_clearance_status
+#     print("\n")
+#     print("\n")
+#     print("$$$$$$$$$$$$$$$$$$$$$$$$$$$ CALLED AIRCRAFT TAXIING  $$$$$$$$$$$$$$$$$$$$$$$$$$$")
+#     print("\n")
+#     print("\n")
 
-        # No recognized directive
-        return "Error: Unsupported ground_clearance_type (expected contains 'taxi in' or 'taxi out')."
+
+#     def __init__(self):
+#         super().__init__()
+
+#     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
+#         # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+#         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
+
+#         # Read inputs (sly_data first, then args)
+#         flight_status         = _from_sly_or_args(sly_data, args, "flight_status")
+#         if flight_status: 
+#             flight_status = flight_status.lower().replace("_", " ").strip()
+            
+#         aircraft_type         = _from_sly_or_args(sly_data, args, "aircraft_type")
+#         flight_number         = _from_sly_or_args(sly_data, args, "flight_number")
+#         gate_id               = _from_sly_or_args(sly_data, args, "gate_id")
+#         ground_clearance_type = _from_sly_or_args(sly_data, args, "ground_clearance_type")
+#         if ground_clearance_type: 
+#             ground_clearance_type = ground_clearance_type.lower().replace("_", " ").strip()
+#         ground_clearance_status = _from_sly_or_args(sly_data, args, "ground_clearance_status")
+#         if ground_clearance_status: 
+#             ground_clearance_status = ground_clearance_status.lower().replace("_", " ").strip()
+#         assigned_runway_id    = _from_sly_or_args(sly_data, args, "assigned_runway_id")
+#         air_conditioning_unit_readiness_status=     _from_sly_or_args(sly_data, args, "air_conditioning_unit_readiness_status")
+#         ground_power_unit_readiness_status      = _from_sly_or_args(sly_data, args, "ground_power_unit_readiness_status")
+#         wheels_chocks_readiness_status = _from_sly_or_args(sly_data, args, "wheels_chocks_readiness_status")
+
+#         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft taxiing agent $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+#         print("\n")
+#         print("\n")
+#         print("ground_clearance_type: ", ground_clearance_type)
+#         print("ground_clearance_status: ", ground_clearance_status)
+#         print("flight_status: ", flight_status)
+#         print("aircraft_type: ", aircraft_type)
+#         print("flight_number: ", flight_number)
+#         print("gate_id: ", gate_id)
+#         print("assigned_runway_id: ", assigned_runway_id)
+#         print("air_conditioning_unit_readiness_status: ", air_conditioning_unit_readiness_status)
+#         print("ground_power_unit_readiness_status: ", ground_power_unit_readiness_status)
+#         print("wheels_chocks_readiness_status: ", wheels_chocks_readiness_status)
+#         print("\n")
+#         print("\n")
+#         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+
+#         # Normalize for matching (prevents: TypeError: NoneType is not iterable)
+#         gct = _norm(ground_clearance_type)
+
+#         # Mitigate LLM variability on ground clearance 
+#         # if (('in' not in ground_clearance_type) & ('landed' in flight_status)):
+#         if (('taxi' in ground_clearance_type) & (('landed' in flight_status) | ('taxi' in flight_status))):
+#             gct = "taxi in"
+
+#         print("\n")
+#         print("\n")
+#         print("ground_clearance_type normalized as gct: ", gct)
+#         print("------------------------------------------------------------")
+#         print("\n")
+#         print("\n")
+
+#         if not gct:
+#             print("\n")
+#             print("ground clearance type missing: ", gct)
+#             print("\n")
+#             return "Error: ground_clearance_type is required."
+
+#         # ----- TAXI IN -----
+#         if (("taxi" in gct) & (("in" in gct))):
+#             # time.sleep(0.5)
+#             print("\n")
+#             print("ground clearance type that contains taxi and in: ", gct)
+#             print("\n")
+#             new_status = "ON_BLOCKS"
+
+#             # Log
+#             ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+#             line1 = f"{ts}: flight {flight_number} taxied from runway {assigned_runway_id} to gate {gate_id}"
+#             line2 = f"{ts}: flight {flight_number} status updated to {new_status} at gate {gate_id}"
+#             with open(file_path_log, "a", encoding="utf-8") as f:
+#                 f.write(line1 + "\n")
+#                 f.write(line2 + "\n")
+
+#             # Update context
+#             sly_data["flight_status"] = new_status
+#             sly_data["ground_clearance_status"] = ground_clearance_status
+#             flight_status = new_status
+
+#             # return new_status
+#             return flight_status, ground_clearance_status
+
+#         # ----- TAXI OUT -----
+#         if (("taxi" in gct) & (("out" in gct))):
+#             # time.sleep(0.5)
+#             print("\n")
+#             print("ground clearance type that contains taxi and out: ", gct)
+#             print("\n")
+#             new_status = "TAKEOFF_READY"
+
+#             # Log
+#             ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+#             line1 = f"{ts}: flight {flight_number} taxied from gate {gate_id} to runway {assigned_runway_id}"
+#             line2 = f"{ts}: flight {flight_number} status updated to {new_status} at gate {gate_id}"
+#             with open(file_path_log, "a", encoding="utf-8") as f:
+#                 f.write(line1 + "\n")
+#                 f.write(line2 + "\n")
+
+#             # Update context
+#             sly_data["flight_status"] = new_status
+#             sly_data["ground_clearance_status"] = ground_clearance_status
+#             flight_status = new_status
+
+#             # return new_status
+#             return flight_status, ground_clearance_status
+
+#         # No recognized directive
+#         return "Error: Unsupported ground_clearance_type (expected contains 'taxi in' or 'taxi out')."
     
 #############################################################################
 # Tracker API for all parameters in the aircraft turnaround agentic system  #
@@ -413,53 +690,66 @@ class TrackerAPI(CodedTool):
 
 # Define tracked fields for flight turnaround operations
 FLIGHT_TURNAROUND_TRACKED_FIELDS = [
-    "acu_connection_status", 
-    "acu_readiness_status",
-    "aircraft_direction",
-    "aircraft_landing_report",
-    "aircraft_type",
-    "assigned_runway_id",
-    "assigned_runway_length",
-    "baggage_unload_status", 
-    "catering_loading_status", 
-    "cleaning_cabin_status", 
-    "clearance_landing_valid",
-    "clearance_takeoff_valid", 
-    "clearance_type",
-    "crew_debrief_status", 
-    "crew_exit_status", 
-    "door_opening_status", 
-    "engines_stop_status", 
-    "flight_number",
-    "flight_status",
-    "fueling_status", 
-    "gate_id",
-    "gpu_connection_status", 
-    "gpu_readiness_status",
-    "ground_clearance_status",
-    "ground_clearance_type",
-    "ground_services_inquiry_type", 
-    "ground_services_request_type",
-    "inspection_maintenance_status", 
-    "jetbridge_connection_status", 
-    "jetbridge_status", 
-    "lavatory_service_status", 
-    "passenger_disembarkation_status", 
-    "runway_length",
-    "wheels_chocks_installation_status", 
-    "wheels_chocks_readiness_status",
-]
 
-# Define which fields should be returned from the API
-FLIGHT_TURNAROUND_RETURN_FIELDS = [
-    "acu_readiness_status", 
+    "air_conditioning_unit_readiness_status", 
     "aircraft_direction",
     "aircraft_type",
     "assigned_runway_id",
     "flight_number",
     "flight_status",
     "gate_id", 
-    "gpu_readiness_status", 
+    "ground_power_unit_readiness_status", 
+    "ground_clearance_status", 
+    "ground_clearance_type", 
+    "wheels_chocks_readiness_status",]
+
+#     "air_conditioning_unit_connection_status", 
+#     "air_conditioning_unit_readiness_status",
+#     "aircraft_direction",
+#     "aircraft_landing_report",
+#     "aircraft_type",
+#     "assigned_runway_id",
+#     "assigned_runway_length",
+#     "baggage_unload_status", 
+#     "catering_loading_status", 
+#     "cleaning_cabin_status", 
+#     "clearance_landing_valid",
+#     "clearance_takeoff_valid", 
+#     "clearance_type",
+#     "crew_debrief_status", 
+#     "crew_exit_status", 
+#     "door_opening_status", 
+#     "engines_stop_status", 
+#     "flight_number",
+#     "flight_status",
+#     "fueling_status", 
+#     "gate_id",
+#     "ground_power_unit_connection_status", 
+#     "ground_power_unit_readiness_status",
+#     "ground_clearance_status",
+#     "ground_clearance_type",
+#     "ground_services_inquiry_type", 
+#     "ground_services_request_type",
+#     "inspection_maintenance_status", 
+#     "jetbridge_connection_status", 
+#     "jetbridge_status", 
+#     "lavatory_service_status", 
+#     "passenger_disembarkation_status", 
+#     "runway_length",
+#     "wheels_chocks_installation_status", 
+#     "wheels_chocks_readiness_status",
+# ]
+
+# Define which fields should be returned from the API
+FLIGHT_TURNAROUND_RETURN_FIELDS = [
+    "air_conditioning_unit_readiness_status", 
+    "aircraft_direction",
+    "aircraft_type",
+    "assigned_runway_id",
+    "flight_number",
+    "flight_status",
+    "gate_id", 
+    "ground_power_unit_readiness_status", 
     "ground_clearance_status", 
     "ground_clearance_type", 
     "wheels_chocks_readiness_status", 
