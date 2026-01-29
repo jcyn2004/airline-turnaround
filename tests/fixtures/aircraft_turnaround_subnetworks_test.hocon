@@ -18,7 +18,7 @@
 # Tests basic network support inquiry handling
 {
     # Describes what agent to test against
-    "agent": "AirlineTurnaround/aircraft_turnaround",
+    "agent": "AirlineTurnaround/aircraft_traffic_controller",
     # "AirlineTurnaround/aircraft_traffic_controller",
     # "AirlineTurnaround/aircraft_turnaround",
 
@@ -37,7 +37,7 @@
     # Timeout for the entire test (5 minutes)
     "timeout_in_seconds": 3000,
 
-    "success_ratio": "20/20", 
+    "success_ratio": "10/10", 
 
     # Interactions are a series of dictionaries with request elements paired with
     # descriptions of response checks

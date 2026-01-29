@@ -459,11 +459,12 @@ class TrackerAPI(CodedTool):
 FLIGHT_TURNAROUND_TRACKED_FIELDS = [
     "aircraft_type", 
     "baggage_unload_status", 
+    "cabin_cleaning_status",
     "crew_exit_status", 
     "flight_number", 
     "flight_status", 
     "passenger_disembarkation_status", 
-    "cabin_cleaning_status"] 
+] 
 
 #     "acu_connection_status", 
 #     "acu_readiness_status",

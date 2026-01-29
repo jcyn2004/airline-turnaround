@@ -67,7 +67,7 @@ class execute_air_conditioning_unit_operator(CodedTool):
         print("gate_id: ", gate_id)
         print("################################################################")
 
-        air_conditioning_unit_readiness_status = 'off'
+        acu_readiness_status = 'off'
 
         df = pd.read_csv(ground_equipments_base)
         df1 = df.loc[df['gate_id'] == gate_id]
@@ -78,8 +78,8 @@ class execute_air_conditioning_unit_operator(CodedTool):
         print("gate_item_count: ", gate_item_count)
         print(df1)
         if df1.shape[0] > 0:
-            air_conditioning_unit_readiness_status = df.loc[df['gate_id'] == gate_id, 'air_conditioning_unit_readiness'].iloc[0]
-            print("air_conditioning_unit_readiness_status: ", air_conditioning_unit_readiness_status)
+            acu_readiness_status = df.loc[df['gate_id'] == gate_id, 'air_conditioning_unit_readiness'].iloc[0]
+            print("acu_readiness_status: ", acu_readiness_status)
             print("---------------------------------------------")
             timenow = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
             line = f"{timenow}: ground power unit is ready for flight {flight_number} of aircraft type {aircraft_type} assigned to gate {gate_id}"
@@ -91,9 +91,9 @@ class execute_air_conditioning_unit_operator(CodedTool):
             with open(file_path_log, mode="a", encoding="utf-8") as f:  
                 f.write(line + "\n")      
 
-        sly_data["air_conditioning_unit_readiness_status"] = air_conditioning_unit_readiness_status     
+        sly_data["acu_readiness_status"] = acu_readiness_status     
 
-        return air_conditioning_unit_readiness_status
+        return acu_readiness_status
 
 class execute_ground_power_unit_operator(CodedTool):
     """
@@ -153,7 +153,7 @@ class execute_ground_power_unit_operator(CodedTool):
         print("gate_id: ", gate_id)
         print("################################################################")
 
-        ground_power_unit_readiness_status = 'off'
+        gpu_readiness_status = 'off'
 
         df = pd.read_csv(ground_equipments_base)
         df1 = df.loc[df['gate_id'] == gate_id]
@@ -164,8 +164,8 @@ class execute_ground_power_unit_operator(CodedTool):
         print("gate_item_count: ", gate_item_count)
         print(df1)
         if df1.shape[0] > 0:
-            ground_power_unit_readiness_status = df.loc[df['gate_id'] == gate_id, 'ground_power_unit_readiness'].iloc[0]
-            print("ground_power_unit_readiness_status: ", ground_power_unit_readiness_status)
+            gpu_readiness_status = df.loc[df['gate_id'] == gate_id, 'ground_power_unit_readiness'].iloc[0]
+            print("gpu_readiness_status: ", gpu_readiness_status)
             print("---------------------------------------------")
             timenow = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
             line = f"{timenow}: ground power unit is ready for flight {flight_number} of aircraft type {aircraft_type} assigned to gate {gate_id}"
@@ -177,9 +177,9 @@ class execute_ground_power_unit_operator(CodedTool):
             with open(file_path_log, mode="a", encoding="utf-8") as f:  
                 f.write(line + "\n")      
 
-        sly_data["ground_power_unit_readiness_status"] = ground_power_unit_readiness_status     
+        sly_data["gpu_readiness_status"] = gpu_readiness_status     
 
-        return ground_power_unit_readiness_status
+        return gpu_readiness_status
 
 class execute_wheels_chocks_operator(CodedTool):
     """
@@ -541,17 +541,17 @@ class TrackerAPI(CodedTool):
 
 # Define tracked fields for flight turnaround operations
 FLIGHT_TURNAROUND_TRACKED_FIELDS = [
-    "air_conditioning_unit_readiness_status", 
+    "acu_readiness_status", 
     "aircraft_type",
     "flight_number",
     "gate_id", 
-    "ground_power_unit_readiness_status", 
+    "gpu_readiness_status", 
     "wheels_chocks_readiness_status",
 ]
 
 # [
 #     "air_conditioning_unit_connection_status", 
-#     "air_conditioning_unit_readiness_status",
+#     "acu_readiness_status",
 #     "aircraft_direction",
 #     "aircraft_landing_report",
 #     "aircraft_type",
@@ -572,7 +572,7 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
 #     "fueling_status", 
 #     "gate_id",
 #     "ground_power_unit_connection_status", 
-#     "ground_power_unit_readiness_status",
+#     "gpu_readiness_status",
 #     "ground_clearance_status",
 #     "ground_clearance_type",
 #     "ground_services_inquiry_type", 
@@ -589,11 +589,11 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
 
 # Define which fields should be returned from the API
 FLIGHT_TURNAROUND_RETURN_FIELDS = [
-    "air_conditioning_unit_readiness_status", 
+    "acu_readiness_status", 
     "aircraft_type",
     "flight_number",
     "gate_id", 
-    "ground_power_unit_readiness_status", 
+    "gpu_readiness_status", 
     "wheels_chocks_readiness_status",
 ]
 
