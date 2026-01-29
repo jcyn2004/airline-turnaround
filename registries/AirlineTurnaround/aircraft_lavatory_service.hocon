@@ -122,6 +122,10 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "This is the baggage unload status."
                         },  
+                        "lavatory_service_status": {
+                            "type": "string", 
+                            "description": "lavatory service status."                            
+                        }
                     }, 
                     "required": ["flight_number", "aircraft_type","gate_id","passenger_disembarkation_status","crew_exit_status","baggage_unload_status"]        
                 }
@@ -257,6 +261,10 @@ This agent services lavatories on the aircraft at the gate.
                             "type": "string", 
                             "description": "This is the baggage unload status."
                         },  
+                        "lavatory_service_status": {
+                            "type": "string", 
+                            "description": "lavatory service status."                            
+                        }
                     }, 
                     "required": ["flight_number", "aircraft_type","gate_id","passenger_disembarkation_status","crew_exit_status","baggage_unload_status"] 
                 }
@@ -342,6 +350,10 @@ I check baggage unload status as baggage_unload_status.
                             "type": "string", 
                             "description": "This is the baggage unload status."
                         },  
+                        "lavatory_service_status": {
+                            "type": "string", 
+                            "description": "lavatory service status."                            
+                        }
                     }, 
                     "required": [] 
                 }

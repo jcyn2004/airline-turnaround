@@ -166,12 +166,12 @@ When user submits inquiry, proceed as follows:
                     "sly_data": {
                         "baggage_unload_status": true
                     }
-                }
+                },
                 "to_downstream": {
                     "sly_data": {
                         "baggage_unload_status": true
                     }
-                }
+                },
                 "from_upstream": {
                     "sly_data": {
                         "flight_number": true
@@ -182,7 +182,7 @@ When user submits inquiry, proceed as follows:
                         "door_opening_status": true 
                         "baggage_unload_status": true
                     }
-                }
+                },
                 "from_downstream": {
                     "sly_data": {
                         "flight_number": true
@@ -193,7 +193,7 @@ When user submits inquiry, proceed as follows:
                         "door_opening_status": true 
                         "baggage_unload_status": true
                     }
-                }
+                },
                 "to_downstream": {
                     "sly_data": {
                         "flight_number": true
@@ -242,6 +242,10 @@ This agent disembarks passengers from the aircraft.
                         "door_opening_status": {
                             "type": "string", 
                             "description": "This is the status of aircraft door opening."
+                        },   
+                        "baggage_unload_status": {
+                            "type": "string", 
+                            "description": "This is the baggage unload status."
                         },         
                     }, 
                     "required": ["flight_number", "aircraft_type","gate_id","jetbridge_connection_status","door_opening_status"] 

@@ -114,6 +114,10 @@ You are in charge of aircraft turnaround at the airport.
                             "type": "string", 
                             "description": "This is the gate assigned to the aircraft parking."
                         },  
+                        "deplaning_equipment_type": {
+                            "type": "string", 
+                            "description": "Deplaning equipment type."
+                        },      
                         "wheels_chocks_readiness_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks readiness status."
@@ -308,6 +312,10 @@ You execute aircraft turnaround process at the airport.
                             "type": "string", 
                             "description": "This is the gate assigned to the aircraft parking."
                         },  
+                        "deplaning_equipment_type": {
+                            "type": "string", 
+                            "description": "Deplaning equipment type."
+                        },      
                         "wheels_chocks_readiness_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks readiness status."
@@ -527,6 +535,7 @@ When you receive a request to handle an aircraft turnaround, you will:
                         "clearance_type": true,
                         "crew_debrief_status" : true, 
                         "crew_exit_status" : true, 
+                        "deplaning_equipment_type": true, 
                         "door_opening_status": true, 
                         "engines_stop_status": true, 
                         "flight_number": true, 
@@ -564,6 +573,7 @@ When you receive a request to handle an aircraft turnaround, you will:
                         "clearance_type": true,
                         "crew_debrief_status" : true, 
                         "crew_exit_status" : true, 
+                        "deplaning_equipment_type": true, 
                         "door_opening_status": true, 
                         "engines_stop_status" : true, 
                         "flight_number" : true, 
@@ -610,6 +620,10 @@ I am the flight tracker in charge of logging parameters during aircraft turnarou
                             "type": "string", 
                             "description": "This is the flight status."
                         },          
+                        "deplaning_equipment_type": {
+                            "type": "string", 
+                            "description": "Deplaning equipment type."
+                        },      
                         "gate_id": {
                             "type": "string", 
                             "description": "This is the gate assigned to the aircraft parking."

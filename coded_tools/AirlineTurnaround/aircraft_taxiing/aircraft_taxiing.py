@@ -47,9 +47,9 @@ class execute_aircraft_taxiing(CodedTool):
             - assigned_runway_id 
             - ground_clearance_type
             - ground_clearance_status
-            - ground_power_unit_readiness_status
+            - gpu_readiness_status
             - wheels_chocks_readiness_status
-            - air_conditioning_unit_readiness_status
+            - acu_readiness_status
 
         :return: None in write mode or any of teh parameters in read mode
         """
@@ -204,20 +204,20 @@ class execute_aircraft_taxiing(CodedTool):
         print("\n")
 
         # ground power unit readiness status required to fulfill the request.
-        ground_power_unit_readiness_status = _from_sly_or_args(sly_data, args, "ground_power_unit_readiness_status")  
+        gpu_readiness_status = _from_sly_or_args(sly_data, args, "gpu_readiness_status")  
 
-        # ground_power_unit_readiness_status: str = args.get("ground_power_unit_readiness_status", None)
-        # if not ground_power_unit_readiness_status:
+        # gpu_readiness_status: str = args.get("gpu_readiness_status", None)
+        # if not gpu_readiness_status:
         #     print("No ground power unit readiness status provided. Trying to get it from sly_data")
-        #     ground_power_unit_readiness_status = sly_data.get("ground_power_unit_readiness_status")
-        # if not ground_power_unit_readiness_status:
+        #     gpu_readiness_status = sly_data.get("gpu_readiness_status")
+        # if not gpu_readiness_status:
         #     error = "Error: Please provide ground power unit readiness status for the request."
         #     print(error)
         #     return error  
         
         print("\n")
         print("\n")
-        print("ground_power_unit_readiness_status: ", ground_power_unit_readiness_status)
+        print("gpu_readiness_status: ", gpu_readiness_status)
         print("\n")
         print("\n")
 
@@ -240,20 +240,20 @@ class execute_aircraft_taxiing(CodedTool):
         print("\n")
 
         # air conditioning unit readiness status required to fulfill the request.
-        air_conditioning_unit_readiness_status = _from_sly_or_args(sly_data, args, "air_conditioning_unit_readiness_status")  
+        acu_readiness_status = _from_sly_or_args(sly_data, args, "acu_readiness_status")  
 
-        # air_conditioning_unit_readiness_status: str = args.get("air_conditioning_unit_readiness_status", None)
-        # if not air_conditioning_unit_readiness_status:
+        # acu_readiness_status: str = args.get("acu_readiness_status", None)
+        # if not acu_readiness_status:
         #     print("No air conditioning unit readiness status provided. Trying to get it from sly_data")
-        #     air_conditioning_unit_readiness_status = sly_data.get("air_conditioning_unit_readiness_status")
-        # if not air_conditioning_unit_readiness_status:
+        #     acu_readiness_status = sly_data.get("acu_readiness_status")
+        # if not acu_readiness_status:
         #     error = "Error: Please provide air conditioning unit readiness status for the request."
         #     print(error)
         #     return error  
         
         print("\n")
         print("\n")
-        print("air_conditioning_unit_readiness_status: ", air_conditioning_unit_readiness_status)
+        print("acu_readiness_status: ", acu_readiness_status)
         print("\n")
         print("\n")
 
@@ -323,8 +323,8 @@ class execute_aircraft_taxiing(CodedTool):
 #         if ground_clearance_status: 
 #             ground_clearance_status = ground_clearance_status.lower().replace("_", " ").strip()
 #         assigned_runway_id    = _from_sly_or_args(sly_data, args, "assigned_runway_id")
-#         air_conditioning_unit_readiness_status=     _from_sly_or_args(sly_data, args, "air_conditioning_unit_readiness_status")
-#         ground_power_unit_readiness_status      = _from_sly_or_args(sly_data, args, "ground_power_unit_readiness_status")
+#         acu_readiness_status=     _from_sly_or_args(sly_data, args, "acu_readiness_status")
+#         gpu_readiness_status      = _from_sly_or_args(sly_data, args, "gpu_readiness_status")
 #         wheels_chocks_readiness_status = _from_sly_or_args(sly_data, args, "wheels_chocks_readiness_status")
 
 #         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft taxiing agent $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
@@ -337,8 +337,8 @@ class execute_aircraft_taxiing(CodedTool):
 #         print("flight_number: ", flight_number)
 #         print("gate_id: ", gate_id)
 #         print("assigned_runway_id: ", assigned_runway_id)
-#         print("air_conditioning_unit_readiness_status: ", air_conditioning_unit_readiness_status)
-#         print("ground_power_unit_readiness_status: ", ground_power_unit_readiness_status)
+#         print("acu_readiness_status: ", acu_readiness_status)
+#         print("gpu_readiness_status: ", gpu_readiness_status)
 #         print("wheels_chocks_readiness_status: ", wheels_chocks_readiness_status)
 #         print("\n")
 #         print("\n")
@@ -691,20 +691,20 @@ class TrackerAPI(CodedTool):
 # Define tracked fields for flight turnaround operations
 FLIGHT_TURNAROUND_TRACKED_FIELDS = [
 
-    "air_conditioning_unit_readiness_status", 
+    "acu_readiness_status", 
     "aircraft_direction",
     "aircraft_type",
     "assigned_runway_id",
     "flight_number",
     "flight_status",
     "gate_id", 
-    "ground_power_unit_readiness_status", 
+    "gpu_readiness_status", 
     "ground_clearance_status", 
     "ground_clearance_type", 
     "wheels_chocks_readiness_status",]
 
 #     "air_conditioning_unit_connection_status", 
-#     "air_conditioning_unit_readiness_status",
+#     "acu_readiness_status",
 #     "aircraft_direction",
 #     "aircraft_landing_report",
 #     "aircraft_type",
@@ -725,7 +725,7 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
 #     "fueling_status", 
 #     "gate_id",
 #     "ground_power_unit_connection_status", 
-#     "ground_power_unit_readiness_status",
+#     "gpu_readiness_status",
 #     "ground_clearance_status",
 #     "ground_clearance_type",
 #     "ground_services_inquiry_type", 
@@ -742,14 +742,14 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
 
 # Define which fields should be returned from the API
 FLIGHT_TURNAROUND_RETURN_FIELDS = [
-    "air_conditioning_unit_readiness_status", 
+    "acu_readiness_status", 
     "aircraft_direction",
     "aircraft_type",
     "assigned_runway_id",
     "flight_number",
     "flight_status",
     "gate_id", 
-    "ground_power_unit_readiness_status", 
+    "gpu_readiness_status", 
     "ground_clearance_status", 
     "ground_clearance_type", 
     "wheels_chocks_readiness_status", 

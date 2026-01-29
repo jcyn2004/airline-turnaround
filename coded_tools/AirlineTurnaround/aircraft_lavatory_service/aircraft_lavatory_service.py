@@ -462,8 +462,9 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
     "crew_exit_status", 
     "flight_number", 
     "flight_status", 
+    "gate_id", 
     "lavatory_service_status", 
-    "passenger_disembarkation_status"] 
+    "passenger_disembarkation_status"]  
 
 #     "acu_connection_status", 
 #     "acu_readiness_status",

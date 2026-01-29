@@ -772,7 +772,6 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
     "gate_id",
 ]
 
-
 # [
 #     "acu_connection_status", 
 #     "acu_readiness_status",

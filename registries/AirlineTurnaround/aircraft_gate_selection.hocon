@@ -107,7 +107,11 @@ I assign gate to incoming flight by selecing the deplaning equipment for their p
                         "execution_mode": {
                             "type": "string", 
                             "description": "This is the mode that agent should operate in."
-                        },                                
+                        },   
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate assigned to the aircraft parking."
+                        },                                 
                     }, 
                     "required": ["flight_number","aircraft_type"], 
                 }
@@ -152,12 +156,14 @@ When user submits inquiry, proceed as follows:
                 "to_upstream": {
                     "sly_data": {
                         "gate_id": true, 
+                        "deplaning_equipment_type": true, 
                     }
                 }
                 "from_upstream": {
                     "sly_data": {
                         "flight_number": true, 
                         "aircraft_type": true, 
+                        "deplaning_equipment_type": true, 
                     }
                 }
             },
@@ -498,7 +504,7 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                         },    
                     }, 
                     "required": [] 
-                }
+                },
             },
             "class": "AirlineTurnaround.aircraft_gate_selection.aircraft_gate_selection.TrackerAPI" 
         }, 
