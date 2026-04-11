@@ -14,7 +14,7 @@
             // "Land flight AF84 that has been cleared for landing on runway 19L. It is a B747.", 
 
     "llm_config": {
-        "model_name": "claude-haiku",
+        "model_name": "claude-haiku-4-5-20251001",
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
