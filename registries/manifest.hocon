@@ -26,5 +26,7 @@
     "AirlineTurnaround/aircraft_lavatory_service.hocon": true, 
     "AirlineTurnaround/aircraft_taxiing.hocon": true, 
     "AirlineTurnaround/aircraft_traffic_controller.hocon": true,
-    "AirlineTurnaround/aircraft_turnaround.hocon": true
+    "AirlineTurnaround/aircraft_turnaround.hocon": true, 
+    
+    "AirlineTurnaround/aircraft_ground_acu.hocon": true
 }

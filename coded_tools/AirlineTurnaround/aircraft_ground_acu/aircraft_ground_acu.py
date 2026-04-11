@@ -9,6 +9,8 @@ import re
 import pandas as pd
 from pathlib import Path
 
+from coded_tools.AirlineTurnaround.aircraft_gate_selection.aircraft_gate_selection import _load_equipment_df
+
 # ---------- helpers ----------
 
 def _from_args_or_sly(args: Dict[str, Any], sly: Dict[str, Any], key: str) -> Any:
@@ -26,6 +28,79 @@ def _norm(s: Union[str, None]) -> str:
     return (s or "").strip().lower()
 
 # ---------- tool ----------
+
+class acu_readiness(CodedTool):
+    """
+    Read and return sly data in read mode, or write and update sly data in write. 
+    """
+
+    def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
+        """
+        :param args: an empty dictionary (not used).
+
+        :param sly_data: a dictionary with the following keys:
+            - aircraft_type
+            - gate_id 
+
+        :return: None in write mode or any of the parameters in read mode
+        """
+
+        equipments_csv_path = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_gate_selection" / "gate_equipments_base.csv", 
+        file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
+
+        print("\n")
+        print("\n")
+        print(" #################### ACU READINESS - PARAMETERS #################### ")
+        print("\n")
+        print("\n")
+
+        # aircraft type is required to fulfill the request.
+        aircraft_type: str = args.get("aircraft_type", None)
+        if not aircraft_type:
+            print("No aircraft type provided. Trying to get it from sly_data")
+            aircraft_type = sly_data.get("aircraft_type")
+        if not aircraft_type:
+            error = "Error: Please provide an aircraft type for the request."
+            print(error)
+            return error  
+        
+        print("\n")
+        print("\n")
+        print("aircraft_type: ", aircraft_type)
+        print("\n")
+        print("\n")
+         
+        # gate id is required to fulfill the request.
+        gate_id: str = args.get("gate_id", None)
+        if not gate_id:
+            print("No gate id provided. Trying to get it from sly_data")
+            gate_id = sly_data.get("gate_id")
+        if not gate_id:
+            error = "Error: Please provide a gate id for the request."
+            print(error)
+            return error  
+        
+        print("\n")
+        print("\n")
+        print("gate_id: ", gate_id)
+        print("\n")
+        print("\n")
+
+        air_conditioning_unit_readiness = "UNKNOWN"
+
+        if ((gate_id is not None) & (aircraft_type is not None)):
+
+            df = pd.read_csv(equipments_csv_path)
+
+            air_conditioning_unit_readiness = df.loc[df['gate_id'] == 'A1', 'air_conditioning_unit_readiness'].values[0]
+
+        return air_conditioning_unit_readiness
+
+    async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
+        """
+        Delegates to the synchronous invoke method because it's quick, non-blocking.
+        """
+        return self.invoke(args, sly_data)
 
 class acu_operator(CodedTool):
     """
@@ -196,7 +271,6 @@ class acu_operator(CodedTool):
         Delegates to the synchronous invoke method because it's quick, non-blocking.
         """
         return self.invoke(args, sly_data)
-
 
 #############################################################################
 # Tracker API for all parameters in the aircraft turnaround agentic system  #

@@ -14,7 +14,7 @@ jetway_12,jetway,A12,B747,yes,18,yes,yes,yes,yes
 jetway_13,jetway,A13,B747,yes,21,yes,yes,yes,yes
 jetway_14,jetway,A14,B747,no,10,yes,yes,yes,yes
 jetway_15,jetway,A15,B747,no,12,yes,yes,yes,yes
-jetway_16,jetway,A16,B747,yes,14,yes,yes,yes,yes
+jetway_16,jetway,A16,B747,no,14,yes,yes,yes,yes
 jetway_17,jetway,A17,B747,yes,19,yes,yes,yes,yes
 jetway_18,jetway,A18,B747,yes,22,yes,yes,yes,yes
 jetway_19,jetway,A19,B747,yes,23,yes,yes,yes,yes
