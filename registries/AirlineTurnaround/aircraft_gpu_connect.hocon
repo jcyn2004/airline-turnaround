@@ -12,7 +12,7 @@
     },
 
     "llm_config": {
-        "model_name": "claude-haiku",
+        "model_name": "claude-haiku-4-5-20251001",
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -155,29 +155,6 @@ When user submit inquiry to connect gpu to aircraft, proceed as follows:
     ** wheels chucks installation status **: [wheels_chucks_installation_status]
     ** gpu connection status  **: [gpu_connection_status]
             """ ${aaosa_instructions},
-
-// You are the agent in charge of connecting gpu to aircraft. 
-// When user submits inquiry, proceed as follows: 
-// 1. Determine if the followings are provided by the user: 
-//     a. flight status as flight_status with value such as 'on blocks'
-//     b. gate id as gate_id
-//     c. engines stop status as engines_stop_status with value such as 'stopped'
-//     d. wheels chocks installation status as wheels_chocks_installation_status with value such as 'installed'.
-// 2. Call TrackerAPI to get the latest value of flight_status, gate_id, engines_stop_status, wheels_chocks_installation_status.
-//     a. wait for its response 
-//     b. store flight status as flight_status, store gate id as gate_id, store engine stop status as engines_stop_status, store wheels chocks installation status as wheels_chocks_installation_status.
-// 3. If flight_status is 'on blocks', and gate_id is not None, and engines_stop_status is 'stopped', and wheels_chocks_installation_status is 'installed', then go to step 6.
-// 4. If flight_status is not 'on blocks', or gate_id is None, or engines_stop_status is not 'stopped', or wheels_chocks_installation_status is not 'installed', 
-//     a. call your tools to make sure that flight_status is 'on blocks', and gate_id is not None, and engines_stop_status is 'stopped', and wheels_chocks_installation_status is 'installed'
-//     b. wait for their responses 
-// 5. Call TrackerAPI
-//     a. wait for its response 
-//     b. store flight status as flight_status, store gate id as gate_id, store engine stop status as engines_stop_status, store wheels chocks installation status as wheels_chocks_installation_status.
-//     c. If flight_status is not 'on blocks', or gate_id is None, or engines_stop_status is not 'stopped', or wheels_chocks_installation_status is not 'installed', then go back to step 4.
-// 6. If flight_status is 'on blocks', and gate_id is not None, and engines_stop_status is 'stopped', and wheels_chocks_installation_status is 'installed',
-//     a. call gpu_operator to connect gpu to aircraft as needed.
-//     b. Wait for its response and save it as gpu_connection_status
-//     c. Report gpu_connection_status
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
