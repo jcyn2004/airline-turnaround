@@ -190,7 +190,7 @@ TrackerAPI is invoked:
 
 ``` json
 {
-  "model_name": "gpt-4o"
+  "model_name": "claude-haiku"
 }
 ```
 
