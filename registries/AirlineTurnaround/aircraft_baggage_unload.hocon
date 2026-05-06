@@ -12,7 +12,7 @@
     },
 
     "llm_config": {
-        "model_name": "claude-haiku-4-5-20251001",
+        "model_name": "gpt-5.4-mini",
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -119,6 +119,10 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "This is the status of aircraft door opening."
                         },         
+                        "baggage_unload_status": {
+                            "type": "string", 
+                            "description": "This is the baggage unload status."
+                        },
                     }, 
                     "required": ["flight_number", "aircraft_type","gate_id","flight_status","jetbridge_connection_status","door_opening_status"] 
                 }
@@ -134,8 +138,8 @@ When user submits inquiry, proceed as follows:
 2. Call TrackerAPI and obtain the latest jetbridge_connection_status and door_opening_status and flight_status.
     a. wait for its response 
     b. store all the available parameters.
-3. If jetbridge_connection_status = 'connected' and door_opening_status includes 'open' then go to step 6.
-4. If jetbridge_connection_status is not 'connected',
+3. If jetbridge_connection_status includes 'connected' and door_opening_status includes 'open' then go to step 6.
+4. If jetbridge_connection_status does not contain 'connected',
     a. call aircraft_jetbridge_connect to connect jetbridge
     b. wait for its response 
     c. Return to step 2.
@@ -214,7 +218,7 @@ When user submits inquiry, proceed as follows:
             "name": "baggage_unload_operator",
             "function": {
                 "description": """
-This agent disembarks passengers from the aircraft. 
+This agent unloads baggages from the aircraft. 
                 """,
                 "parameters": {
                     "type": "object", 
@@ -283,34 +287,6 @@ I check door opening status as door_opening_status.
                             "type": "string", 
                             "description": "This is the gate assigned to the aircraft parking."
                         },     
-                        "ground_services_request_type": {
-                            "type": "string", 
-                            "description": "This is the type of the inquiry received for grand services."
-                        },         
-                        "wheels_chocks_readiness_status": {
-                            "type": "string", 
-                            "description": "This is the wheels chocks readiness status."
-                        },   
-                        "wheels_chocks_installation_status": {
-                            "type": "string", 
-                            "description": "This is the wheels chocks installation status."
-                        },   
-                        "gpu_readiness_status": {
-                            "type": "string", 
-                            "description": "This is the gpu readiness status."
-                        },     
-                        "acu_connection_status": {
-                            "type": "string", 
-                            "description": "This is the acu connection status."
-                        },     
-                        "gpu_connection_status": {
-                            "type": "string", 
-                            "description": "This is the gpu connection status."
-                        },     
-                        "engines_stop_status": {
-                            "type": "string", 
-                            "description": "This is the engines stop status."
-                        },    
                         "jetbridge_connection_status": {
                             "type": "string", 
                             "description": "This is the jetbridge connection status."
@@ -318,10 +294,6 @@ I check door opening status as door_opening_status.
                         "door_opening_status": {
                             "type": "string", 
                             "description": "This is the door opening status."
-                        },    
-                        "passenger_disembarkation_status": {
-                            "type": "string", 
-                            "description": "This is the passenger disembarkation status."
                         },    
                         "baggage_unload_status": {
                             "type": "string", 

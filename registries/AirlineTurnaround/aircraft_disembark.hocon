@@ -12,7 +12,7 @@
     },
 
     "llm_config": {
-        "model_name": "claude-haiku-4-5-20251001",
+        "model_name": "gpt-5.4-mini",
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -125,40 +125,56 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
             },
 
             "instructions": """
-You are the agent in charge of disembarking passengers from aircraft. 
-When user submits inquiry, proceed as follows: 
-1. Determine if the followings are provided by the user: 
-    a. jetbridge connection status as jetbridge_connection_status with value such as'connected'
-    b. door opening status as door_opening_status with value such as 'open' 
-    c. flight status as flight_status with value such as 'on blocks' 
-2. Call TrackerAPI to get the latest value of jetbridge_connection_status and door_opening_status and flight status
-    a. wait for its response 
-    b. store jetbridge connection status as jetbridge_connection_status, store door opening status as door_opening_status and flight status as flight_status
-3. If jetbridge_connection_status is 'connected' and door_opening_status includes 'open' then go to step 6.
-4. If jetbridge_connection_status is not 'connected',
-    a. call aircraft_jetbridge_connect to connect jetbridge
-    b. wait for its response 
-    c. Return to step 2.
-5. If door_opening_status does not includes 'open'
-    a. call aircraft_door_open to open the door
-    b. wait for its responses 
-    c. Return to step 2.
-6. If jetbridge_connection_status is 'connected' and door_opening_status includes 'open' 
-    a. call passenger_disembark_operator to disembark passengers from the aircraft
-    b. Wait for its response and save it as passenger_disembarkation_status
-    c. Report passenger_disembarkation_status
-7. Call TrackerAPI to get the latest value of jetbridge_connection_status and door_opening_status and passenger_disembarkation_status
-    a. wait for its response 
-    b. store jetbridge connection status as jetbridge_connection_status, store door opening status as door_opening_status, store flight status as flight_status and store passenger disembarkation status as passenger_disembarkation_status
-8. Provide the crew exit status report summary as: 
-    *********************************
-    * Summary of aircraft disembark *
-    *********************************
-    ** flight status **: [flight_status]
-    ** jet bridge connection status **: [jetbridge_connection_status]
-    ** door opening status **: [door_opening_status]
-    ** passenger disembarkation status **: [passenger_disembarkation_status]
-            """ ${aaosa_instructions},
+You are the agent in charge of disembarking passengers from the aircraft.
+
+CRITICAL: You are a sequential executor. Execute every step below in
+order. Do NOT return until you reach RETURN SUMMARY.
+
+STEP 1 — Resolve prerequisites
+  Call TrackerAPI with flight_number, aircraft_type, flight_status,
+  gate_id, jetbridge_connection_status, door_opening_status.
+  Wait. Read back all values.
+
+STEP 2 — Verify flight status
+  flight_status must contain 'on blocks' or 'block'.
+  If not, stop and report: "Aircraft is not yet on blocks.
+  Passengers cannot be disembarked."
+
+STEP 3 — Ensure jetbridge is connected (ONE call if needed)
+  If jetbridge_connection_status already contains 'connected',
+  skip to STEP 4.
+  Otherwise:
+    Call /AirlineTurnaround/aircraft_jetbridge_connect with:
+      flight_number, aircraft_type, flight_status, gate_id.
+    Wait. Extract and store jetbridge_connection_status.
+    If still not 'connected', stop and report failure.
+
+STEP 4 — Ensure door is open (ONE call if needed)
+  If door_opening_status already contains 'open',
+  skip to STEP 5.
+  Otherwise:
+    Call /AirlineTurnaround/aircraft_door_opening with:
+      flight_number, aircraft_type, flight_status, gate_id,
+      jetbridge_connection_status.
+    Wait. Extract and store door_opening_status.
+    If still not 'open', stop and report failure.
+
+STEP 5 — Execute passenger disembarkation
+  Call passenger_disembark_operator with:
+    flight_number, aircraft_type, flight_status, gate_id,
+    jetbridge_connection_status, door_opening_status.
+  Wait. Extract passenger_disembarkation_status from the response.
+  Call TrackerAPI to store passenger_disembarkation_status.
+
+RETURN SUMMARY:
+  *********************************
+  * Summary of aircraft disembark *
+  *********************************
+  ** flight status                    **: [flight_status]
+  ** jet bridge connection status     **: [jetbridge_connection_status]
+  ** door opening status              **: [door_opening_status]
+  ** passenger disembarkation status  **: [passenger_disembarkation_status]
+            """,
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
@@ -166,42 +182,37 @@ When user submits inquiry, proceed as follows:
                     "sly_data": {
                         "passenger_disembarkation_status": true
                     }
-                }
+                },
                 "to_downstream": {
                     "sly_data": {
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "flight_status": true,
+                        "gate_id": true,
+                        "jetbridge_connection_status": true,
+                        "door_opening_status": true,
                         "passenger_disembarkation_status": true
                     }
-                }
+                },
                 "from_upstream": {
                     "sly_data": {
-                        "flight_number": true
-                        "aircraft_type": true
-                        "flight_status": true
-                        "gate_id": true 
-                        "jetbridge_connection_status": true
-                        "door_opening_status": true 
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "flight_status": true,
+                        "gate_id": true,
+                        "jetbridge_connection_status": true,
+                        "door_opening_status": true,
                         "passenger_disembarkation_status": true
                     }
-                }
+                },
                 "from_downstream": {
                     "sly_data": {
-                        "flight_number": true
-                        "aircraft_type": true
-                        "flight_status": true
-                        "gate_id": true 
-                        "jetbridge_connection_status": true
-                        "door_opening_status": true 
-                        "passenger_disembarkation_status": true
-                    }
-                }
-                "to_downstream": {
-                    "sly_data": {
-                        "flight_number": true
-                        "aircraft_type": true
-                        "flight_status": true
-                        "gate_id": true 
-                        "jetbridge_connection_status": true
-                        "door_opening_status": true 
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "flight_status": true,
+                        "gate_id": true,
+                        "jetbridge_connection_status": true,
+                        "door_opening_status": true,
                         "passenger_disembarkation_status": true
                     }
                 }
@@ -323,7 +334,7 @@ I check door opening status as door_opening_status.
                     }, 
                 }
             },
-            "class": "aircraft_disembark.TrackerAPI" 
+            "class": "AirlineTurnaround.aircraft_disembark.aircraft_disembark.TrackerAPI" 
         }, 
     ],
 }

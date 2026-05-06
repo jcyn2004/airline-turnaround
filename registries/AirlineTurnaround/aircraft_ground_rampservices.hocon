@@ -1,0 +1,304 @@
+{
+    include "registries/aaosa_basic.hocon" 
+
+    "metadata": {
+        "description": "Ground ramp services orchestrator - wheelchocks, ACU, GPU",
+        "tags": ["ramp", "ground"],
+        "sample_queries": [
+            "Flight AF84 is on blocks at gate A1 and the wheelchocks are ready. The B747 aircraft's engines are stopped. Install wheelchocks.", 
+            "Flight AF84 is on blocks at gate A1 and the acu is ready. The B747 aircraft's engines are stopped and wheelchocks have been installed. Connect acu.", 
+            "Flight AF84 is on blocks at gate A1 and the gpu is ready. The B747 aircraft's engines are stopped and wheelchocks have been installed. Connect gpu.", 
+        ]
+    },
+
+    "llm_config": {
+        "model_name": "gpt-5.4-mini",
+    },
+    "max_iterations": 3000,
+    "max_execution_seconds": 300,
+    "commondefs": {
+        "replacement_strings": {
+            "instructions_prefix": """
+You are part of aircraft turnaround process at the San Francisco International Airport. 
+Only answer inquiries that are directly within your area of expertise.
+Do not try to help for other matters.
+Do not mention what you can NOT do. Only mention what you can do.
+            """,
+            "aaosa_instructions": """
+When you receive an inquiry, you will:
+1. If you are clearly not the right agent for this type of inquiry, reply you're not relevant.
+2. If there is a chance you're relevant, call your down-chain agents to determine if they can answer all or part of the inquiry.
+   Do not assume what your down-chain agents can do. Always call them. You'll be surprised.
+3. Once all relevant down-chain agents have responded, either:
+   - Analyze their response and compile your final response. No need to include non-relevant agents. In doubt, ask for clarification.
+   - Follow up with your down-chain agents if needed, as many times as needed
+   - If an action is needed, ask the most relevant down-chain agent to fulfill the inquiry.
+4. Return the final response to the caller.
+You may, in turn, be called by other agents in the system and have to act as a down-chain agent to them. 
+            """ 
+        },
+        "replacement_values": {
+            "aaosa_call": {
+                "description": "Depending on the mode, returns a natural language string in response.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "inquiry": {
+                            "type": "string",
+                            "description": "The inquiry"
+                        },
+                        "mode": {
+                            "type": "string",
+                            "description": """
+'Determine' to ask the agent if the inquiry belongs to it, in its entirety or in part.
+'Fulfill' to ask the agent to fulfill the inquiry, if it can.
+'Follow up' to ask the agent to respond to a follow up.
+                            """
+                        },
+                    },
+                    "required": [
+                        "inquiry",
+                        "mode"
+                    ]
+                }
+            },
+            "aaosa_command": """
+If mode is 'Determine', return a json block with the following fields:
+{
+    "Name": <your name>,
+    "Inquiry": <the inquiry>,
+    "Mode": <Determine | Fulfill>,
+    "Relevant": <Yes | No>,
+    "Strength": <number between 1 and 10 representing how certain you are in your claim>,
+    "Claim:" <All | Partial>,
+    "Requirements" <None | list of requirements>
+}
+If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json block with the following fields:
+{
+    "Name": <your name>,
+    "Inquiry": <the inquiry>,
+    "Mode": Fulfill,
+    "Response" <your response>
+}
+            """
+        },
+    },
+
+    "tools": [
+
+        {
+            "name": "ground_rampservices",
+            "function": {
+                "description": """
+I perform ground ramp services including air conditioning unit connection,
+ground power unit connection, and wheelchocks installation.
+When called by the turnaround orchestrator, I execute all three ramp services
+in sequence: wheelchocks first, then ACU, then GPU.
+                """,
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "Flight number of the incoming aircraft."
+                        },   
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "Type of the incoming aircraft."
+                        },                 
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "Gate id assigned to the aircraft."
+                        },   
+                        "flight_status": {
+                            "type": "string", 
+                            "description": "Current flight status."
+                        },
+                        "engines_stop_status": {
+                            "type": "string", 
+                            "description": "Engines stop status."
+                        },
+                        "wheelchocks_readiness_status": {
+                            "type": "string", 
+                            "description": "Wheelchocks readiness status."
+                        },
+                        "acu_readiness_status": {
+                            "type": "string", 
+                            "description": "ACU readiness status."
+                        },
+                        "gpu_readiness_status": {
+                            "type": "string", 
+                            "description": "GPU readiness status."
+                        },
+                        "wheelchocks_installation_status": {
+                            "type": "string", 
+                            "description": "Wheelchocks installation status."
+                        },   
+                        "acu_connection_status": {
+                            "type": "string", 
+                            "description": "ACU connection status."
+                        },   
+                        "gpu_connection_status": {
+                            "type": "string", 
+                            "description": "GPU connection status."
+                        },   
+                    }, 
+                    "required": ["aircraft_type","gate_id"] 
+                },
+            },
+
+            # FIX: The original instructions used a single-task dispatch that required
+            # the caller to issue three separate inquiries for wheelchocks, ACU, GPU.
+            # When called from the turnaround orchestrator with a combined request,
+            # the agent stopped after the first task match.
+            # The fix: when called by the orchestrator (all three readiness statuses
+            # provided), execute all three services in sequential order automatically.
+            # When called individually, the original single-task behavior is preserved.
+            "instructions": """
+You are the agent in charge of performing ground ramp services:
+  - wheelchocks installation
+  - ACU (air conditioning unit) connection
+  - GPU (ground power unit) connection
+
+CONTEXT DETECTION:
+If the inquiry or the provided parameters indicate that this is a full ramp
+services request (all three of wheelchocks_readiness_status, acu_readiness_status,
+and gpu_readiness_status are provided, or the instruction says "execute ground ramp
+services" or similar), execute the FULL SEQUENCE below.
+
+If the inquiry is for a single specific task only, execute only that task.
+
+FULL SEQUENCE (execute in this exact order, waiting after each step):
+
+STEP 1 - Wheelchocks Installation
+  a. Call /AirlineTurnaround/aircraft_ground_wheelchocks_install with:
+       aircraft_type, gate_id, flight_status, engines_stop_status,
+       wheelchocks_readiness_status.
+  b. Wait for response and store wheelchocks_installation_status.
+  c. If wheelchocks_installation_status is not 'installed', stop and report failure.
+  d. Call TrackerAPI and log wheelchocks_installation_status.
+
+STEP 2 - ACU Connection
+  a. Call /AirlineTurnaround/aircraft_ground_acu_connect with:
+       aircraft_type, gate_id, flight_status, engines_stop_status,
+       wheelchocks_installation_status, acu_readiness_status.
+  b. Wait for response and store acu_connection_status.
+  c. If acu_connection_status is not 'connected', stop and report failure.
+  d. Call TrackerAPI and log acu_connection_status.
+
+STEP 3 - GPU Connection
+  a. Call /AirlineTurnaround/aircraft_ground_gpu_connect with:
+       aircraft_type, gate_id, flight_status, engines_stop_status,
+       wheelchocks_installation_status, gpu_readiness_status.
+  b. Wait for response and store gpu_connection_status.
+  c. If gpu_connection_status is not 'connected', stop and report failure.
+  d. Call TrackerAPI and log gpu_connection_status.
+
+After all three steps complete, provide the ramp services summary:
+  ***************************************
+  * Ground ramp services summary        *
+  ***************************************
+  ** flight number                  **: [flight_number]
+  ** aircraft type                  **: [aircraft_type]
+  ** gate id                        **: [gate_id]
+  ** wheelchocks installation status**: [wheelchocks_installation_status]
+  ** acu connection status          **: [acu_connection_status]
+  ** gpu connection status          **: [gpu_connection_status]
+
+SINGLE-TASK DISPATCH (if only one task is requested):
+  - If the inquiry is ONLY about wheelchocks installation:
+      Call /AirlineTurnaround/aircraft_ground_wheelchocks_install, wait,
+      store and report wheelchocks_installation_status.
+  - If the inquiry is ONLY about ACU connection:
+      Call /AirlineTurnaround/aircraft_ground_acu_connect, wait,
+      store and report acu_connection_status.
+  - If the inquiry is ONLY about GPU connection:
+      Call /AirlineTurnaround/aircraft_ground_gpu_connect, wait,
+      store and report gpu_connection_status.
+  - If the inquiry is about none of the above, reply that you are not relevant.
+            """ ${aaosa_instructions},  
+
+            "allow": {
+                "to_upstream": {
+                    "sly_data": {
+                        "flight_number": true, 
+                        "aircraft_type": true, 
+                        "gate_id": true, 
+                        "gpu_connection_status": true, 
+                        "acu_connection_status": true, 
+                        "wheelchocks_installation_status": true, 
+                    }
+                },
+                "from_upstream": {
+                    "sly_data": {
+                        "flight_number": true, 
+                        "aircraft_type": true, 
+                        "gate_id": true, 
+                        "flight_status": true,
+                        "engines_stop_status": true,
+                        "gpu_connection_status": true, 
+                        "acu_connection_status": true, 
+                        "wheelchocks_installation_status": true,
+                        "wheelchocks_readiness_status": true,
+                        "acu_readiness_status": true,
+                        "gpu_readiness_status": true,
+                    }
+                },
+                "from_downstream": {
+                    "sly_data": {
+                        "flight_number": true, 
+                        "aircraft_type": true, 
+                        "gate_id": true, 
+                        "gpu_connection_status": true, 
+                        "acu_connection_status": true, 
+                        "wheelchocks_installation_status": true, 
+                    }
+                },
+                "to_downstream": {
+                    "sly_data": {
+                        "flight_number": true, 
+                        "aircraft_type": true, 
+                        "gate_id": true, 
+                        "flight_status": true,
+                        "engines_stop_status": true,
+                        "gpu_connection_status": true, 
+                        "acu_connection_status": true, 
+                        "wheelchocks_installation_status": true,
+                        "wheelchocks_readiness_status": true,
+                        "acu_readiness_status": true,
+                        "gpu_readiness_status": true,
+                    }
+                }
+            },
+
+            "tools": [
+                "TrackerAPI",
+                "/AirlineTurnaround/aircraft_ground_acu_connect",
+                "/AirlineTurnaround/aircraft_ground_gpu_connect",  
+                "/AirlineTurnaround/aircraft_ground_wheelchocks_install", 
+            ]
+        },
+
+        {
+            "name": "TrackerAPI",
+            "function": {
+                "description": """
+I am the flight tracker in charge of logging parameters during aircraft turnaround. 
+                """,
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {"type": "string", "description": "Flight number."},   
+                        "aircraft_type": {"type": "string", "description": "Aircraft type."},         
+                        "gate_id": {"type": "string", "description": "Gate id."},     
+                        "wheelchocks_installation_status": {"type": "string", "description": "Wheelchocks installation status."},   
+                        "gpu_connection_status": {"type": "string", "description": "GPU connection status."},      
+                        "acu_connection_status": {"type": "string", "description": "ACU connection status."},      
+                    }, 
+                    "required": [] 
+                }
+            },
+            "class": "AirlineTurnaround.aircraft_ground_rampservices.aircraft_ground_rampservices.TrackerAPI" 
+        }, 
+    ],
+}

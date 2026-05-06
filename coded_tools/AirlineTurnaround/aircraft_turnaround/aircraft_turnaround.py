@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 import time
 from neuro_san.interfaces.coded_tool import CodedTool
 import logging
@@ -17,7 +18,7 @@ def _from_args_or_sly(args: Dict[str, Any], sly: Dict[str, Any], key: str) -> An
     return v if v is not None else sly.get(key)
 
 def _from_sly_or_args(sly: Dict[str, Any], args: Dict[str, Any], key: str) -> Any:
-    """Prefer args[key]; fallback to sly_data[key]."""
+    """Prefer sly_data[key]; fallback to args[key]."""
     v = sly.get(key)
     return v if v is not None else args.get(key)
 
@@ -33,10 +34,12 @@ def _norm(s: Union[str, None]) -> str:
 #   - Check the value passed by LLM args                                    #
 #   - Check the sly data to read the latest value of parameters             #
 #   - Update parameters with the value from args when sly data is empty     #
-#   - Return the parameter relevant to the agentic system                   #
-# Given the large number of parameters, a separate version of this coded    #
-# tool will be edited for each agents so that it aonly returns the relevant #
-# one for the agent.                                                        #
+#   - Return the requested parameters as a JSON string / dict               #
+#                                                                           #
+# CHANGE: invoke() now returns a JSON string (dict) instead of a bare       #
+# tuple.  The caller can pass a list of field names it wants back via       #
+# args["_return_fields"].  If that key is absent the full                   #
+# FLIGHT_TURNAROUND_RETURN_FIELDS list is used.                             #
 #############################################################################
 
 # Configure structured logging
@@ -56,694 +59,407 @@ class DataSource(Enum):
 
 @dataclass
 class TrackerConfig:
-    """Configuration for TrackerAPI defining tracked and return fields"""
+    """Configuration for TrackerAPI defining the fields to track.
+
+    All tracked fields are always returned by TrackerAPI; consuming agents
+    select whichever values are relevant to their own task.
+    """
+
     tracked_fields: List[str]
-    return_fields: List[str]
-    
+
     def __post_init__(self):
-        """Validate configuration after initialization"""
+        """Validate configuration after initialization."""
         if not self.tracked_fields:
             raise ValueError("tracked_fields cannot be empty")
-        
-        if not self.return_fields:
-            raise ValueError("return_fields cannot be empty")
-        
-        # Validate that all return fields are in tracked fields
-        invalid_fields = set(self.return_fields) - set(self.tracked_fields)
-        if invalid_fields:
-            raise ValueError(
-                f"Return fields must be subset of tracked fields. "
-                f"Invalid fields: {invalid_fields}"
-            )
 
 
 class TrackerAPI(CodedTool):
     """
-    Manages flight turnaround data by reading from or writing to a shared data store.
-    
-    This API handles aircraft turnaround status information including flight details,
-    ground services, and various operational statuses during aircraft servicing.
+    Manages flight turnaround data by reading from / writing to a shared
+    data store (sly_data) and always returning the COMPLETE set of tracked
+    parameters as a single JSON string.
+
+    Behaviour
+    ---------
+    * Any field present in ``args`` is written to ``sly_data`` (write mode).
+    * Any field absent from ``args`` is read from ``sly_data`` (read mode).
+    * The return value is always a JSON-encoded dict containing ALL tracked
+      fields. Fields with no known value are included as ``null``.
+
+    Consuming agents are responsible for reading whichever keys are relevant
+    to their own task from the returned dict.  No field selection is needed
+    on the TrackerAPI side.
     """
-    
-    # NO CONSTRUCTOR - configuration comes through args or sly_data
-    
-    def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Tuple[Optional[str], ...]:
+
+    # NO CONSTRUCTOR – configuration comes through args or sly_data
+
+    # ------------------------------------------------------------------
+    # Public interface
+    # ------------------------------------------------------------------
+
+    def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> str:
         """
-        Process flight turnaround data by reading from args or sly_data, and updating sly_data.
-        
+        Process flight turnaround data and return ALL tracked fields as JSON.
+
         Args:
-            args: Dictionary containing:
-                - Field values to write to sly_data
-                - '_config': Optional TrackerConfig for this invocation
-            sly_data: Shared data store containing current flight turnaround state
-            
+            args: Dictionary that may contain field values to write to
+                  sly_data (any tracked field name), and optionally
+                  ``_config`` (TrackerConfig) to override the session config.
+            sly_data: Shared data store holding the current turnaround state.
+
         Returns:
-            Tuple containing values for all fields defined in config.return_fields
-            
-        Note:
-            - If a field exists in args, it's written to sly_data (write mode)
-            - If a field doesn't exist in args, it's read from sly_data (read mode)
+            A JSON string containing every tracked field, e.g.::
+
+                {
+                    "flight_number": "AF84",
+                    "flight_status": "on blocks",
+                    "gate_id": "A1",
+                    "gpu_readiness_status": null,
+                    ...
+                }
+
+            Fields with no known value are included as ``null``.
+            Agents should read whichever keys are relevant to their task.
         """
         logger.info("=" * 60)
         logger.info("TrackerAPI invoked")
         logger.info("=" * 60)
-        
-        # Get or create configuration
+
+        # 1. Resolve configuration
         config = self._get_config(args, sly_data)
-        
-        # Process all tracked fields
+
+        # 2. Process (read/write) every tracked field
         field_values = self._process_all_fields(args, sly_data, config)
-        
-        # Log final state summary
-        self._log_data_summary(field_values, config)
-        
-        # Return specific fields as defined in configuration
-        return self._build_return_tuple(field_values, config)
-    
-    def _get_config(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> TrackerConfig:
+
+        # 3. Log summary
+        self._log_data_summary(field_values, config.tracked_fields)
+
+        # 4. Return ALL tracked fields as JSON
+        return self._build_return_json(field_values, config.tracked_fields)
+
+    async def async_invoke(
+        self,
+        args: Dict[str, Any],
+        sly_data: Dict[str, Any],
+    ) -> str:
         """
-        Get configuration from args or sly_data, with lazy initialization.
-        
-        Priority:
-        1. args['_config'] - Config passed for this specific invocation
-        2. sly_data['_tracker_config'] - Shared config initialized once per request
-        3. Default config - Create and store in sly_data for reuse
-        
-        Args:
-            args: Input arguments
-            sly_data: Shared data store
-            
+        Asynchronous wrapper – delegates to synchronous invoke.
+
         Returns:
-            TrackerConfig instance
+            JSON string containing all tracked fields; see :meth:`invoke`.
         """
-        # Check if config passed in args for this specific invocation
-        if '_config' in args:
+        logger.debug("Async invoke called, delegating to synchronous invoke")
+        return self.invoke(args, sly_data)
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    def _get_config(
+        self, args: Dict[str, Any], sly_data: Dict[str, Any]
+    ) -> TrackerConfig:
+        """
+        Resolve the TrackerConfig to use for this invocation.
+
+        Priority:
+          1. ``args['_config']``            – per-call override
+          2. ``sly_data['_tracker_config']``– session-level config
+          3. default config                 – created once and cached in sly_data
+
+        Args:
+            args: Input arguments.
+            sly_data: Shared data store.
+
+        Returns:
+            TrackerConfig instance.
+        """
+        if "_config" in args:
             logger.debug("Using config from args")
-            return args['_config']
-        
-        # Check if config already exists in sly_data (lazy initialization)
-        if '_tracker_config' not in sly_data:
+            return args["_config"]
+
+        if "_tracker_config" not in sly_data:
             logger.info("Initializing default config in sly_data")
-            sly_data['_tracker_config'] = self._create_default_config()
-        
+            sly_data["_tracker_config"] = self._create_default_config()
+
         logger.debug("Using config from sly_data")
-        return sly_data['_tracker_config']
-    
+        return sly_data["_tracker_config"]
+
     def _create_default_config(self) -> TrackerConfig:
         """
-        Create the default configuration for flight turnaround tracking.
-        
+        Create the default TrackerConfig for full turnaround tracking.
+
         Returns:
-            Default TrackerConfig instance
+            Default TrackerConfig instance.
         """
-        return TrackerConfig(
-            tracked_fields=FLIGHT_TURNAROUND_TRACKED_FIELDS,
-            return_fields=FLIGHT_TURNAROUND_RETURN_FIELDS
-        )
-    
+        return TrackerConfig(tracked_fields=FLIGHT_TURNAROUND_TRACKED_FIELDS)
+
     def _process_all_fields(
-        self, 
-        args: Dict[str, Any], 
+        self,
+        args: Dict[str, Any],
         sly_data: Dict[str, Any],
-        config: TrackerConfig
+        config: TrackerConfig,
     ) -> Dict[str, Optional[str]]:
         """
-        Process all tracked fields by checking args first, then falling back to sly_data.
-        
+        Read or write every tracked field.
+
+        For each field:
+          - If present in ``args``: write to ``sly_data``, record value.
+          - Otherwise: read from ``sly_data``.
+
         Args:
-            args: Input arguments potentially containing new values
-            sly_data: Existing data store to read from or write to
-            config: Configuration defining which fields to track
-            
+            args: Input arguments potentially containing new values.
+            sly_data: Existing data store.
+            config: Configuration defining which fields to track.
+
         Returns:
-            Dictionary mapping field names to their current values
+            Dict mapping every tracked field name to its current value
+            (``None`` when not found in either source).
         """
-        field_values = {}
-        
+        field_values: Dict[str, Optional[str]] = {}
+
         for field_name in config.tracked_fields:
-            # Skip internal config fields
-            if field_name.startswith('_'):
-                continue
-                
-            value, source = self._process_field(field_name, args, sly_data)
+            if field_name.startswith("_"):
+                continue  # internal / reserved keys
+            value, _ = self._process_field(field_name, args, sly_data)
             field_values[field_name] = value
-            
+
         return field_values
-    
+
     def _process_field(
-        self, 
-        field_name: str, 
-        args: Dict[str, Any], 
-        sly_data: Dict[str, Any]
+        self,
+        field_name: str,
+        args: Dict[str, Any],
+        sly_data: Dict[str, Any],
     ) -> Tuple[Optional[str], DataSource]:
         """
-        Process a single field by attempting to read from args, then sly_data.
-        
+        Resolve a single field, preferring the already-stored sly_data value.
+
+        Priority:
+          1. sly_data[field_name] – the authoritative running state; used
+             as-is when present.  args is ignored for this field.
+          2. args[field_name]     – fallback when sly_data has no value yet;
+             the value is also written into sly_data so subsequent calls
+             can find it under rule 1.
+          3. Neither source       – returns (None, NOT_FOUND).
+
         Args:
-            field_name: Name of the field to process
-            args: Input arguments (write mode if field exists here)
-            sly_data: Shared data store (read mode if field not in args)
-            
+            field_name: Name of the field to resolve.
+            args: Input arguments used only when sly_data has no value.
+            sly_data: Shared data store; always consulted first.
+
         Returns:
-            Tuple of (field_value, data_source)
+            ``(value, DataSource)`` tuple.
         """
-        # Check if value provided in args (write mode)
-        value = args.get(field_name)
-        
-        if value is not None:
-            # Write mode: update sly_data with new value
-            sly_data[field_name] = value
-            logger.info(f"[WRITE] {field_name}: '{value}' (source: args)")
-            return value, DataSource.ARGS
-        
-        # Read mode: try to get from sly_data
-        logger.debug(f"[READ] {field_name} not in args, checking sly_data")
+        # 1. sly_data is authoritative
         value = sly_data.get(field_name)
-        
         if value is not None:
-            logger.info(f"[READ] {field_name}: '{value}' (source: sly_data)")
+            logger.info(f"[READ]  {field_name}: '{value}' (source: sly_data)")
+            print("----------------------------------------------------------------")
+            print(f"[READ]  {field_name}: '{value}' (source: sly_data)")
+            print("----------------------------------------------------------------")
             return value, DataSource.SLY_DATA
-        
-        # Field not found in either location
-        logger.warning(f"[NOT FOUND] {field_name}: No value in args or sly_data")
+
+        # 2. Fall back to args and promote the value into sly_data
+        value = args.get(field_name)
+        if value is not None:
+            sly_data[field_name] = value
+            logger.info(f"[WRITE] {field_name}: '{value}' (source: args → sly_data)")
+            print("----------------------------------------------------------------")
+            print(f"[WRITE] {field_name}: '{value}' (source: args → sly_data)")
+            print("----------------------------------------------------------------")
+            return value, DataSource.ARGS
+
+        # 3. Not found anywhere
+        logger.warning(f"[MISS]  {field_name}: not found in sly_data or args")
         return None, DataSource.NOT_FOUND
-    
-    def _build_return_tuple(
-        self, 
+
+    # ------------------------------------------------------------------
+    # Return-value builder  (CHANGED: JSON instead of tuple)
+    # ------------------------------------------------------------------
+
+    def _build_return_json(
+        self,
         field_values: Dict[str, Optional[str]],
-        config: TrackerConfig
-    ) -> Tuple[Optional[str], ...]:
+        return_fields: List[str],
+    ) -> str:
         """
-        Build return tuple from field values based on configured return fields.
-        
+        Build a JSON string containing only the requested fields.
+
+        Fields with no value are included as ``null`` so the caller always
+        receives every key it asked for – making downstream parsing robust.
+
         Args:
-            field_values: Dictionary of all processed field values
-            config: Configuration defining which fields to return
-            
+            field_values: All processed field values keyed by field name.
+            return_fields: Ordered list of fields to include in the output.
+
         Returns:
-            Tuple of values corresponding to config.return_fields
+            Pretty-printed JSON string, e.g.::
+
+                {
+                    "flight_number": "AF84",
+                    "flight_status": "on blocks",
+                    "gate_id": null
+                }
         """
-        return_values = tuple(field_values.get(field) for field in config.return_fields)
-        logger.info(f"Returning {len(return_values)} fields: {config.return_fields}")
-        return return_values
-    
+        result: Dict[str, Optional[str]] = {
+            field: field_values.get(field)  # None when not found
+            for field in return_fields
+        }
+        logger.info(
+            "Returning %d fields as JSON: %s", len(result), list(result.keys())
+        )
+        return json.dumps(result, indent=2, ensure_ascii=False)
+
+    # ------------------------------------------------------------------
+    # Logging helper
+    # ------------------------------------------------------------------
+
     def _log_data_summary(
-        self, 
+        self,
         field_values: Dict[str, Optional[str]],
-        config: TrackerConfig
+        return_fields: List[str],
     ) -> None:
         """
-        Log a summary of all field values for traceability.
-        
+        Log a human-readable summary of all field values.
+
         Args:
-            field_values: Dictionary of all processed field values
-            config: Configuration defining tracked fields
+            field_values: All processed field values.
+            return_fields: Fields that will be included in the return JSON.
         """
         logger.info("-" * 60)
         logger.info("DATA SUMMARY")
         logger.info("-" * 60)
-        
-        for field_name in config.tracked_fields:
-            if field_name.startswith('_'):
-                continue
-                
-            value = field_values.get(field_name)
-            status = "SET" if value is not None else "UNSET"
-            return_marker = " [RETURN]" if field_name in config.return_fields else ""
-            logger.info(f"{field_name:40s} | {status:6s} | {value}{return_marker}")
-        
+
+        return_set = set(return_fields)
+        for field_name, value in field_values.items():
+            status = "SET  " if value is not None else "UNSET"
+            marker = " [RETURN]" if field_name in return_set else ""
+            logger.info(f"  {field_name:40s} | {status} | {value}{marker}")
+
         logger.info("=" * 60)
-    
-    async def async_invoke(
-        self, 
-        args: Dict[str, Any], 
-        sly_data: Dict[str, Any]
-    ) -> Tuple[Optional[str], ...]:
-        """
-        Asynchronous wrapper for invoke method.
-        
-        Delegates to synchronous invoke since operations are fast and non-blocking.
-        
-        Args:
-            args: Dictionary containing new field values to write to sly_data
-            sly_data: Shared data store containing current flight turnaround state
-            
-        Returns:
-            Tuple containing values for all fields defined in config.return_fields
-        """
-        logger.debug("Async invoke called, delegating to synchronous invoke")
-        return self.invoke(args, sly_data)
 
 
 # =============================================================================
 # Configuration Definitions
 # =============================================================================
 
-# Define tracked fields for flight turnaround operations
-FLIGHT_TURNAROUND_TRACKED_FIELDS = [
-    "acu_connection_status", 
+# All parameters tracked across the full turnaround lifecycle.
+# TrackerAPI always returns every field in this list; consuming agents
+# read whichever values are relevant to their own task.
+FLIGHT_TURNAROUND_TRACKED_FIELDS: List[str] = [
+    "acu_connection_status",
     "acu_readiness_status",
     "aircraft_direction",
     "aircraft_landing_report",
     "aircraft_type",
     "assigned_runway_id",
     "assigned_runway_length",
-    "baggage_unload_status", 
-    "cabin_cleaning_status", 
-    "catering_loading_status", 
+    "baggage_unload_status",
+    "cabin_cleaning_status",
+    "catering_loading_status",
     "clearance_type",
-    "crew_debrief_status", 
-    "crew_exit_status", 
+    "crew_debrief_status",
+    "crew_exit_status",
     "deplaning_equipment_type",
-    "door_opening_status", 
-    "engines_stop_status", 
+    "door_opening_status",
+    "engines_stop_status",
     "flight_number",
     "flight_status",
-    "fueling_status", 
+    "fueling_status",
     "gate_id",
-    "gpu_connection_status", 
+    "gpu_connection_status",
     "gpu_readiness_status",
     "ground_clearance_status",
     "ground_clearance_type",
-    "inspection_maintenance_status", 
-    "jetbridge_connection_status", 
-    "lavatory_service_status", 
-    "passenger_disembarkation_status", 
-    "wheels_chocks_installation_status", 
-    "wheels_chocks_readiness_status",
+    "inspection_maintenance_status",
+    "jetbridge_connection_status",
+    "lavatory_service_status",
+    "passenger_disembarkation_status",
+    "wheelchocks_installation_status",
+    "wheelchocks_readiness_status",
 ]
 
-# Define which fields should be returned from the API
-FLIGHT_TURNAROUND_RETURN_FIELDS = [
-    "acu_connection_status", 
-    "acu_readiness_status",
-    "aircraft_direction",
-    "aircraft_landing_report",
-    "aircraft_type",
-    "assigned_runway_id",
-    "assigned_runway_length",
-    "baggage_unload_status", 
-    "cabin_cleaning_status", 
-    "catering_loading_status", 
-    "clearance_type",
-    "crew_debrief_status", 
-    "crew_exit_status", 
-    "deplaning_equipment_type",
-    "door_opening_status", 
-    "engines_stop_status", 
-    "flight_number",
-    "flight_status",
-    "fueling_status", 
-    "gate_id",
-    "gpu_connection_status", 
-    "gpu_readiness_status",
-    "ground_clearance_status",
-    "ground_clearance_type",
-    "inspection_maintenance_status", 
-    "jetbridge_connection_status", 
-    "lavatory_service_status", 
-    "passenger_disembarkation_status", 
-    "wheels_chocks_installation_status", 
-    "wheels_chocks_readiness_status",
-]
 
 # =============================================================================
 # Usage Examples
 # =============================================================================
 
 if __name__ == "__main__":
-    # Example 1: Using default configuration (stored in sly_data)
     tracker = TrackerAPI()
-    
-    args = {
-        "flight_number": "AA123",
-        "passenger_disembarkation_status": "in_progress"
+
+    # ------------------------------------------------------------------
+    # Example 1 – write a few fields; all tracked fields come back in JSON.
+    # The agent reading the result picks out only the keys it cares about.
+    # ------------------------------------------------------------------
+    print("=" * 60)
+    print("Example 1: write subset of fields, receive full JSON back")
+    print("=" * 60)
+
+    args1 = {
+        "flight_number": "AF84",
+        "flight_status": "on blocks",
+        "gate_id": "A1",
     }
-    sly_data = {
-        "crew_exit_status": "completed",
-        "baggage_unload_status": "pending"
+    sly_data1: Dict[str, Any] = {
+        "aircraft_type": "B747",
+        "aircraft_direction": "incoming",
     }
-    
-    result = tracker.invoke(args, sly_data)
-    print(f"Result: {result}")
-    
-    # Example 2: Using custom configuration passed in args
+
+    result1 = tracker.invoke(args1, sly_data1)
+    print("Full JSON returned:\n", result1)
+
+    # Agent picks out only what it needs:
+    data1 = json.loads(result1)
+    print("\nAgent reading its relevant fields:")
+    print("  flight_number    :", data1["flight_number"])
+    print("  flight_status    :", data1["flight_status"])
+    print("  aircraft_type    :", data1["aircraft_type"])       # from sly_data
+    print("  gpu_readiness    :", data1["gpu_readiness_status"]) # null – not set yet
+
+    # ------------------------------------------------------------------
+    # Example 2 – subsequent call adds more fields; full snapshot returned.
+    # ------------------------------------------------------------------
+    print()
+    print("=" * 60)
+    print("Example 2: second call enriches sly_data; full snapshot returned")
+    print("=" * 60)
+
+    args2 = {
+        "engines_stop_status": "stopped",
+        "wheelchocks_installation_status": "installed",
+    }
+    # sly_data1 is already populated from Example 1 – pass it through
+    result2 = tracker.invoke(args2, sly_data1)
+    data2 = json.loads(result2)
+
+    print("Agent (ramp services) reading its relevant fields:")
+    print("  engines_stop_status          :", data2["engines_stop_status"])
+    print("  wheelchocks_installation_status:", data2["wheelchocks_installation_status"])
+    print("  flight_number                :", data2["flight_number"])  # carried over
+    print("  gate_id                      :", data2["gate_id"])         # carried over
+
+    # ------------------------------------------------------------------
+    # Example 3 – custom TrackerConfig (narrow tracked set).
+    # Still returns every tracked field – just a smaller set.
+    # ------------------------------------------------------------------
+    print()
+    print("=" * 60)
+    print("Example 3: custom TrackerConfig – all tracked fields returned")
+    print("=" * 60)
+
     custom_config = TrackerConfig(
-        tracked_fields=["flight_number", "gate_id", "flight_status"],
-        return_fields=["flight_status"]
+        tracked_fields=["flight_number", "gate_id",
+                        "flight_status", "engines_stop_status"],
     )
-    
-    custom_args = {
-        "_config": custom_config,  # Pass config in args
-        "flight_number": "UA456"
+    args3 = {
+        "_config": custom_config,
+        "flight_number": "UA456",
+        "engines_stop_status": "stopped",
     }
-    custom_sly_data = {
-        "flight_status": "on_time"
-    }
-    
-    result2 = tracker.invoke(custom_args, custom_sly_data)
-    print(f"Custom Result: {result2}")
+    sly_data3: Dict[str, Any] = {"flight_status": "on blocks", "gate_id": "B3"}
 
+    result3 = tracker.invoke(args3, sly_data3)
+    print("Full JSON returned:\n", result3)
+    data3 = json.loads(result3)
+    print(f"\nAll {len(data3)} tracked fields present: {list(data3.keys())}")
 
-
-# #############################################################################
-# # Tracker API for all parameters in the aircraft turnaround agentic system  #
-# # This coded tool proceeds as folloes:                                      #
-# #   - Check the sly data to read the latest value of parameters             #
-# #   - Update parameters with the value from args when sly data is empty     #
-# # Given the large number of parameters, a separate version of this coded    #
-# # tool will be edited for each agents so that it aonly returns the relevant # 
-# # one for the agent.                                                        #
-# #############################################################################
-# class TrackerAPI(CodedTool):
-#     """
-#     Read and return sly data in read mode, or write and update sly data in write. 
-#     """
-
-#     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
-#         """
-#         :param args: an empty dictionary (not used).
-
-#         :param sly_data: a dictionary with the following keys:
-#             - flight_status
-#             - flight_number
-#             - aircraft_type
-#             - gate_id 
-#             - ground_services_request_type 
-#             - wheels_chocks_readiness_status
-#             - acu_connection_status 
-#             - gpu_connection_status 
-#             - wheels_chocks_installation status
-#             - engines_stop_status
-#             - jetbridge_connection_status
-#             - door_opening_status
-#             - passenger_disembarkation_status
-#             - crew_exit_status
-#             - baggage_unload_status
-
-#         :return: None in write mode or any of teh parameters in read mode
-#         """
-
-#         # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
-#         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
-
-#         print("\n")
-#         print("\n")
-#         print(" #################### API TRACKER GENERIC #################### ")
-#         print("\n")
-#         print("\n")
-#         # Check and update flight_number
-#         flight_number: str = args.get("flight_number", None)
-#         if not flight_number:
-#             print("flight_number has not been provided in user inquiry. Trying to get it from sly_data")
-#             flight_number = sly_data.get("flight_number")
-#             if flight_number: 
-#                 print("\n")
-#                 print("\n")
-#                 print("####### flight_number read from sly data: #######", flight_number)
-#                 print("\n")
-#                 print("\n")
-#         else: 
-#             sly_data["flight_number"] = flight_number       
-#             print("\n")
-#             print("\n")
-#             print("####### flight_number read from args: #######", flight_number)
-#             print("\n")
-#             print("\n")
-
-#         # Check and update aircraft_type
-#         aircraft_type: str = args.get("aircraft_type", None)
-#         if not aircraft_type:
-#             print("aircraft_type has not been provided in user inquiry. Trying to get it from sly_data")
-#             aircraft_type = sly_data.get("aircraft_type")
-#             if aircraft_type: 
-#                 print("\n")
-#                 print("\n")
-#                 print("####### aircraft_type read from sly data: #######", aircraft_type)
-#                 print("\n")
-#                 print("\n")
-#         else: 
-#             sly_data["aircraft_type"] = aircraft_type       
-#             print("\n")
-#             print("\n")
-#             print("####### aircraft_type read from args: #######", aircraft_type)
-#             print("\n")
-#             print("\n")
-
-#         # Check and update flight_status
-#         flight_status: str = args.get("flight_status", None)
-#         if not flight_status:
-#             print("flight_status has not been provided in user inquiry. Trying to get it from sly_data")
-#             flight_status = sly_data.get("flight_status")
-#             if flight_status: 
-#                 print("\n")
-#                 print("\n")
-#                 print("####### flight_status read from sly data: #######", flight_status)
-#                 print("\n")
-#                 print("\n")
-#         else: 
-#             sly_data["flight_status"] = flight_status       
-#             print("\n")
-#             print("\n")
-#             print("####### flight_status read from args: #######", flight_status)
-#             print("\n")
-#             print("\n")
-
-#         # Check and update gate_id
-#         gate_id: str = args.get("gate_id", None)
-#         if not gate_id:
-#             print("gate_id has not been provided in user inquiry. Trying to get it from sly_data")
-#             gate_id = sly_data.get("gate_id")
-#             if gate_id: 
-#                 print("\n")
-#                 print("\n")
-#                 print("####### gate_id read from sly data: #######", flight_status)
-#                 print("\n")
-#                 print("\n")
-#         else: 
-#             sly_data["gate_id"] = gate_id       
-#             print("\n")
-#             print("\n")
-#             print("####### gate_id read from args: #######", gate_id)
-#             print("\n")
-#             print("\n")
-
-#         # Check and update acu_connection_status
-#         acu_connection_status: str = args.get("acu_connection_status", None)
-#         if not acu_connection_status:
-#             print("acu_connection_status has not been provided in user inquiry. Trying to get it from sly_data")
-#             acu_connection_status = sly_data.get("acu_connection_status")
-#             if acu_connection_status: 
-#                 print("\n")
-#                 print("\n")
-#                 print("####### acu_connection_status read from sly data: #######", acu_connection_status)
-#                 print("\n")
-#                 print("\n")
-#         else: 
-#             sly_data["acu_connection_status"] = acu_connection_status       
-#             print("\n")
-#             print("\n")
-#             print("####### acu_connection_status read from args: #######", acu_connection_status)
-#             print("\n")
-#             print("\n")
-
-#         # Check and update gpu_connection_status
-#         gpu_connection_status: str = args.get("gpu_connection_status", None)
-#         if not gpu_connection_status:
-#             print("gpu_connection_status has not been provided in user inquiry. Trying to get it from sly_data")
-#             gpu_connection_status = sly_data.get("gpu_connection_status")
-#             if gpu_connection_status: 
-#                 print("\n")
-#                 print("\n")
-#                 print("####### gpu_connection_status read from sly data: #######", gpu_connection_status)
-#                 print("\n")
-#                 print("\n")
-#         else: 
-#             sly_data["gpu_connection_status"] = gpu_connection_status       
-#             print("\n")
-#             print("\n")
-#             print("####### gpu_connection_status read from args: #######", gpu_connection_status)
-#             print("\n")
-#             print("\n")
-
-#         # Check and update wheels_chocks_installation_status
-#         wheels_chocks_installation_status: str = args.get("wheels_chocks_installation_status", None)
-#         if not wheels_chocks_installation_status:
-#             print("wheels_chocks_installation_status has not been provided in user inquiry. Trying to get it from sly_data")
-#             wheels_chocks_installation_status = sly_data.get("wheels_chocks_installation_status")
-#             if wheels_chocks_installation_status: 
-#                 print("\n")
-#                 print("\n")
-#                 print("####### wheels_chocks_installation_status read from sly data: #######", wheels_chocks_installation_status)
-#                 print("\n")
-#                 print("\n")
-#         else: 
-#             sly_data["wheels_chocks_installation_status"] = wheels_chocks_installation_status       
-#             print("\n")
-#             print("\n")
-#             print("####### wheels_chocks_installation_status read from args: #######", wheels_chocks_installation_status)
-#             print("\n")
-#             print("\n")
-
-#         # Check and update engines_stop_status
-#         engines_stop_status: str = args.get("engines_stop_status", None)
-#         if not engines_stop_status:
-#             print("engines_stop_status has not been provided in user inquiry. Trying to get it from sly_data")
-#             engines_stop_status = sly_data.get("engines_stop_status")
-#             if engines_stop_status: 
-#                 print("\n")
-#                 print("\n")
-#                 print("####### engines_stop_status read from sly data: #######", engines_stop_status)
-#                 print("\n")
-#                 print("\n")
-#         else: 
-#             sly_data["engines_stop_status"] = engines_stop_status       
-#             print("\n")
-#             print("\n")
-#             print("####### engines_stop_status read from args: #######", engines_stop_status)
-#             print("\n")
-#             print("\n")
-
-#         # Check and update jetbridge_connection_status
-#         jetbridge_connection_status: str = args.get("jetbridge_connection_status", None)
-#         if not jetbridge_connection_status:
-#             print("jetbridge_connection_status has not been provided in user inquiry. Trying to get it from sly_data")
-#             jetbridge_connection_status = sly_data.get("jetbridge_connection_status")
-#             if jetbridge_connection_status: 
-#                 print("\n")
-#                 print("\n")
-#                 print("####### jetbridge_connection_status read from sly data: #######", jetbridge_connection_status)
-#                 print("\n")
-#                 print("\n")
-#         else: 
-#             sly_data["jetbridge_connection_status"] = jetbridge_connection_status       
-#             print("\n")
-#             print("\n")
-#             print("####### jetbridge_connection_status read from args: #######", jetbridge_connection_status)
-#             print("\n")
-#             print("\n")
-
-#         # Check and update door_opening_status
-#         door_opening_status: str = args.get("door_opening_status", None)
-#         if not door_opening_status:
-#             print("door_opening_status has not been provided in user inquiry. Trying to get it from sly_data")
-#             door_opening_status = sly_data.get("door_opening_status")
-#             if door_opening_status: 
-#                 print("\n")
-#                 print("\n")
-#                 print("####### door_opening_status read from sly data: #######", door_opening_status)
-#                 print("\n")
-#                 print("\n")
-#         else: 
-#             sly_data["door_opening_status"] = door_opening_status       
-#             print("\n")
-#             print("\n")
-#             print("####### door_opening_status read from args: #######", door_opening_status)
-#             print("\n")
-#             print("\n")
-            
-#         # Check and update ground_services_request_type
-#         ground_services_request_type: str = args.get("ground_services_request_type", None)
-#         if not ground_services_request_type:
-#             print("ground_services_request_type has not been provided in user inquiry. Trying to get it from sly_data")
-#             ground_services_request_type = sly_data.get("ground_services_request_type")
-#             if ground_services_request_type: 
-#                 print("\n")
-#                 print("\n")
-#                 print("####### ground_services_request_type read from sly data: #######", ground_services_request_type)
-#                 print("\n")
-#                 print("\n")
-#         else: 
-#             sly_data["ground_services_request_type"] = ground_services_request_type       
-#             print("\n")
-#             print("\n")
-#             print("####### ground_services_request_type read from args: #######", ground_services_request_type)
-#             print("\n")
-#             print("\n")
-
-#         # Check and update wheels_chocks_readiness_status
-#         wheels_chocks_readiness_status: str = args.get("wheels_chocks_readiness_status", None)
-#         if not wheels_chocks_readiness_status:
-#             print("wheels_chocks_readiness_status has not been provided in user inquiry. Trying to get it from sly_data")
-#             wheels_chocks_readiness_status = sly_data.get("wheels_chocks_readiness_status")
-#             if wheels_chocks_readiness_status: 
-#                 print("\n")
-#                 print("\n")
-#                 print("####### wheels_chocks_readiness_status read from sly data: #######", wheels_chocks_readiness_status)
-#                 print("\n")
-#                 print("\n")
-#         else: 
-#             sly_data["wheels_chocks_readiness_status"] = wheels_chocks_readiness_status       
-#             print("\n")
-#             print("\n")
-#             print("####### wheels_chocks_readiness_status read from args: #######", wheels_chocks_readiness_status)
-#             print("\n")
-#             print("\n")
-
-#         # Check and update passenger_disembarkation_status
-#         passenger_disembarkation_status: str = args.get("passenger_disembarkation_status", None)
-#         if not passenger_disembarkation_status:
-#             print("passenger_disembarkation_status has not been provided in user inquiry. Trying to get it from sly_data")
-#             passenger_disembarkation_status = sly_data.get("passenger_disembarkation_status")
-#             if passenger_disembarkation_status: 
-#                 print("\n")
-#                 print("\n")
-#                 print("####### passenger_disembarkation_status read from sly data: #######", passenger_disembarkation_status)
-#                 print("\n")
-#                 print("\n")
-#         else: 
-#             sly_data["passenger_disembarkation_status"] = passenger_disembarkation_status       
-#             print("\n")
-#             print("\n")
-#             print("####### passenger_disembarkation_status read from args: #######", passenger_disembarkation_status)
-#             print("\n")
-#             print("\n")
-
-#         # Check and update crew_exit_status
-#         crew_exit_status: str = args.get("crew_exit_status", None)
-#         if not crew_exit_status:
-#             print("crew_exit_status has not been provided in user inquiry. Trying to get it from sly_data")
-#             crew_exit_status = sly_data.get("crew_exit_status")
-#             if crew_exit_status: 
-#                 print("\n")
-#                 print("\n")
-#                 print("####### crew_exit_status read from sly data: #######", crew_exit_status)
-#                 print("\n")
-#                 print("\n")
-#         else: 
-#             sly_data["crew_exit_status"] = crew_exit_status       
-#             print("\n")
-#             print("\n")
-#             print("####### crew_exit_status read from args: #######", crew_exit_status)
-#             print("\n")
-#             print("\n")
-
-#         # Check and update baggage_unload_status
-#         baggage_unload_status: str = args.get("baggage_unload_status", None)
-#         if not baggage_unload_status:
-#             print("baggage_unload_status has not been provided in user inquiry. Trying to get it from sly_data")
-#             baggage_unload_status = sly_data.get("baggage_unload_status")
-#             if baggage_unload_status: 
-#                 print("\n")
-#                 print("\n")
-#                 print("####### baggage_unload_status read from sly data: #######", baggage_unload_status)
-#                 print("\n")
-#                 print("\n")
-#         else: 
-#             sly_data["baggage_unload_status"] = baggage_unload_status       
-#             print("\n")
-#             print("\n")
-#             print("####### baggage_unload_status read from args: #######", baggage_unload_status)
-#             print("\n")
-#             print("\n")
-
-#         #####################################################################################################################################
-#         # This return list will be trimmed to contain only parameters relevant to the agentic system where this generic coded tool is used. #
-#         #####################################################################################################################################
-#         return flight_status
-
-#     async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
-#         """
-#         Delegates to the synchronous invoke method because it's quick, non-blocking.
-#         """
-#         return self.invoke(args, sly_data)

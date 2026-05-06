@@ -34,18 +34,14 @@ class execute_aircraft_landing(CodedTool):
         pass
 
     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
-        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
-        # aircraft_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/aircraft_base.csv"
         aircraft_base = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_traffic_controller" / "aircraft_base.csv"
-        # runway_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/runways_base.csv"
         runway_base = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_traffic_controller" / "runways_base.csv"
 
         # Check aircraft type parameter passed by the agent
         flight_status: str = args.get("flight_status", None) 
         aircraft_type: str = args.get("aircraft_type", None)   
         flight_number: str = args.get("flight_number", None)   
-        # traffic_direction: str = args.get("traffic_direction", None) 
         aircraft_direction: str = args.get("aircraft_direction", None) 
         clearance_type: str = args.get("clearance_type", None)   
         assigned_runway_id: str = args.get("assigned_runway_id", None)  
@@ -56,7 +52,6 @@ class execute_aircraft_landing(CodedTool):
         print("flight_status: ", flight_status)
         print("aircraft_type: ", aircraft_type)
         print("flight_number: ", flight_number)
-        # print("traffic_direction: ", traffic_direction)
         print("aircraft_direction: ", aircraft_direction)
         print("assigned_runway_id: ", assigned_runway_id)
         print("assigned_runway_length: ", assigned_runway_length)
@@ -73,9 +68,6 @@ class execute_aircraft_landing(CodedTool):
         if flight_number is None: 
             flight_number: str = sly_data.get(flight_number, None)
 
-        # if traffic_direction is None: 
-        #     traffic_direction: str = sly_data.get(traffic_direction, None)
-
         if aircraft_direction is None: 
             aircraft_direction: str = sly_data.get(aircraft_direction, None)
 
@@ -88,12 +80,11 @@ class execute_aircraft_landing(CodedTool):
         if assigned_runway_length is None: 
             assigned_runway_length: str = sly_data.get(assigned_runway_length, None)
 
-        print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft landing agent $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+        print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft landing agent by sly_data fall back $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
         print("clearance_type: ", clearance_type)
         print("flight_status: ", flight_status)
         print("aircraft_type: ", aircraft_type)
         print("flight_number: ", flight_number)
-        # print("traffic_direction: ", traffic_direction)
         print("aircraft_direction: ", aircraft_direction)
         print("assigned_runway_id: ", assigned_runway_id)
         print("assigned_runway_length: ", assigned_runway_length)
@@ -103,12 +94,9 @@ class execute_aircraft_landing(CodedTool):
             clearance_type = clearance_type.lower().strip().replace("_", " ")
             flight_status = flight_status.lower().strip().replace("_", " ")
 
-            if ((('cleared' in clearance_type) | ('landing' in clearance_type)) & ((flight_status is None) | ('approach' in flight_status ))):    
+            if ((('clear' in clearance_type) | ('land' in clearance_type)) & ((flight_status is None) | ('approach' in flight_status ))):    
                 # time.sleep(0.5) 
                 flight_status = 'landed'
-
-                print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft landing status update $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-                print("flight_status: ", flight_status)
 
                 timenow = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
                 line = f"{timenow}: flight {flight_number} has landed on runway {assigned_runway_id}"
@@ -121,24 +109,6 @@ class execute_aircraft_landing(CodedTool):
                 print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft operation status update $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
                 print("flight_status: ", flight_status)
                 print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$") 
-
-            # else: 
-            #     flight_status = 'pending'
-
-            #     print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft operation status $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-            #     print("flight_status: ", flight_status)
-
-            #     timenow = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-            #     line = f"{timenow}: flight {flight_number} needs clearance for landing"
-
-            #     with open(file_path_log, mode="a", encoding="utf-8") as f:  
-            #         f.write(line + "\n")
-
-            #     sly_data["flight_status"] = flight_status 
-
-            #     print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft operation status update $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-            #     print("flight_status: ", flight_status)
-            #     print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$") 
 
         return flight_status
 
@@ -307,41 +277,48 @@ class TrackerAPI(CodedTool):
         return field_values
     
     def _process_field(
-        self, 
-        field_name: str, 
-        args: Dict[str, Any], 
+        self,
+        field_name: str,
+        args: Dict[str, Any],
         sly_data: Dict[str, Any]
     ) -> Tuple[Optional[str], DataSource]:
         """
-        Process a single field by attempting to read from args, then sly_data.
-        
+        Process a single field by reading sly_data first, falling back to
+        args only when sly_data has no value for the field.
+
+        Priority:
+          1. sly_data[field_name] - authoritative running state; returned
+             immediately when present. args is ignored for this field.
+          2. args[field_name]     - used only when sly_data is None;
+             the value is also written into sly_data so subsequent calls
+             find it under rule 1.
+          3. Neither source       - returns (None, NOT_FOUND).
+
         Args:
             field_name: Name of the field to process
-            args: Input arguments (write mode if field exists here)
-            sly_data: Shared data store (read mode if field not in args)
-            
+            args: Input arguments consulted only when sly_data has no value
+            sly_data: Shared data store; always consulted first
+
         Returns:
             Tuple of (field_value, data_source)
         """
-        # Check if value provided in args (write mode)
-        value = args.get(field_name)
-        
-        if value is not None:
-            # Write mode: update sly_data with new value
-            sly_data[field_name] = value
-            logger.info(f"[WRITE] {field_name}: '{value}' (source: args)")
-            return value, DataSource.ARGS
-        
-        # Read mode: try to get from sly_data
-        logger.debug(f"[READ] {field_name} not in args, checking sly_data")
+        # 1. sly_data is authoritative
         value = sly_data.get(field_name)
-        
+
         if value is not None:
-            logger.info(f"[READ] {field_name}: '{value}' (source: sly_data)")
+            logger.info(f"[READ]  {field_name}: '{value}' (source: sly_data)")
             return value, DataSource.SLY_DATA
-        
-        # Field not found in either location
-        logger.warning(f"[NOT FOUND] {field_name}: No value in args or sly_data")
+
+        # 2. Fall back to args and promote the value into sly_data
+        value = args.get(field_name)
+
+        if value is not None:
+            sly_data[field_name] = value
+            logger.info(f"[WRITE] {field_name}: '{value}' (source: args -> sly_data)")
+            return value, DataSource.ARGS
+
+        # 3. Not found anywhere
+        logger.warning(f"[NOT FOUND] {field_name}: No value in sly_data or args")
         return None, DataSource.NOT_FOUND
     
     def _build_return_tuple(
@@ -417,7 +394,6 @@ class TrackerAPI(CodedTool):
 
 # Define tracked fields for flight turnaround operations
 FLIGHT_TURNAROUND_TRACKED_FIELDS = [
-    "aircraft_direction",
     "aircraft_type", 
     "assigned_runway_id", 
     "assigned_runway_length", 
@@ -426,47 +402,8 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
     "flight_status", 
 ]
 
-# [
-#     "acu_connection_status", 
-#     "acu_readiness_status",
-#     "aircraft_direction",
-#     "aircraft_landing_report",
-#     "aircraft_type",
-#     "assigned_runway_id",
-#     "assigned_runway_length",
-#     "baggage_unload_status", 
-#     "catering_loading_status", 
-#     "cleaning_cabin_status", 
-#     "clearance_landing_valid",
-#     "clearance_takeoff_valid", 
-#     "clearance_type",
-#     "crew_debrief_status", 
-#     "crew_exit_status", 
-#     "door_opening_status", 
-#     "engines_stop_status", 
-#     "flight_number",
-#     "flight_status",
-#     "fueling_status", 
-#     "gate_id",
-#     "gpu_connection_status", 
-#     "gpu_readiness_status",
-#     "ground_clearance_status",
-#     "ground_clearance_type",
-#     "ground_services_inquiry_type", 
-#     "ground_services_request_type",
-#     "inspection_maintenance_status", 
-#     "jetbridge_connection_status", 
-#     "jetbridge_status", 
-#     "lavatory_service_status", 
-#     "passenger_disembarkation_status", 
-#     "runway_length",
-#     "wheels_chocks_installation_status", 
-#     "wheels_chocks_readiness_status",
-# ]
-
 # Define which fields should be returned from the API
 FLIGHT_TURNAROUND_RETURN_FIELDS = [
-    "aircraft_direction",
     "aircraft_type", 
     "assigned_runway_id", 
     "assigned_runway_length", 

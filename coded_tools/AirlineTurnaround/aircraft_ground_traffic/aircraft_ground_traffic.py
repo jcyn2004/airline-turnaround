@@ -77,7 +77,6 @@ def build_clearance(
         "clearance_report": clearance_report
     }
 
-
 # =========================
 # Tool implementation
 # =========================
@@ -109,11 +108,8 @@ class execute_ground_clearance(CodedTool):
 
     def __init__(
         self,
-        # aircraft_base: str = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/aircraft_base.csv",
         aircraft_base = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_traffic_controller" / "aircraft_base.csv",
-        # runway_base: str = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/runways_base.csv", 
         runway_base = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_traffic_controller" / "runways_base.csv", 
-        # log_path: str = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt",
         log_path = Path.cwd() / "test_debug" / "airlineturnaround.txt",
     ):
         super().__init__()
@@ -157,32 +153,33 @@ class execute_ground_clearance(CodedTool):
         flight_number: str = args.get("flight_number") or sly_data.get("flight_number")
         flight_status: str = args.get("flight_status") or sly_data.get("flight_status")
         assigned_runway_id: str = args.get("assigned_runway_id") or sly_data.get("assigned_runway_id")
-        # aircraft_direction: str = args.get("aircraft_direction") or sly_data.get("aircraft_direction")
+        gate_id: str = args.get("gate_id") or sly_data.get("gate_id")
+        ground_clearance_type: str = args.get("ground_clearance_type") or sly_data.get("ground_clearance_type")
+        ground_clearance_status: str = args.get("ground_clearance_status") or sly_data.get("ground_clearance_status")
 
         # Persist context
         if aircraft_type: sly_data["aircraft_type"] = aircraft_type
         if flight_number: sly_data["flight_number"] = flight_number
         if flight_status: sly_data["flight_status"] = flight_status
         if assigned_runway_id: sly_data["assigned_runway_id"] = assigned_runway_id
-        # if aircraft_direction: sly_data["aircraft_direction"] = aircraft_direction
+        if gate_id: sly_data["gate_id"] = gate_id
+        if ground_clearance_type: sly_data["ground_clearance_type"] = ground_clearance_type
+        if ground_clearance_status: sly_data["ground_clearance_status"] = ground_clearance_status
 
         print("\n")
         print("\n")
         print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+        print("ENTRY POINT DATA")
         print("aircraft_type: ", aircraft_type)
         print("flight_number: ", flight_number)
         print("flight_status: ", flight_status)
         print("assigned_runway_id: ", assigned_runway_id)
+        print("gate_id: ", gate_id)
+        print("ground_clearance_type: ", ground_clearance_type)
+        print("ground_clearance_status: ", ground_clearance_status)
         print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
         print("\n")
         print("\n")
-
-        # if not aircraft_type or not flight_number or not aircraft_direction:
-        #     return "Error: aircraft_type, flight_number, and aircraft_direction are required."
-
-        # aircraft_direction = aircraft_direction.strip().lower()
-        # if aircraft_direction not in {"incoming", "departing"}:
-        #     return "Error: aircraft_direction must be 'incoming' or 'departing'."
 
         try:
             ac_df = self._load_aircraft_base(self.aircraft_base)
@@ -195,42 +192,50 @@ class execute_ground_clearance(CodedTool):
         if ac_rows.empty:
             return f"Error: aircraft type '{aircraft_type}' not found in aircraft_base."
 
-        # if aircraft_direction == "incoming":
-        #     min_len = int(ac_rows["Landing(m)"].iloc[0])
-        #     candidates = rw_df[rw_df["length(m)"] >= min_len].sort_values(by="length(m)", ascending=True)
-        #     if candidates.empty:
-        #         return f"Error: no runway meets landing requirement ({min_len} m) for {aircraft_type}."
-        #     assigned_runway_id = str(candidates["unit_id"].iloc[0])
-        #     assigned_runway_length = int(candidates["length(m)"].iloc[0])
-        #     flight_status = "TAXIING_IN"
-        #     # ground_clearance_type: GroundClearanceType = "CLEARED_FOR_TAXIING_IN"
-        #     ground_clearance_type: GroundClearanceType = "CLEARANCE_TO_TAXI_IN"
-        #     ground_clearance_status: GroundClearanceStatus = "GRANTED"
-
-        # else:  # departing
-        #     min_len = int(ac_rows["Takeoff(m)"].iloc[0])
-        #     candidates = rw_df[rw_df["length(m)"] >= min_len].sort_values(by="length(m)", ascending=True)
-        #     if candidates.empty:
-        #         return f"Error: no runway meets takeoff requirement ({min_len} m) for {aircraft_type}."
-        #     # choose the longest suitable runway
-        #     assigned_runway_id = str(candidates["unit_id"].iloc[-1])
-        #     assigned_runway_length = int(candidates["length(m)"].iloc[-1])
-        #     flight_status = "TAXIING_OUT"
-        #     # ground_clearance_type: GroundClearanceType = "CLEARED_FOR_TAXIING_OUT"
-        #     ground_clearance_type: GroundClearanceType = "LEARANCE_TO_TAXI_OUT"
-        #     ground_clearance_status: GroundClearanceStatus = "GRANTED"
-
         flight_status = flight_status.strip().lower()
 
         if "landed" in flight_status:
+
+            print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+            print("FLIGHT STATUS SHOWS 'LANDED'")
+            print("flight_status: ", flight_status)
+            print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+
             ground_clearance_type: GroundClearanceType = "CLEARANCE_TO_TAXI_IN"
             ground_clearance_status: GroundClearanceStatus = "GRANTED"
             flight_status = "TAXIING_IN"
+
+            print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+            print("FLIGHT STATUS CHANGED TO 'TAXIING_IN'")
+            print("flight_status: ", flight_status)
+            print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+
+            flight_status = flight_status.lower()
+            ground_clearance_type = ground_clearance_type.lower()
+            ground_clearance_status = ground_clearance_status.lower()
 
         if "off blocks" in flight_status:
             ground_clearance_type: GroundClearanceType = "CLEARANCE_TO_TAXI_OUT"
             ground_clearance_status: GroundClearanceStatus = "GRANTED"
             flight_status = "TAXIING_OUT"
+
+            print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+            print("FLIGHT STATUS SHOWS 'OFF BLOCKS'")
+            print("flight_status: ", flight_status)
+            print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+
+            ground_clearance_type: GroundClearanceType = "CLEARANCE_TO_TAXI_OUT"
+            ground_clearance_status: GroundClearanceStatus = "GRANTED"
+            flight_status = "TAXIING_OUT"
+
+            print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+            print("FLIGHT STATUS CHANGED TO 'TAXIING_OUT'")
+            print("flight_status: ", flight_status)
+            print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+
+            flight_status = flight_status.lower()
+            ground_clearance_type = ground_clearance_type.lower()
+            ground_clearance_status = ground_clearance_status.lower()
 
         # Log and stash
         ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
@@ -241,28 +246,54 @@ class execute_ground_clearance(CodedTool):
 
         clearance_report = line1 + line2,
 
-        sly_data.update({
-            "ground_clearance_type": ground_clearance_type,
-            "ground_clearance_status": ground_clearance_status,
-            "assigned_runway_id": assigned_runway_id,
-            "flight_status": flight_status,
-            "clearance_report": line1 + line2,
-        })
-
-        # sly_data update by classic method pending validation that update command above works fine
-        sly_data["flight_status"] = flight_status    
-        sly_data["ground_clearance_type"] = ground_clearance_type    
-        sly_data["ground_clearance_status"] = ground_clearance_status    
-
-        print("\n")
-        print("\n")
         print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+        print("ENTRY POINT DATA")
+        print("aircraft_type: ", aircraft_type)
+        print("flight_number: ", flight_number)
         print("flight_status: ", flight_status)
+        print("assigned_runway_id: ", assigned_runway_id)
+        print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+
+        # sly_data.update({
+        #     "ground_clearance_type": ground_clearance_type,
+        #     "ground_clearance_status": ground_clearance_status,
+        #     "assigned_runway_id": assigned_runway_id,
+        #     "flight_status": flight_status,
+        #     "clearance_report": line1 + line2,
+        # })
+
+        # # sly_data update by classic method pending validation that update command above works fine
+        # sly_data["flight_status"] = flight_status    
+        # sly_data["ground_clearance_type"] = ground_clearance_type    
+        # sly_data["ground_clearance_status"] = ground_clearance_status    
+
+        print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+        print("EXIT POINT DATA")
+        print("aircraft_type: ", aircraft_type)
+        print("flight_number: ", flight_number)
+        print("flight_status: ", flight_status)
+        print("assigned_runway_id: ", assigned_runway_id)
         print("ground_clearance_type: ", ground_clearance_type)
         print("ground_clearance_status: ", ground_clearance_status)
         print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-        print("\n")
-        print("\n")
+
+        # # sly_data update by classic method pending validation that update command above works fine
+        sly_data["flight_status"] = flight_status    
+        # sly_data["ground_clearance_type"] = ground_clearance_type    
+        # sly_data["ground_clearance_status"] = ground_clearance_status    
+
+        if flight_status is not None: 
+            flight_status = flight_status.strip().upper()
+        if flight_number is not None: 
+            flight_number = flight_number.strip().upper()
+        if aircraft_type is not None: 
+            aircraft_type = aircraft_type.strip().upper()
+        if ground_clearance_type is not None: 
+            ground_clearance_type = ground_clearance_type.strip().upper()
+        if ground_clearance_status is not None: 
+            ground_clearance_status = ground_clearance_status.strip().upper()
+        # assigned_runway_id = assigned_runway_id
+        # clearance_report = clearance_report
 
         try:
             return build_clearance(
@@ -276,6 +307,14 @@ class execute_ground_clearance(CodedTool):
             )
         except Exception as e:
             return f"Error: failed to build clearance: {e}"
+
+        # return flight_status, ground_clearance_type, ground_clearance_status
+
+    async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
+        """
+        Delegates to the synchronous invoke method because it's quick, non-blocking.
+        """
+        return self.invoke(args, sly_data)
 
 #############################################################################
 # Tracker API for all parameters in the aircraft turnaround agentic system  #
@@ -438,41 +477,48 @@ class TrackerAPI(CodedTool):
         return field_values
     
     def _process_field(
-        self, 
-        field_name: str, 
-        args: Dict[str, Any], 
+        self,
+        field_name: str,
+        args: Dict[str, Any],
         sly_data: Dict[str, Any]
     ) -> Tuple[Optional[str], DataSource]:
         """
-        Process a single field by attempting to read from args, then sly_data.
-        
+        Process a single field by reading sly_data first, falling back to
+        args only when sly_data has no value for the field.
+
+        Priority:
+          1. sly_data[field_name] - authoritative running state; returned
+             immediately when present. args is ignored for this field.
+          2. args[field_name]     - used only when sly_data is None;
+             the value is also written into sly_data so subsequent calls
+             find it under rule 1.
+          3. Neither source       - returns (None, NOT_FOUND).
+
         Args:
             field_name: Name of the field to process
-            args: Input arguments (write mode if field exists here)
-            sly_data: Shared data store (read mode if field not in args)
-            
+            args: Input arguments consulted only when sly_data has no value
+            sly_data: Shared data store; always consulted first
+
         Returns:
             Tuple of (field_value, data_source)
         """
-        # Check if value provided in args (write mode)
-        value = args.get(field_name)
-        
-        if value is not None:
-            # Write mode: update sly_data with new value
-            sly_data[field_name] = value
-            logger.info(f"[WRITE] {field_name}: '{value}' (source: args)")
-            return value, DataSource.ARGS
-        
-        # Read mode: try to get from sly_data
-        logger.debug(f"[READ] {field_name} not in args, checking sly_data")
+        # 1. sly_data is authoritative
         value = sly_data.get(field_name)
-        
+
         if value is not None:
-            logger.info(f"[READ] {field_name}: '{value}' (source: sly_data)")
+            logger.info(f"[READ]  {field_name}: '{value}' (source: sly_data)")
             return value, DataSource.SLY_DATA
-        
-        # Field not found in either location
-        logger.warning(f"[NOT FOUND] {field_name}: No value in args or sly_data")
+
+        # 2. Fall back to args and promote the value into sly_data
+        value = args.get(field_name)
+
+        if value is not None:
+            sly_data[field_name] = value
+            logger.info(f"[WRITE] {field_name}: '{value}' (source: args -> sly_data)")
+            return value, DataSource.ARGS
+
+        # 3. Not found anywhere
+        logger.warning(f"[NOT FOUND] {field_name}: No value in sly_data or args")
         return None, DataSource.NOT_FOUND
     
     def _build_return_tuple(
@@ -558,57 +604,27 @@ class TrackerAPI(CodedTool):
 # Define tracked fields for flight turnaround operations
 FLIGHT_TURNAROUND_TRACKED_FIELDS = [
     "aircraft_type", 
-    "assigned_runway_id", 
-    "flight_number", 
     "flight_status", 
+    "flight_number", 
     "gate_id", 
     "ground_clearance_status",
-    "ground_clearance_type"
+    "ground_clearance_type", 
+    "assigned_runway_id", 
+    "assigned_runway_id", 
+    "assigned_runway_length"
 ]
-
-#     "acu_connection_status", 
-#     "acu_readiness_status",
-#     "aircraft_direction",
-#     "aircraft_landing_report",
-#     "aircraft_type",
-#     "assigned_runway_id",
-#     "assigned_runway_length",
-#     "baggage_unload_status", 
-#     "catering_loading_status", 
-#     "cleaning_cabin_status", 
-#     "clearance_landing_valid",
-#     "clearance_takeoff_valid", 
-#     "ground_clearance_type",
-#     "crew_debrief_status", 
-#     "crew_exit_status", 
-#     "door_opening_status", 
-#     "engines_stop_status", 
-#     "flight_number",
-#     "flight_status",
-#     "fueling_status", 
-#     "gate_id",
-#     "gpu_connection_status", 
-#     "gpu_readiness_status",
-#     "ground_clearance_status",
-#     "ground_clearance_type",
-#     "ground_services_inquiry_type", 
-#     "ground_services_request_type",
-#     "inspection_maintenance_status", 
-#     "jetbridge_connection_status", 
-#     "jetbridge_status", 
-#     "lavatory_service_status", 
-#     "passenger_disembarkation_status", 
-#     "runway_length",
-#     "wheels_chocks_installation_status", 
-#     "wheels_chocks_readiness_status",
-# ]
 
 # Define which fields should be returned from the API
 FLIGHT_TURNAROUND_RETURN_FIELDS = [
+    "aircraft_type", 
     "flight_status", 
+    "flight_number", 
     "gate_id", 
     "ground_clearance_status",
-    "ground_clearance_type",
+    "ground_clearance_type", 
+    "assigned_runway_id", 
+    "assigned_runway_id", 
+    "assigned_runway_length"
 ]
 
 # =============================================================================

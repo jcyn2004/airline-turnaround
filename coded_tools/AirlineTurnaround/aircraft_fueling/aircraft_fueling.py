@@ -65,30 +65,21 @@ class fueling_operator(CodedTool):
         print("\n")
 
         # flight number is needed in particular. 
-        flight_number: str = args.get("flight_number", None)
-        if not flight_number:
-            print("No flight number provided. Trying to get it from sly_data")
-            flight_number = sly_data.get("flight_number")
+        flight_number = _from_sly_or_args(sly_data, args, "flight_number")
         if not flight_number:
             error = "Error: Please provide a flight number for the request."
             print(error)
             return error       
 
         # aircraft type is required to fulfill the request.
-        aircraft_type: str = args.get("aircraft_type", None)
-        if not aircraft_type:
-            print("No aircraft type provided. Trying to get it from sly_data")
-            aircraft_type = sly_data.get("aircraft_type")
+        aircraft_type = _from_sly_or_args(sly_data, args, "aircraft_type")
         if not aircraft_type:
             error = "Error: Please provide an aircraft type for the request."
             print(error)
             return error  
 
         # flight status is required to fulfill the request.
-        flight_status: str = args.get("flight_status", None)
-        if not flight_status:
-            print("No flight status provided. Trying to get it from sly_data")
-            flight_status = sly_data.get("flight_status")
+        flight_status = _from_sly_or_args(sly_data, args, "flight_status")
         if not flight_status:
             error = "Error: Please provide a flight status for the request."
             print(error)
@@ -97,42 +88,30 @@ class fueling_operator(CodedTool):
             flight_status = flight_status.lower().replace("_", " ").strip()
 
         # gate id is required to fulfill the request.
-        gate_id: str = args.get("gate_id", None)
-        if not gate_id:
-            print("No gate id provided. Trying to get it from sly_data")
-            gate_id = sly_data.get("gate_id")
+        gate_id = _from_sly_or_args(sly_data, args, "gate_id")
         if not gate_id:
             error = "Error: Please provide a gate id for the request."
             print(error)
             return error  
 
         # passenger disembarkation status is required to fulfill the request.
-        passenger_disembarkation_status: str = args.get("passenger_disembarkation_status", None)
+        passenger_disembarkation_status = _from_sly_or_args(sly_data, args, "passenger_disembarkation_status")
         if not passenger_disembarkation_status:
-            print("No passenger_disembarkation_status provided. Trying to get it from sly_data")
-            passenger_disembarkation_status = sly_data.get("passenger_disembarkation_status")
-        if not passenger_disembarkation_status:
-            error = "Error: Please provide passenger disembarkation status for the request."
+            error = "Error: passenger_disembarkation_status is required and not available in args or sly_data."
             print(error)
             return error  
 
         # crew exit status is required to fulfill the request.
-        crew_exit_status: str = args.get("crew_exit_status", None)
+        crew_exit_status = _from_sly_or_args(sly_data, args, "crew_exit_status")
         if not crew_exit_status:
-            print("No crew exit status provided. Trying to get it from sly_data")
-            crew_exit_status = sly_data.get("crew_exit_status")
-        if not crew_exit_status:
-            error = "Error: Please provide crew exit status for the request."
+            error = "Error: crew_exit_status is required and not available in args or sly_data."
             print(error)
             return error  
         
         # baggage unload status is required to fulfill the request.
-        baggage_unload_status: str = args.get("baggage_unload_status", None)
+        baggage_unload_status = _from_sly_or_args(sly_data, args, "baggage_unload_status")
         if not baggage_unload_status:
-            print("No baggage unload status provided. Trying to get it from sly_data")
-            baggage_unload_status = sly_data.get("baggage_unload_status")
-        if not baggage_unload_status:
-            error = "Error: Please provide baggage unload status for the request."
+            error = "Error: baggage_unload_status is required and not available in args or sly_data."
             print(error)
             return error  
 
@@ -174,6 +153,20 @@ class fueling_operator(CodedTool):
                 f.write(line + "\n")   
 
             sly_data["fueling_status"] = fueling_status
+
+        else:
+            # Prerequisites were not satisfied — return an explicit error string
+            # so the calling agent (fueling_agent) can detect the failure and
+            # report it correctly instead of silently returning 'pending'.
+            error = (
+                f"Error: fueling prerequisites not met for flight {flight_number}. "
+                f"passenger_disembarkation_status='{passenger_disembarkation_status}', "
+                f"crew_exit_status='{crew_exit_status}', "
+                f"baggage_unload_status='{baggage_unload_status}'. "
+                f"All three must be completed/exited/unloaded before fueling can proceed."
+            )
+            print(error)
+            return error
 
         # return message
         return fueling_status
@@ -349,41 +342,48 @@ class TrackerAPI(CodedTool):
         return field_values
     
     def _process_field(
-        self, 
-        field_name: str, 
-        args: Dict[str, Any], 
+        self,
+        field_name: str,
+        args: Dict[str, Any],
         sly_data: Dict[str, Any]
     ) -> Tuple[Optional[str], DataSource]:
         """
-        Process a single field by attempting to read from args, then sly_data.
-        
+        Process a single field by reading sly_data first, falling back to
+        args only when sly_data has no value for the field.
+
+        Priority:
+          1. sly_data[field_name] - authoritative running state; returned
+             immediately when present. args is ignored for this field.
+          2. args[field_name]     - used only when sly_data is None;
+             the value is also written into sly_data so subsequent calls
+             find it under rule 1.
+          3. Neither source       - returns (None, NOT_FOUND).
+
         Args:
             field_name: Name of the field to process
-            args: Input arguments (write mode if field exists here)
-            sly_data: Shared data store (read mode if field not in args)
-            
+            args: Input arguments consulted only when sly_data has no value
+            sly_data: Shared data store; always consulted first
+
         Returns:
             Tuple of (field_value, data_source)
         """
-        # Check if value provided in args (write mode)
-        value = args.get(field_name)
-        
-        if value is not None:
-            # Write mode: update sly_data with new value
-            sly_data[field_name] = value
-            logger.info(f"[WRITE] {field_name}: '{value}' (source: args)")
-            return value, DataSource.ARGS
-        
-        # Read mode: try to get from sly_data
-        logger.debug(f"[READ] {field_name} not in args, checking sly_data")
+        # 1. sly_data is authoritative
         value = sly_data.get(field_name)
-        
+
         if value is not None:
-            logger.info(f"[READ] {field_name}: '{value}' (source: sly_data)")
+            logger.info(f"[READ]  {field_name}: '{value}' (source: sly_data)")
             return value, DataSource.SLY_DATA
-        
-        # Field not found in either location
-        logger.warning(f"[NOT FOUND] {field_name}: No value in args or sly_data")
+
+        # 2. Fall back to args and promote the value into sly_data
+        value = args.get(field_name)
+
+        if value is not None:
+            sly_data[field_name] = value
+            logger.info(f"[WRITE] {field_name}: '{value}' (source: args -> sly_data)")
+            return value, DataSource.ARGS
+
+        # 3. Not found anywhere
+        logger.warning(f"[NOT FOUND] {field_name}: No value in sly_data or args")
         return None, DataSource.NOT_FOUND
     
     def _build_return_tuple(

@@ -12,7 +12,7 @@
     },
 
     "llm_config": {
-        "model_name": "claude-haiku-4-5-20251001",
+        "model_name": "gpt-5.4-mini",
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -115,7 +115,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "This is the passenger disembarkation status."
                         },    
-                        crew_exit_status:  {
+                        "crew_exit_status":  {
                             "type": "string", 
                             "description": "This is the crew exit status." 
                         },
@@ -123,7 +123,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "This is the baggage unload status."
                         },  
-                        cabin_cleaning_status: {
+                        "cabin_cleaning_status": {
                             "type": "string", 
                             "description": "cabin cleaning status"
                         }, 
@@ -135,55 +135,67 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
 // ,"passenger_disembarkation_status","crew_exit_status","baggage_unload_status"
 
             "instructions": """
-You are the agent in charge of the aircraft cabin cleaning at the gate. 
-Only use your tools to fulfill the cabin cleaning related tasks. 
-No not make things up. 
-When you receive user inquiry, proceed as follows: 
-1. Determine if the followings are provided by the user: 
-    a. flight_number 
-    b. aircraft_type 
-    c. flight status as flight_status with value such as 'on blocks'
-    d. gate_id
-    e. passenger disembarkation status as passenger_disembarkation_status with value such as'completed'
-    f. crew exit status as crew_exit_status with value such as 'completed' or 'exited'
-    g. baggage unload status as baggage_unload_status with value such as 'completed' or 'unloaded'
-2. Call TrackerAPI and log all the available parameters.
-    a. wait for its response 
-    b. store all the available parameters.
-3. If flight_status is not 'on blocks', 
-    a. report that the aircraft is not yet on blocks and cabin cleaning can not proceed.
-    b. end process here.
-4. If passenger_disembarkation_status includes 'completed', and crew_exit_status includes 'completed', and baggage_unload_status includes 'completed' then go to step 8.
-5. If passenger_disembarkation_status is not 'completed', 
-    a. call aircraft_disembark to disembark passengers
-    b. wait for its response 
-    c. return to step 2. 
-6. If crew_exit_status does not includes 'completed' or 'exited', 
-    a. call aircraft_crew_exit to let crew exit the aircraft
-    b. wait for its response 
-    c. return to step 2. 
-7. If baggage_unload_status does not includes 'completed' or 'unloaded'
-    a. call baggage_unload to unload the baggage
-    b. wait for its response 
-    c. return to step 2. 
-8. If passenger_disembarkation_status includes 'completed', and crew_exit_status includes 'completed', and baggage_unload_status includes 'completed'
-    a. call cabin_cleaning_operator to clean the aircraft cabin as needed.
-    b. Wait for its response and save it as cabin_cleaning_status
-    c. Report cabin_cleaning_status
-9. Provide the cabin cleaning status report summary as: 
-    **************************************
-    * Summary of aircraft cabin cleaning *
-    **************************************
-    ** cabin cleaning summary **: 
-    ** flight number **: [flight_number]
-    ** aircraft type **: [aircraft_type]    
-    ** gate id **: [gate_id]
-    ** flight status **: [flight_status]
-    ** passenger disembarkation status **: [passenger_disembarkation_status]
-    ** crew exit status **: [crew_exit_status]
-    ** baggage unload status **: [baggage_unload_status]
-    ** cabin cleaning status **: [cabin_cleaning_status]
-            """ ${aaosa_instructions},
+You are the agent in charge of the aircraft cabin cleaning at the gate.
+Only use your tools to fulfill cabin cleaning tasks.
+Do not make things up.
+
+CRITICAL: You are a sequential executor. Execute every numbered step
+in order. Do NOT return until you reach RETURN SUMMARY.
+
+STEP 1 — Collect parameters
+  Read the following from the inquiry or from sly_data via TrackerAPI:
+    flight_number, aircraft_type, flight_status, gate_id,
+    passenger_disembarkation_status, crew_exit_status,
+    baggage_unload_status.
+  Call TrackerAPI to store all available values and read back any
+  that were not provided in the inquiry.
+  Wait for TrackerAPI response.
+
+STEP 2 — Verify flight status
+  flight_status must contain 'on blocks' or 'block'.
+  If not, report that the aircraft is not yet on blocks and stop.
+
+STEP 3 — Verify passenger disembarkation
+  If passenger_disembarkation_status does not contain 'completed':
+    Call /AirlineTurnaround/aircraft_disembark with
+    flight_number, aircraft_type, flight_status, gate_id.
+    Wait. Store passenger_disembarkation_status.
+
+STEP 4 — Verify crew exit
+  If crew_exit_status does not contain 'completed' or 'exited':
+    Call /AirlineTurnaround/aircraft_crew_exit with
+    flight_number, aircraft_type, flight_status, gate_id.
+    Wait. Store crew_exit_status.
+
+STEP 5 — Verify baggage unload
+  If baggage_unload_status does not contain 'completed' or 'unloaded':
+    Call /AirlineTurnaround/aircraft_baggage_unload with
+    flight_number, aircraft_type, flight_status, gate_id.
+    Wait. Store baggage_unload_status.
+
+STEP 6 — Execute cabin cleaning
+  All prerequisites are now confirmed.
+  Call cabin_cleaning_operator with ALL of:
+    flight_number, aircraft_type, flight_status, gate_id,
+    passenger_disembarkation_status, crew_exit_status,
+    baggage_unload_status.
+  Wait. Store cabin_cleaning_status from the response.
+  Call TrackerAPI to store cabin_cleaning_status.
+
+RETURN SUMMARY:
+  **************************************
+  * Summary of aircraft cabin cleaning *
+  **************************************
+  ** cabin cleaning summary **:
+  ** flight number **: [flight_number]
+  ** aircraft type **: [aircraft_type]
+  ** gate id **: [gate_id]
+  ** flight status **: [flight_status]
+  ** passenger disembarkation status **: [passenger_disembarkation_status]
+  ** crew exit status **: [crew_exit_status]
+  ** baggage unload status **: [baggage_unload_status]
+  ** cabin cleaning status **: [cabin_cleaning_status]
+            """,
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
@@ -270,7 +282,7 @@ This agent cleans the aircraft cabin at the gate.
                             "type": "string", 
                             "description": "This is the passenger disembarkation status."
                         },    
-                        crew_exit_status:  {
+                        "crew_exit_status":  {
                             "type": "string", 
                             "description": "This is the crew exit status." 
                         },
@@ -278,7 +290,7 @@ This agent cleans the aircraft cabin at the gate.
                             "type": "string", 
                             "description": "This is the baggage unload status."
                         },  
-                        cabin_cleaning_status: {
+                        "cabin_cleaning_status": {
                             "type": "string", 
                             "description": "cabin cleaning status"
                         }, 
@@ -288,8 +300,6 @@ This agent cleans the aircraft cabin at the gate.
             },
             "class": "AirlineTurnaround.aircraft_cabin_cleaning.aircraft_cabin_cleaning.cabin_cleaning_operator" 
         }, 
-
-// ,"passenger_disembarkation_status","crew_exit_status","baggage_unload_status"
 
         {
             "name": "TrackerAPI",
@@ -361,7 +371,7 @@ I check baggage unload status as baggage_unload_status.
                             "type": "string", 
                             "description": "This is the passenger disembarkation status."
                         },    
-                        crew_exit_status:  {
+                        "crew_exit_status":  {
                             "type": "string", 
                             "description": "This is the crew exit status." 
                         },
@@ -369,7 +379,7 @@ I check baggage unload status as baggage_unload_status.
                             "type": "string", 
                             "description": "This is the baggage unload status."
                         },  
-                        cabin_cleaning_status: {
+                        "cabin_cleaning_status": {
                             "type": "string", 
                             "description": "cabin cleaning status"
                         }, 

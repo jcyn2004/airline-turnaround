@@ -11,10 +11,13 @@
         ]
     },
 
-            // "Clear incoming flight AF84 for landing. The aircraft is a B747."
+    // "llm_config": {
+    //     "model_name": "gemini-3-flash",
+    //     "temperature": 1.0
+    // }
 
     "llm_config": {
-        "model_name": "claude-haiku-4-5-20251001",
+        "model_name": "gpt-5.4-mini",
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -52,10 +55,10 @@ When you receive a user request for clearance,
 5. Call TrackerAPI 
     a. wait for its response 
     b. store all the available parameters.
-6. Provide the clearance summary as follows:    
-******************************************
-* Summary of aircraft traffic controller *
-******************************************
+6. Provide the air clearance summary as follows:    
+*****************************************
+* Summary of aircraft traffic clearance *
+*****************************************
 ** aircraft direction **: [aircraft_direction]
 ** flight number **: [flight_number]
 ** aircraft type **: [aircraft_type]
@@ -241,7 +244,7 @@ This agent gives aircraft clearance for landing.
                     "required": ["aircraft_type", "flight_number", "aircraft_direction"] 
                 },
             }, 
-            "class": "AirlineTurnaround.aircraft_traffic_controller.aircraft_traffic_controller.execute_air_clearance"
+            "class": "coded_tools.AirlineTurnaround.aircraft_traffic_controller.aircraft_traffic_controller.execute_air_clearance"
         }, 
 
         {
@@ -323,7 +326,7 @@ I am the flight tracker in charge of logging parameters during aircraft turnarou
                     "required": [] 
                 }
             },
-            "class": "AirlineTurnaround.aircraft_traffic_controller.aircraft_traffic_controller.TrackerAPI" 
+            "class": "coded_tools.AirlineTurnaround.aircraft_traffic_controller.aircraft_traffic_controller.TrackerAPI" 
         }, 
     ],
 }

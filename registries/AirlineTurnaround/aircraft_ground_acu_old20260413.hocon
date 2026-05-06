@@ -1,0 +1,358 @@
+{
+    include "registries/aaosa_basic.hocon" 
+
+    # Optional metadata describing this agent network
+    "metadata": {
+        "description": "Simple agent network using a single LLM-based agent",
+        "tags": ["example"],
+        "sample_queries": [
+            "The B747 aircraft of flight AF84 is on blocks at gate A1. The engines are stopped and wheels chocks have been installed. Connect the ACU.", 
+            "The B747 aircraft of flight AF84 is on blocks at gate A1. Connect the ACU.", 
+            "The B747 aircraft of flight AF84 has been assigned gate A1. Report ACU readiness at the gate.", 
+        ]
+    },
+
+    "llm_config": {
+        "model_name": "gpt-5.4-mini",
+    },
+    "max_iterations": 40000, #3000 
+    "max_execution_seconds": 7200, #600
+    "commondefs": {
+        "replacement_strings": {
+            "instructions_prefix": """
+You are part of aircraft turnaround process at an Airport. 
+Only answer inquiries that are directly within your area of expertise.
+Do not try to help for other matters.
+Do not mention what you can NOT do. Only mention what you can do.
+            """,
+            "aaosa_instructions": """
+When you receive an inquiry, you will:
+1. If you are clearly not the right agent for this type of inquiry, reply you're not relevant.
+2. If there is a chance you're relevant, call your down-chain agents to determine if they can answer all or part of the inquiry.
+   Do not assume what your down-chain agents can do. Always call them. You'll be surprised.
+3. Once all relevant down-chain agents have responded, either:
+   - Analyze their response and compile your final response. No need to include non-relevant agents. In doubt, ask for clarification.
+   - Follow up with your down-chain agents if needed, as many times as needed
+   - If an action is needed, ask the most relevant down-chain agent to fulfill the inquiry.
+4. Return the final response to the caller.
+You may, in turn, be called by other agents in the system and have to act as a down-chain agent to them. 
+            """
+        },
+        "replacement_values": {
+            "aaosa_call": {
+                "description": "Depending on the mode, returns a natural language string in response.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "inquiry": {
+                            "type": "string",
+                            "description": "The inquiry"
+                        },
+                        "mode": {
+                            "type": "string",
+                            "description": """
+'Determine' to ask the agent if the inquiry belongs to it, in its entirety or in part.
+'Fulfill' to ask the agent to fulfill the inquiry, if it can.
+'Follow up' to ask the agent to respond to a follow up.
+                            """
+                        },
+                    },
+                    "required": [
+                        "inquiry",
+                        "mode"
+                    ]
+                }
+            },
+            "aaosa_command": """
+If mode is 'Determine', return a json block with the following fields:
+{
+    "Name": <your name>,
+    "Inquiry": <the inquiry>,
+    "Mode": <Determine | Fulfill>,
+    "Relevant": <Yes | No>,
+    "Strength": <number between 1 and 10 representing how certain you are in your claim>,
+    "Claim:" <All | Partial>,
+    "Requirements" <None | list of requirements>
+}
+If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json block with the following fields:
+{
+    "Name": <your name>,
+    "Inquiry": <the inquiry>,
+    "Mode": Fulfill,
+    "Response" <your response>
+}
+            """
+        },
+    },
+
+    "tools": [
+
+        {
+            "name": "acu_agent",
+            "function": {
+                "description": """
+ I am in charge of acu at the gate. 
+ I report the readiness status of ACU when user inquires.
+ I connect ACU to the aircraft upon arrival at the gate when user inquires.
+                """
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },         
+                        "flight_status": {
+                            "type": "string", 
+                            "description": "This is the flight status."
+                        },        
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate where the aircraft is parked."
+                        },       
+                        "engines_stop_status": {
+                            "type": "string", 
+                            "description": "This is the status of engines stop."
+                        },     
+                        "wheels_chocks_installation_status": {
+                            "type": "string", 
+                            "description": "This is the status of wheels chocks installation."
+                        },         
+                        "acu_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the acu readiness status."
+                        },     
+                        "acu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the acu connection status."
+                        },     
+                    }, 
+                    "required": ["flight_number", "aircraft_type","flight_status","gate_id"] 
+                }
+            },
+
+            "instructions": """
+You are the agent in charge of ACU at the gate.  
+When user submit inquiry about ACU, proceed as follows: 
+1. Read the inquiry and determine whether the user is inquiring about ACU readiness status or requesting ACU connection to the aircraft. 
+2. If the inquiry is not about either of these two, reply that you are not relevant to this inquiry and stop process here.
+3. If the inquiry is about ACU readiness status, call your tool to inquire about ACU readiness status as acu_readiness_status, and report its value back to user. stop process here. 
+4. If the inquiry is about ACU connection, read the inquiry and determine if the followings are provided:
+    a. flight status as flight_status with value such as 'on blocks', 
+    b. engines stop status as engines_stop_status with value such as 'stopped' or 'running',
+    c. wheels chocks installation status as wheels_chocks_installation_status with value such as 'installed' or 'not installed'.
+5. If flight_status is does not contain 'on' and 'blocks', or if engines_stop_status is not 'stopped', or if wheels_chocks_installation_status is not 'installed', 
+    a. call TrackerAPI
+    a. wait for its response 
+    b. store engines_stop_status and wheels_chucks_installation_status and flight_status
+6. If flight_status is not 'on blocks' or engines_stop_status is not 'stopped' or wheels_chocks_installation_status is not 'installed'
+    a. return to user that acu can not be connected unless flight_status is 'on blocks' and engines_stop_status is 'stopped' and wheels_chocks_installation_status is 'installed'
+    b. stop process here.
+7. If flight_status is 'on blocks' and engines_stop_status is 'stopped' and wheels_chucks_installation_status is 'installed'
+    a. call your tools to connect acu to aircraft
+    b. Wait for response on acu connection status and save it as acu_connection_status
+    c. Report acu_connection_statusback to user. 
+8. Call TrackerAPI
+    a. wait for its response 
+    b. store engines stop status as engines_stop_status, store wheels chucks installation status as wheels_chucks_installation_status, store acu connection status as acu_connection_status
+9. Provide the acu connection status report summary as: 
+    ***********************************
+    * Summary of aircraft acu connect *
+    ***********************************
+    ** flight status **: [flight_status]
+    ** engines stop status **: [engines_stop_status]
+    ** wheels chucks installation status **: [wheels_chucks_installation_status]
+    ** acu connection status summary **: [acu_connection_status]
+    ** acu readiness status summary **: [acu_readiness_status]
+            """ ${aaosa_instructions},
+
+            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
+            "allow": {
+                "to_upstream": {
+                    "sly_data": {
+                        "acu_connection_status": true
+                    }
+                }
+                "to_downstream": {
+                    "sly_data": {
+                        "flight_number": true
+                        "aircraft_type": true
+                        "flight_status": true
+                        "gate_id": true 
+                        "engines_stop_status": true
+                        "wheels_chocks_installation_status": true
+                        "acu_connection_status": true
+                    }
+                }
+                "from_upstream": {
+                    "sly_data": {
+                        "flight_number": true
+                        "aircraft_type": true
+                        "flight_status": true
+                        "gate_id": true 
+                        "engines_stop_status": true
+                        "wheels_chocks_installation_status": true
+                        "acu_connection_status": true
+                    }
+                }
+                "from_downstream": {
+                    "sly_data": {
+                        "flight_number": true
+                        "aircraft_type": true
+                        "flight_status": true
+                        "gate_id": true 
+                        "engines_stop_status": true
+                        "wheels_chocks_installation_status": true
+                        "acu_connection_status": true
+                    }
+                }
+            },
+
+            "tools":    ["acu_operator","acu_setup","/AirlineTurnaround/aircraft_engines_stop","/AirlineTurnaround/aircraft_chocks_install","TrackerAPI"]
+        },
+
+        {
+            "name": "acu_operator",
+            "function": {
+                "description": """
+This agent connects acu to the aircraft upon arrival at the gate. 
+                """,
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },         
+                        "flight_status": {
+                            "type": "string", 
+                            "description": "This is the flight status."
+                        },        
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate where the aircraft is parked."
+                        },    
+                        "acu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the acu connection status."
+                        },          
+                    }, 
+                    "required": ["aircraft_type","gate_id"] 
+                }
+            },
+            "class": "AirlineTurnaround.aircraft_ground_acu.aircraft_ground_acu.acu_operator" 
+        }, 
+
+        {
+            "name": "acu_setup",
+            "function": {
+                "description": """
+This agent report the status of acu readiness at the gate. 
+                """,
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },         
+                        "flight_status": {
+                            "type": "string", 
+                            "description": "This is the flight status."
+                        },        
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate where the aircraft is parked."
+                        },           
+                        "acu_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the acu readiness status."
+                        },   
+                    }, 
+                    "required": ["aircraft_type","gate_id"] 
+                }
+            },
+            "class": "AirlineTurnaround.aircraft_ground_acu.aircraft_ground_acu.acu_setup" 
+        }, 
+
+        {
+            "name": "TrackerAPI",
+            "function": {
+
+                "description": """
+I am the flight tracker in charge of logging parameters during aircraft turnaround. 
+I check engines stop status as engines_stop_status. 
+I check wheels chucks installation status as wheels_chucks_installation_status. 
+                """
+
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },     
+                        "flight_status": {
+                            "type": "string", 
+                            "description": "This is the flight status."
+                        },          
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate assigned to the aircraft parking."
+                        },     
+                        "ground_services_request_type": {
+                            "type": "string", 
+                            "description": "This is the type of the inquiry received for grand services."
+                        },         
+                        "wheels_chocks_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks readiness status."
+                        },   
+                        "wheels_chocks_installation_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks installation status."
+                        },   
+                        "acu_readiness_status": {
+                            "type": "string", 
+                            "description": "This is the acu readiness status."
+                        },     
+                        "acu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the acu connection status."
+                        },     
+                        "engines_stop_status": {
+                            "type": "string", 
+                            "description": "This is the engines stop status."
+                        },    
+                        "jetbridge_connection_status": {
+                            "type": "string", 
+                            "description": "This is the jetbridge connection status."
+                        },    
+                        "door_opening_status": {
+                            "type": "string", 
+                            "description": "This is the door opening status."
+                        },    
+                    }, 
+                    "required": [] 
+                }
+            },
+            "class": "AirlineTurnaround.aircraft_ground_acu.aircraft_ground_acu.TrackerAPI" 
+        }, 
+    ],
+}
