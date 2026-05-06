@@ -1,0 +1,315 @@
+{
+    include "registries/aaosa_basic.hocon" 
+
+    # Optional metadata describing this agent network
+    "metadata": {
+        "description": "Simple agent network using a single LLM-based agent",
+        "tags": ["example"],
+        "sample_queries": [
+            "The B747 aircraft of flight AF84 is on blocks at gate A1. Baggages have been unloaded. All passengers have disembarked. The crew has exited the aircraft. Perform lavatory service to the aircraft.", 
+            "The B747 aircraft of flight AF84 is on blocks at gate A1. Baggages have been unloaded. All passengers have disembarked. The crew has exited the aircraft. Perform aircraft cabin cleaning and provide a summary report.", 
+            "The B747 aircraft of flight AF84 is on blocks at gate A1. Baggages have been unloaded. All passengers have disembarked. The crew has exited the aircraft. Load catering to the aircraft.",
+        ]
+    },
+
+    "llm_config": {
+        "model_name": "gpt-5.4-mini", #"gpt-4o", # "claude-haiku-4-5-20251001", #"claude-sonnet-4-6", #
+    },
+    "max_iterations": 3000, #3000 
+    "max_execution_seconds": 300, #600
+    "commondefs": {
+        "replacement_strings": {
+            "instructions_prefix": """
+You are part of aircraft turnaround process at the San Francisco International Airport. 
+Only answer inquiries that are directly within your area of expertise.
+Do not try to help for other matters.
+Do not mention what you can NOT do. Only mention what you can do.
+            """,
+            "aaosa_instructions": """
+When you receive an inquiry, you will:
+1. If you are clearly not the right agent for this type of inquiry, reply you're not relevant.
+2. If there is a chance you're relevant, call your down-chain agents to determine if they can answer all or part of the inquiry.
+   Do not assume what your down-chain agents can do. Always call them. You'll be surprised.
+3. Once all relevant down-chain agents have responded, either:
+   - Analyze their response and compile your final response. No need to include non-relevant agents. In doubt, ask for clarification.
+   - Follow up with your down-chain agents if needed, as many times as needed
+   - If an action is needed, ask the most relevant down-chain agent to fulfill the inquiry.
+4. Return the final response to the caller.
+You may, in turn, be called by other agents in the system and have to act as a down-chain agent to them. 
+            """ 
+        },
+        "replacement_values": {
+            "aaosa_call": {
+                "description": "Depending on the mode, returns a natural language string in response.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "inquiry": {
+                            "type": "string",
+                            "description": "The inquiry"
+                        },
+                        "mode": {
+                            "type": "string",
+                            "description": """
+'Determine' to ask the agent if the inquiry belongs to it, in its entirety or in part.
+'Fulfill' to ask the agent to fulfill the inquiry, if it can.
+'Follow up' to ask the agent to respond to a follow up.
+                            """
+                        },
+                    },
+                    "required": [
+                        "inquiry",
+                        "mode"
+                    ]
+                }
+            },
+            "aaosa_command": """
+If mode is 'Determine', return a json block with the following fields:
+{
+    "Name": <your name>,
+    "Inquiry": <the inquiry>,
+    "Mode": <Determine | Fulfill>,
+    "Relevant": <Yes | No>,
+    "Strength": <number between 1 and 10 representing how certain you are in your claim>,
+    "Claim:" <All | Partial>,
+    "Requirements" <None | list of requirements>
+}
+If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json block with the following fields:
+{
+    "Name": <your name>,
+    "Inquiry": <the inquiry>,
+    "Mode": Fulfill,
+    "Response" <your response>
+}
+            """
+        },
+    },
+
+    "tools": [
+
+        {
+            "name": "cabin_services",
+            "function": {
+                "description": """
+I perform aircraft cabin services including lavatory service, cabin cleaning, and catering loading.
+                """
+            },
+
+            "instructions": """
+You are the agent in charge of performing cabin services when the aircraft is at the gate after passengers and crew have disembarked. 
+When user submits inquiry for cabin services, proceed as follows: 
+1. Read the inquiry and determine if it is about cabin services such as lavatory service, cabin cleaning, and catering loading.
+    a. If not, reply that you are not relevant to this inquiry and stop process here. 
+    b. If it is about cabin services, continue to step 2.
+2. If you can not fulfill the inquiry and your down-chain agents can not provide the information you need to fulfill the inquiry, return to user that you can not fulfill the inquiry due to insufficient information and stop process here. 
+3. If the inquiry is about cabin cleaning 
+    a. call the relevant down-chain agent to request cabin cleaning 
+    b. wait for the response 
+    c. Call TrackerAPI 
+        i. wait for its response 
+        ii.store all the available parameters.
+    d. Provide the aircraft cabin cleaning summary as:
+        **************************************
+        * Summary of aircraft cabin cleaning *
+        **************************************
+        ** cabin cleaning summary **: 
+        ** flight number **: [flight_number]
+        ** aircraft type **: [aircraft_type]    
+        ** flight status **: [flight_status]
+        ** gate id **: [gate_id]
+        ** cabin cleaning status **: [cabin_cleaning_status]
+    e. stop process here.
+
+4. If the inquiry is about lavatory service 
+    a. call the relevant down-chain agent to request lavatory service 
+    b. wait for the response 
+    c. Call TrackerAPI 
+        i. wait for its response 
+        ii.store all the available parameters.
+    d. Provide the aircraft lavatory service summary as:
+        ****************************************
+        * Summary of aircraft lavatory service *
+        ****************************************
+        ** flight_number **: [flight_number]
+        ** aircraft_type **: [aircraft_type]
+        ** flight_status **: [flight_status]
+        ** gate_id **: [gate_id]
+        ** lavatory service status **: [lavatory_service_status]
+    e. stop process here.
+
+5. If the inquiry is about catering loading 
+    a. call the relevant down-chain agent to request catering loading 
+    b. wait for the response 
+    c. Call TrackerAPI 
+        i. wait for its response 
+        ii.store all the available parameters.
+    d. Provide the aircraft catering loading summary as:
+        ****************************************
+        * Summary of aircraft catering loading *
+        ****************************************
+        ** flight number **: [flight_number]
+        ** aircraft type **: [aircraft_type]
+        ** flight status **: [flight_status]
+        ** gate id **: [gate_id]
+        ** catering loading service summary **: [catering_loading_status]
+    e. stop process here.
+            """ ${aaosa_instructions},   
+
+            "parameters": {
+                "type": "object", 
+                "properties": {
+                    "flight_number": {
+                        "type": "string", 
+                        "description": "This is the flight number of the incoming aicraft."
+                    },   
+                    "aircraft_type": {
+                        "type": "string", 
+                        "description": "This is the type of the incoming aircraft."
+                    },         
+                    "flight_status": {
+                        "type": "string", 
+                        "description": "This is the flight status."
+                    },        
+                    "gate_id": {
+                        "type": "string", 
+                        "description": "This is the gate where the aircraft is parked."
+                    },                
+                    "catering_loading_status": {
+                        "type": "string", 
+                        "description": "This is the catering loading status."
+                    },  
+                    cabin_cleaning_status: {
+                        "type": "string", 
+                        "description": "cabin cleaning status"
+                    }, 
+                    "lavatory_service_status": {
+                        "type": "string", 
+                        "description": "lavatory service status."                            
+                    }   
+                }, 
+                "required": ["aircraft_type","gate_id"] 
+            },
+
+            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
+            "allow": {
+                "to_upstream": {
+                    "sly_data": {
+                        "flight_number": true, 
+                        "aircraft_type": true, 
+                        "flight_status": true, 
+                        "gate_id": true, 
+                        "catering_loading_status": true, 
+                        "cabin_cleaning_status": true, 
+                        "lavatory_service_status": true, 
+                    }
+
+                },
+                "from_upstream": {
+                    "sly_data": {
+                        "flight_number": true, 
+                        "aircraft_type": true, 
+                        "flight_status": true, 
+                        "gate_id": true, 
+                        "catering_loading_status": true, 
+                        "cabin_cleaning_status": true, 
+                        "lavatory_service_status": true, 
+                    }
+                },
+                "from_downstream": {
+                    "sly_data": {
+                        "flight_number": true, 
+                        "aircraft_type": true, 
+                        "flight_status": true, 
+                        "gate_id": true, 
+                        "catering_loading_status": true, 
+                        "cabin_cleaning_status": true, 
+                        "lavatory_service_status": true, 
+                    }
+                },
+                "to_downstream": {
+                    "sly_data": {
+                        "flight_number": true, 
+                        "aircraft_type": true, 
+                        "flight_status": true, 
+                        "gate_id": true, 
+                        "catering_loading_status": true, 
+                        "cabin_cleaning_status": true, 
+                        "lavatory_service_status": true, 
+                    }
+                }
+            },
+
+            "tools": [
+                "/AirlineTurnaround/aircraft_lavatory_service",
+                "/AirlineTurnaround/aircraft_cabin_cleaning",  
+                "/AirlineTurnaround/aircraft_catering_loading", 
+                "TrackerAPI",
+            ]
+
+        },
+
+// 5. Call your tools to inquire on air conditioning unit readiness status as acu_readiness_status, 
+//     a. Wait for your all your tools to return acu_readiness_status.
+//     b. Call TrackerAPI and log all the available parameters.
+//     c. Store the returned acu_readiness_status for later use.
+// 6. Call your tools to inquire on ground power unit readiness status as gpu_readiness_status, 
+//     a. Wait for your all your tools to return gpu_readiness_status.
+//     b. Call TrackerAPI and log all the available parameters.
+//     c. Store the returned gpu_readiness_status for later use.
+// 7. Call your tools to inquire on wheelchocks readiness status as wheelchocks_readiness_status, 
+//     a. Wait for your all your tools to return wheelchocks_readiness_status.
+//     b. Call TrackerAPI and log all the available parameters.
+//     c. Store the returned wheelchocks_readiness_status for later use.
+
+// 5. Call your tools to inquire on air conditioning unit readiness status as acu_readiness_status, ground power unit readiness status as gpu_readiness_status, and wheelchocks readiness status as wheelchocks_readiness_status, respectively, by calling the following tools:
+//     a. Wait for your all your tools to return acu_readiness_status, gpu_readiness_status, and wheelchocks_readiness_status.
+//     b. Call TrackerAPI and log all the available parameters.
+//     c. Store the returned parameters for later use.
+
+// 5. Call your tools to inquire on acu readiness status as acu_readiness_status, gpu readiness status as gpu_readiness_status and wheelchocks readiness status as wheelchocks_readiness_status. 
+//      a. Wait for your all your tools to return acu readiness status as acu_readiness_status, gpu readiness status as gpu_readiness_status and wheelchocks readiness status as wheelchocks_readiness_status.
+//      b. Call TrackerAPI and log acu_readiness_status, gpu_readiness_status and wheelchocks_readiness_status.
+//      c. Store acu_readiness_status, gpu_readiness_status and wheelchocks_readiness_status for later use.
+
+        {
+            "name": "TrackerAPI",
+            "function": {
+
+                "description": """
+I am the flight tracker in charge of logging parameters during aircraft turnaround. 
+I check passenger disembarkation status as passenger_disembarkation_status. 
+I check crew exit status as crew_exit_status. 
+I check baggage unload status as baggage_unload_status. 
+                """,
+
+                "parameters": {
+                    "type": "object", 
+                    "properties": {
+                        "aircraft_type": {
+                            "type": "string", 
+                            "description": "This is the type of the incoming aircraft."
+                        },         
+                        "gate_id": {
+                            "type": "string", 
+                            "description": "This is the gate assigned to the aircraft parking."
+                        },     
+                        "wheelchocks_installation_status": {
+                            "type": "string", 
+                            "description": "This is the wheels chocks installation status."
+                        },   
+                        "gpu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the ground_power_unit connection status."
+                        },      
+                        "acu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the air_conditioning_unit connection status."
+                        },      
+                    }, 
+                    "required": [] 
+                }
+            },
+            "class": "AirlineTurnaround.aircraft_ground_rampservices.aircraft_ground_rampservices.TrackerAPI" 
+        }, 
+    ],
+}

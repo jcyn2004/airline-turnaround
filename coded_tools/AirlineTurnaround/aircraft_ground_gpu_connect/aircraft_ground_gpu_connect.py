@@ -9,8 +9,6 @@ import re
 import pandas as pd
 from pathlib import Path
 
-from coded_tools.AirlineTurnaround.aircraft_gate_selection.aircraft_gate_selection import _load_equipment_df
-
 # ---------- helpers ----------
 
 def _from_args_or_sly(args: Dict[str, Any], sly: Dict[str, Any], key: str) -> Any:
@@ -29,80 +27,100 @@ def _norm(s: Union[str, None]) -> str:
 
 # ---------- tool ----------
 
-class acu_readiness(CodedTool):
-    """
-    Read and return sly data in read mode, or write and update sly data in write. 
-    """
+# class gpu_setup(CodedTool):
+#     """
+#     Read and return sly data in read mode, or write and update sly data in write. 
+#     """
 
-    def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
-        """
-        :param args: an empty dictionary (not used).
+#     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
+#         """
+#         :param args: an empty dictionary (not used).
 
-        :param sly_data: a dictionary with the following keys:
-            - aircraft_type
-            - gate_id 
+#         :param sly_data: a dictionary with the following keys:
+#             - aircraft_type
+#             - gate_id 
+#             - acu_readiness_status
 
-        :return: None in write mode or any of the parameters in read mode
-        """
+#         :return: None in write mode or any of the parameters in read mode
+#         """
 
-        equipments_csv_path = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_gate_selection" / "gate_equipments_base.csv", 
-        file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
+#         equipments_csv_path = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_gate_selection" / "gate_equipments_base.csv" 
+#         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
 
-        print("\n")
-        print("\n")
-        print(" #################### ACU READINESS - PARAMETERS #################### ")
-        print("\n")
-        print("\n")
+#         print("\n")
+#         print("\n")
+#         print(" #################### GPU READINESS - PARAMETERS #################### ")
+#         print("\n")
+#         print("\n")
 
-        # aircraft type is required to fulfill the request.
-        aircraft_type: str = args.get("aircraft_type", None)
-        if not aircraft_type:
-            print("No aircraft type provided. Trying to get it from sly_data")
-            aircraft_type = sly_data.get("aircraft_type")
-        if not aircraft_type:
-            error = "Error: Please provide an aircraft type for the request."
-            print(error)
-            return error  
+#         # aircraft type is required to fulfill the request.
+#         aircraft_type: str = args.get("aircraft_type", None)
+#         if not aircraft_type:
+#             print("No aircraft type provided. Trying to get it from sly_data")
+#             aircraft_type = sly_data.get("aircraft_type")
+#         if not aircraft_type:
+#             error = "Error: Please provide an aircraft type for the request."
+#             print(error)
+#             return error  
         
-        print("\n")
-        print("\n")
-        print("aircraft_type: ", aircraft_type)
-        print("\n")
-        print("\n")
+#         print("\n")
+#         print("\n")
+#         print("aircraft_type: ", aircraft_type)
+#         print("\n")
+#         print("\n")
          
-        # gate id is required to fulfill the request.
-        gate_id: str = args.get("gate_id", None)
-        if not gate_id:
-            print("No gate id provided. Trying to get it from sly_data")
-            gate_id = sly_data.get("gate_id")
-        if not gate_id:
-            error = "Error: Please provide a gate id for the request."
-            print(error)
-            return error  
+#         # gate id is required to fulfill the request.
+#         gate_id: str = args.get("gate_id", None)
+#         if not gate_id:
+#             print("No gate id provided. Trying to get it from sly_data")
+#             gate_id = sly_data.get("gate_id")
+#         if not gate_id:
+#             error = "Error: Please provide a gate id for the request."
+#             print(error)
+#             return error  
         
-        print("\n")
-        print("\n")
-        print("gate_id: ", gate_id)
-        print("\n")
-        print("\n")
+#         print("\n")
+#         print("\n")
+#         print("gate_id: ", gate_id)
+#         print("\n")
+#         print("\n")
 
-        air_conditioning_unit_readiness = "UNKNOWN"
+#         gpu_readiness_status = "pending" 
 
-        if ((gate_id is not None) & (aircraft_type is not None)):
+#         print("equipments_csv_path: ", equipments_csv_path)
 
-            df = pd.read_csv(equipments_csv_path)
+#         if ((gate_id is not None) & (aircraft_type is not None)):
+#             print("equipments_csv_path: ", equipments_csv_path)
 
-            air_conditioning_unit_readiness = df.loc[df['gate_id'] == 'A1', 'air_conditioning_unit_readiness'].values[0]
+#             df = pd.read_csv(equipments_csv_path)
+#             print(df)
 
-        return air_conditioning_unit_readiness
+#             gpu_readiness_status = df.loc[df['gate_id'] == gate_id, 'ground_power_unit_readiness']
 
-    async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
-        """
-        Delegates to the synchronous invoke method because it's quick, non-blocking.
-        """
-        return self.invoke(args, sly_data)
+#             print("\n")
+#             print("\n")
+#             print("============================ GPU READINESS STATUS CHECK =======================")
+#             print("GPU READINESS STATUS 1", gpu_readiness_status)
+#             print("============================ GPU READINESS STATUS CHECK =======================") 
+#             gpu_readiness_status = gpu_readiness_status.values[0] 
+#             print("GPU READINESS STATUS 2", gpu_readiness_status)
+#             print("============================ GPU READINESS STATUS CHECK =======================") 
+#             print("\n")
+#             print("\n")
 
-class acu_operator(CodedTool):
+#             if gpu_readiness_status == 'yes':
+#                 gpu_readiness_status = "ready"
+
+#         sly_data["gpu_readiness_status"] = gpu_readiness_status
+#         return gpu_readiness_status
+
+#     async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
+#         """
+#         Delegates to the synchronous invoke method because it's quick, non-blocking.
+#         """
+#         return self.invoke(args, sly_data)
+
+class gpu_operator(CodedTool):
     """
     Read and return sly data in read mode, or write and update sly data in write. 
     """
@@ -112,42 +130,19 @@ class acu_operator(CodedTool):
         :param args: an empty dictionary (not used).
 
         :param sly_data: a dictionary with the following keys:
-            - flight_status
-            - flight_number
             - aircraft_type
             - gate_id 
-            - engines_stop_status 
-            - wheels_chocks_installation status
+            - gpu_readiness_status
 
         :return: None in write mode or any of teh parameters in read mode
         """
         
-        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
         # acu_connection_status = 'pending'
 
         print("\n")
         print("\n")
-        print(" #################### ACU CONNECT OPERATOR - PARAMETERS #################### ")
-        print("\n")
-        print("\n")
-
-        # engines_stop_status_temp = 'running'
-        # wheels_chocks_installation_status_temp = 'preparing'
-
-        # flight number is needed in particular. 
-        flight_number: str = args.get("flight_number", None)
-        if not flight_number:
-            print("No flight number provided. Trying to get it from sly_data")
-            flight_number = sly_data.get("flight_number")
-        if not flight_number:
-            error = "Error: Please provide a flight number for the request."
-            print(error)
-            return error       
-        
-        print("\n")
-        print("\n")
-        print("flight_number: ", flight_number)
+        print(" #################### GPU CONNECT OPERATOR - PARAMETERS #################### ")
         print("\n")
         print("\n")
 
@@ -166,24 +161,6 @@ class acu_operator(CodedTool):
         print("aircraft_type: ", aircraft_type)
         print("\n")
         print("\n")
- 
-        # flight status is required to fulfill the request.
-        flight_status: str = args.get("flight_status", None)
-        if not flight_status:
-            print("No flight status provided. Trying to get it from sly_data")
-            flight_status = sly_data.get("flight_status")
-        if not flight_status:
-            error = "Error: Please provide a flight status for the request."
-            print(error)
-            return error          
-        if flight_status: 
-            flight_status = flight_status.lower().replace("_", " ").strip()
-        
-        print("\n")
-        print("\n")
-        print("flight_status: ", flight_status)
-        print("\n")
-        print("\n")
          
         # gate id is required to fulfill the request.
         gate_id: str = args.get("gate_id", None)
@@ -200,71 +177,42 @@ class acu_operator(CodedTool):
         print("gate_id: ", gate_id)
         print("\n")
         print("\n")
-         
-        # engines stop status is required to fulfill the request.
-        engines_stop_status: str = args.get("engines_stop_status", None)
-        print("\n")
-        print("\n")
-        print("engines_stop_status from args: ", engines_stop_status)
-        print("\n")
-        print("\n")
-        if not engines_stop_status:
-            print("No engines stop status provided. Trying to get it from sly_data")
-            engines_stop_status = sly_data.get("engines_stop_status")
-            print("\n")
-            print("\n")
-            print("engines_stop_status from sly data: ", engines_stop_status)
-            print("\n")
-            print("\n")      
-                
-        print("\n")
-        print("\n")
-        print("engines_stop_status: ", engines_stop_status)
-        print("\n")
-        print("\n")
-         
-        # wheels chocks installation status is required to fulfill the request.
-        wheels_chocks_installation_status: str = args.get("wheels_chocks_installation_status", None)
-        print("\n")
-        print("\n")
-        print("wheels_chocks_installation_status from args: ", wheels_chocks_installation_status)
-        print("\n")
-        print("\n")
-        if not wheels_chocks_installation_status:
-            print("No wheels chocks installation status provided. Trying to get it from sly_data")
-            wheels_chocks_installation_status = sly_data.get("wheels_chocks_installation_status")
-            print("\n")
-            print("\n")
-            print("wheels_chocks_installation_status from sly data: ", wheels_chocks_installation_status)
-            print("\n")
-            print("\n")
 
-        if engines_stop_status is not None: 
-            engines_stop_status = engines_stop_status.lower() 
-        if wheels_chocks_installation_status is not None: 
-            wheels_chocks_installation_status = wheels_chocks_installation_status.lower() 
+        # gpu readiness status is required to fulfill the request.
+        gpu_readiness_status: str = sly_data.get("gpu_readiness_status", None)
+        if not gpu_readiness_status:
+            print("No gpu readiness status provided in sly_data. Trying to get it from args")
+            gpu_readiness_status = args.get("gpu_readiness_status")
+        if not gpu_readiness_status:
+            error = "Error: Please provide a gpu readiness status for the request."
+            print(error)
+            return error  
+        
+        print("\n")
+        print("\n")
+        print("gpu_readiness_status: ", gpu_readiness_status)
+        print("\n")
+        print("\n")
 
-        if ((engines_stop_status is not None) & (wheels_chocks_installation_status is not None)):
-            if ((('done' in engines_stop_status) | ('stopped' in engines_stop_status)) & (('done' in wheels_chocks_installation_status) | ('installed' in wheels_chocks_installation_status))): 
-                acu_connection_status = 'connected'
+        if  ((('ready' in gpu_readiness_status) & ('no' not in gpu_readiness_status)) | ('available' in gpu_readiness_status)): 
+            gpu_connection_status = 'connected'
 
-                message = f"Flight {flight_number} with airplane type {aircraft_type} {flight_status} at gate {gate_id} has acu installed. Its acu installation status is {acu_connection_status}."
-                print(message)
-                print("\n")
-                print("\n")
-                print('acu_connection_status is: ', acu_connection_status)
-                print("\n")
-                print("\n")
-                print(">>>>>>>>>>>>>>>>>>> DONE !!! >>>>>>>>>>>>>>>>>>")
+            message = f"Airplane type {aircraft_type} on blocks at gate {gate_id} is connected to gpu. Its gpu connection status is {gpu_connection_status}."
+            print(message)
+            print("\n")
+            print("\n")
+            print('gpu_connection_status is: ', gpu_connection_status)
+            print("\n")
+            print("\n")
+            print(">>>>>>>>>>>>>>>>>>> DONE !!! >>>>>>>>>>>>>>>>>>")
 
-                timenow = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-                line = timenow + ": " + message
-                with open(file_path_log, mode="a", encoding="utf-8") as f:  
-                    f.write(line + "\n")   
+            timenow = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+            line = timenow + ": " + message
+            with open(file_path_log, mode="a", encoding="utf-8") as f:  
+                f.write(line + "\n")   
 
-                sly_data["acu_connection_status"] = acu_connection_status
-
-        return acu_connection_status
+            sly_data["gpu_connection_status"] = gpu_connection_status
+        return gpu_connection_status
 
     async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
         """
@@ -436,41 +384,48 @@ class TrackerAPI(CodedTool):
         return field_values
     
     def _process_field(
-        self, 
-        field_name: str, 
-        args: Dict[str, Any], 
+        self,
+        field_name: str,
+        args: Dict[str, Any],
         sly_data: Dict[str, Any]
     ) -> Tuple[Optional[str], DataSource]:
         """
-        Process a single field by attempting to read from args, then sly_data.
-        
+        Process a single field by reading sly_data first, falling back to
+        args only when sly_data has no value for the field.
+
+        Priority:
+          1. sly_data[field_name] - authoritative running state; returned
+             immediately when present. args is ignored for this field.
+          2. args[field_name]     - used only when sly_data is None;
+             the value is also written into sly_data so subsequent calls
+             find it under rule 1.
+          3. Neither source       - returns (None, NOT_FOUND).
+
         Args:
             field_name: Name of the field to process
-            args: Input arguments (write mode if field exists here)
-            sly_data: Shared data store (read mode if field not in args)
-            
+            args: Input arguments consulted only when sly_data has no value
+            sly_data: Shared data store; always consulted first
+
         Returns:
             Tuple of (field_value, data_source)
         """
-        # Check if value provided in args (write mode)
-        value = args.get(field_name)
-        
-        if value is not None:
-            # Write mode: update sly_data with new value
-            sly_data[field_name] = value
-            logger.info(f"[WRITE] {field_name}: '{value}' (source: args)")
-            return value, DataSource.ARGS
-        
-        # Read mode: try to get from sly_data
-        logger.debug(f"[READ] {field_name} not in args, checking sly_data")
+        # 1. sly_data is authoritative
         value = sly_data.get(field_name)
-        
+
         if value is not None:
-            logger.info(f"[READ] {field_name}: '{value}' (source: sly_data)")
+            logger.info(f"[READ]  {field_name}: '{value}' (source: sly_data)")
             return value, DataSource.SLY_DATA
-        
-        # Field not found in either location
-        logger.warning(f"[NOT FOUND] {field_name}: No value in args or sly_data")
+
+        # 2. Fall back to args and promote the value into sly_data
+        value = args.get(field_name)
+
+        if value is not None:
+            sly_data[field_name] = value
+            logger.info(f"[WRITE] {field_name}: '{value}' (source: args -> sly_data)")
+            return value, DataSource.ARGS
+
+        # 3. Not found anywhere
+        logger.warning(f"[NOT FOUND] {field_name}: No value in sly_data or args")
         return None, DataSource.NOT_FOUND
     
     def _build_return_tuple(
@@ -547,7 +502,8 @@ class TrackerAPI(CodedTool):
 # Define tracked fields for flight turnaround operations
 FLIGHT_TURNAROUND_TRACKED_FIELDS = [
 "aircraft_type", 
-"acu_connection_status", 
+"gpu_connection_status", 
+"gpu_readiness_status", 
 "engines_stop_status",
 "flight_number", 
 "flight_status",
@@ -556,7 +512,8 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
 
 # Define which fields should be returned from the API
 FLIGHT_TURNAROUND_RETURN_FIELDS = [
-"acu_connection_status", 
+"gpu_connection_status", 
+"gpu_readiness_status", 
 "engines_stop_status",
 "flight_status",
 "wheels_chocks_installation_status"
@@ -598,4 +555,3 @@ if __name__ == "__main__":
     
     result2 = tracker.invoke(custom_args, custom_sly_data)
     print(f"Custom Result: {result2}")
-

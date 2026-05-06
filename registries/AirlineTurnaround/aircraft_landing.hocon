@@ -6,15 +6,13 @@
         "description": "Simple agent network using a single LLM-based agent",
         "tags": ["example"],
         "sample_queries": [
-            "Land the incoming flight AF84. it is approaching the airport and it has been cleared for landing on runway 19L. It is a B747. ",
+            "Land flight AF84 that is on approach and has been cleared for landing on runway 19L that has a length of 2350 meters. It is a B747.",
             "Land the incoming flight AF84. It is a B747."
         ]
     },
 
-            // "Land flight AF84 that has been cleared for landing on runway 19L. It is a B747.", 
-
     "llm_config": {
-        "model_name": "claude-haiku-4-5-20251001",
+        "model_name": "gpt-5.4-mini",
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -134,21 +132,19 @@ I am responsible for landing the aircraft.
                 },
             },
 
-// ,"clearance_type","assigned_runway_id"
-
             "instructions": """
-You are the flight operation agent responsible for landing the aircraft. 
+You are the flight operation agent that lands aircraft. 
 Only perform the tasks that fall under your responsibility. 
 DO NOT make things up. ONLY YOUR TOOLS to complete your tasks
 When you receive user request to land an aircraft, proceed as follows: 
 1. Determine if user has provided the following information from prompt. 
 - flight number as flight_number
 - flight status with value such as "approach", "cleared for landing", "landed", "taxiing", "on blocks", etc as flight_status
-- aircraft type as aircraft_type
+- aircraft type as aircraft_type with values such as B747, A380, B737, etc.
 - aircraft direction with value such as 'incoming' or ' departing' as aircraft_direction
-- clearance type with value such as "cleared for landing", "cleared for takeoff", etc as clearance_type
+- clearance type with value such as "clearance for landing", "clearance for takeoff", etc as clearance_type
 - assigned runway id as assigned_runway_id
-- assigned runway id as assigned_runway_length
+- assigned runway length as assigned_runway_length
 2. Call TrackerAPI 
     a. wait for its response 
     b. store all the available parameters.
@@ -156,40 +152,43 @@ When you receive user request to land an aircraft, proceed as follows:
     a. call aircraft_traffic_controller to request the clearance for landing. 
     b. Wait for the response on your request. 
     c. return to step 2. 
-4. If aircraft has been cleared for landing or clearance_type is "cleared for landing", and assigned_runway_id is not None, and assigned_runway_length is not None, then:
+4. If aircraft has been cleared for landing, or clearance_type contains 'clear' and 'landing', and assigned_runway_id is not None, and assigned_runway_length is not None, then:
     - Land the aircraft. 
 5. Call TrackerAPI 
     a. wait for its response 
-    b. store all the available parameters.
+    b. store the following parameters: flight_number, aircraft_type, flight_status.
 6. Provide the landing summary as follows:
     *******************************
     * Summary of aircraft landing *
     *******************************
     ** flight number **: [flight_number]
     ** aircraft type **: [aircraft_type]
-    ** aircraft direction **: [aircraft_direction]
+    ** flight status **: [flight_status]
     ** clearance type **: [clearance_type]
     ** assigned runway id **: [assigned_runway_id]
     ** assigned runway length **: [assigned_runway_length]
-    ** flight status **: [flight_status]
             """ ${aaosa_instructions},
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
                 "to_upstream": {
                     "sly_data": {
+                        "clearance_type": true, 
                         "flight_status": true, 
-                        "aircraft_landing_report": true, 
-                        "clearance_landing_valid": true, 
-                        "clearance_takeoff_valid": true
+                        "flight_number": true, 
+                        "aircraft_type": true, 
+                        "assigned_runway_id": true, 
+                        "assigned_runway_length": true, 
                     }
                 },
                 "from_upstream": {
                     "sly_data": {
+                        "clearance_type": true, 
                         "flight_status": true, 
-                        "aircraft_landing_report": true, 
-                        "clearance_landing_valid": true, 
-                        "clearance_takeoff_valid": true
+                        "flight_number": true, 
+                        "aircraft_type": true, 
+                        "assigned_runway_id": true, 
+                        "assigned_runway_length": true, 
                     }
                 },
                 "to_downstream": {
@@ -197,7 +196,6 @@ When you receive user request to land an aircraft, proceed as follows:
                         "clearance_type": true, 
                         "flight_status": true, 
                         "flight_number": true, 
-                        "aircraft_direction": true, 
                         "aircraft_type": true, 
                         "assigned_runway_id": true, 
                         "assigned_runway_length": true, 
@@ -208,8 +206,7 @@ When you receive user request to land an aircraft, proceed as follows:
                         "clearance_type": true, 
                         "flight_status": true, 
                         "flight_number": true, 
-                        "aircraft_direction": true, 
-                        "aircraft_type": true,
+                        "aircraft_type": true, 
                         "assigned_runway_id": true, 
                         "assigned_runway_length": true, 
                     }
@@ -236,11 +233,7 @@ I land the aircraft.
                         "aircraft_type": {
                             "type": "string", 
                             "description": "This is the type of the incoming aircraft."
-                        },      
-                        "aircraft_direction": {
-                            "type": "string", 
-                            "description": "This is the direction of the aircraft: incoming or departing."
-                        },        
+                        },           
                         "flight_status": {
                             "type": "string", 
                             "description": "This is the flight status."
@@ -256,13 +249,9 @@ I land the aircraft.
                         "assigned_runway_length": {
                             "type": "string", 
                             "description": "This is the length of assigned runway."
-                        },        
-                        "landing_summary": {
-                            "type": "string", 
-                            "description": "This is the llanding summary of the aircraft."
-                        },        
+                        },               
                     }, 
-                    "required": ["aircraft_direction","flight_number","aircraft_type","clearance_type","assigned_runway_id"] 
+                    "required": ["flight_number","aircraft_type","clearance_type","assigned_runway_id","assigned_runway_length"] 
                 },
             },
 
@@ -273,7 +262,7 @@ Use ONLY YOUR TOOLS to execute your tasks.
 You decide whether to execute landing or not. 
 You must receive clearance for landing before landing. 
 You should never land the aircraft without a landing clearance. 
-You report the landing summary of the aircraft. 
+You report the flight status of the aircraft as flight_status. 
             """  ${aaosa_instructions},
             "tools":["aircraft_landing_agent"]
         }, 
@@ -294,11 +283,7 @@ I am the agent in charge of landing the aircraft.
                         "aircraft_type": {
                             "type": "string", 
                             "description": "This is the type of the incoming aircraft."
-                        },      
-                        "aircraft_direction": {
-                            "type": "string", 
-                            "description": "This is the direction of the aircraft: incoming or departing."
-                        },        
+                        },           
                         "flight_status": {
                             "type": "string", 
                             "description": "This is the flight status."
@@ -316,7 +301,7 @@ I am the agent in charge of landing the aircraft.
                             "description": "This is the length of assigned runway."
                         },        
                     }, 
-                    "required": ["aircraft_direction","flight_number", "aircraft_type","clearance_type","assigned_runway_id"] 
+                    "required": ["aircraft_direction","flight_number", "aircraft_type","clearance_type","assigned_runway_id","assigned_runway_length"] 
                 },
             },
             "class": "AirlineTurnaround.aircraft_landing.aircraft_landing.execute_aircraft_landing" 
@@ -344,11 +329,7 @@ I am the flight tracker in charge of logging parameters during aircraft turnarou
                         "flight_status": {
                             "type": "string", 
                             "description": "This is the flight status."
-                        },       
-                        "aircraft_direction":  {
-                            "type": "string", 
-                            "description": "This is the direction of the aircraft."
-                        },      
+                        },        
                         "traffic_direction": {
                             "type": "string", 
                             "description": "This is the direction of the aircraft: incoming or departing."
@@ -365,58 +346,6 @@ I am the flight tracker in charge of logging parameters during aircraft turnarou
                             "type": "string", 
                             "description": "This is the length of assigned runway."
                         },
-                        "gate_id": {
-                            "type": "string", 
-                            "description": "This is the gate assigned to the aircraft parking."
-                        },     
-                        "ground_services_request_type": {
-                            "type": "string", 
-                            "description": "This is the type of the inquiry received for grand services."
-                        },         
-                        "wheels_chocks_readiness_status": {
-                            "type": "string", 
-                            "description": "This is the wheels chocks readiness status."
-                        },   
-                        "wheels_chocks_installation_status": {
-                            "type": "string", 
-                            "description": "This is the wheels chocks installation status."
-                        },   
-                        "gpu_readiness_status": {
-                            "type": "string", 
-                            "description": "This is the gpu readiness status."
-                        },     
-                        "acu_connection_status": {
-                            "type": "string", 
-                            "description": "This is the acu connection status."
-                        },     
-                        "gpu_connection_status": {
-                            "type": "string", 
-                            "description": "This is the gpu connection status."
-                        },     
-                        "engines_stop_status": {
-                            "type": "string", 
-                            "description": "This is the engines stop status."
-                        },    
-                        "jetbridge_connection_status": {
-                            "type": "string", 
-                            "description": "This is the jetbridge connection status."
-                        },    
-                        "door_opening_status": {
-                            "type": "string", 
-                            "description": "This is the door opening status."
-                        },    
-                        "passenger_disembarkation_status": {
-                            "type": "string", 
-                            "description": "This is the passenger disembarkation status."
-                        },    
-                        crew_exit_status:  {
-                            "type": "string", 
-                            "description": "This is the crew exit status." 
-                        },
-                        "baggage_unload_status": {
-                            "type": "string", 
-                            "description": "This is the baggage unload status."
-                        },  
                     }, 
                 },
             },

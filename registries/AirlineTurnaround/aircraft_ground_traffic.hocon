@@ -6,13 +6,13 @@
         "description": "Simple agent network using a single LLM-based agent",
         "tags": ["example"],
         "sample_queries": [
-            "Provide ground clearance flight AF84. The aircraft is a B747 that has landed one minute ago on runway 28L. It will park at gate A1.", 
+            "Provide flight AF84 the ground clearance to taxi in toward gate A1. The aircraft is a B747 and has landed on runway 28L.", 
             "Flight AF84 has landed on runway 28L. The aircraft is a B747 and it has been assigned to gate A1. "
         ]
     },
 
     "llm_config": {
-        "model_name": "claude-haiku-4-5-20251001",
+        "model_name": "gpt-5.4-mini",
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -96,42 +96,45 @@ You coordinate ground traffic at the airport.
             },
 
             "instructions": """
-You are the agent responsible to giving aircraft the clearance to taxi in the gate of to taxi out of the gate. 
+You are the agent responsible to giving aircraft the ground traffic clearance to taxi in. 
 Only perform the tasks that fall under your responsibility. 
 DO NOT make things up. 
 Use ONLY YOUR TOOLS to fulfill your tasks. 
-When you receive a user request for clearance to taxi in or taxi out, proceed as follows:
+When you receive a user request for clearance to taxi in to the gate or to taxi out ouf the gate, proceed as follows:
 1. Determine if the followings information is provided in the user prompt. 
     - flight number as flight_number
     - aircraft type as aircraft_type
     - flight status as flight_status with value such as 'landed', 'on final approach', 'taxiing', 'on blocks', 'off blocks', 'taking off', etc.
     - assigned runway id as assigned_runway_id
     - gate id as gate_id 
-    - ground clearance type as ground_clearance_type with value such as 'taxi in', 'taxiing in', 'taxi out', 'taxiing out'
-2. Call TrackerAPI and log all the available parameters. 
+    - If the user says “taxi in,” “taxi toward the gate,” “taxi to gate,” “taxi into gate,” or similar arrival-ground-movement wording, set ground_clearance_type = taxi in automatically.
+    - If the user says “taxi out,” “pushback,” or “depart gate,” set ground_clearance_type = taxi out automatically.
+2. Call TrackerAPI to check the missing information and to log the available information. 
     a. wait for its response 
     b. store all the available parameters. 
-3. If ground_clearance_type is None, then ask the user to provide the ground_clearance_type that they want. 
+3. If ground_clearance_type is None, then 
+    a. ask the user to provide the ground_clearance_type that they want to get clearance for. 
+    b. wait for the user response and store the ground_clearance_type value.
+    c. return to step 1.
 4. If flight_status is not 'landed' or 'off blocks', 
-    - Do not send request for ground clearance. 
-    - Use your tools to make sure that flight status is either 'landed' or 'off blocks' 
-    - return to step 2 above.
+    a. Do not send request for ground clearance. 
+    b. return to step 2.
 5. If flight_status is 'landed' or 'off blocks', 
-    - Call ground_traffic_controller to request taxiing clearance. 
-    - Wait for the response from ground_traffic_controller. 
-6. Call TrackerAPI and log all the available parameters. 
-    a. wait for its response 
-    b. store all the available parameters.
-7. Finally, compile all the gathered information and ground clearance results and display the results as follows:
-    **************************************
-    * Summary of aircraft ground traffic *
-    **************************************
+    a. Call ground_traffic_controller to request clearance for taxi in or taxi out based on the value of ground_clearance_type.
+    b. Wait for ground_traffic_controller response 
+    c. Update flight_status with the value returned by ground_traffic_controller before displaying the summary.
+6. Display the results as follows:
+    ***************************************
+    * Summary of ground traffic clearance *      
+    ***************************************
     ** flight number **: [flight_number]
     ** aircraft type **: [aircraft_type]
     ** flight status **: [flight_status] 
-    ** gate_id **: [gate_id] 
+    ** gate id **: [gate_id] 
+    ** assigned runway id ** [assigned_runway_id]
     ** ground clearance type **: [ground_clearance_type]
-    ** ground clearance status **: [ground_clearance_status]
+    ** ground clearance status **: [ground_clearance_status]                 
+
             """ ${aaosa_instructions},
 
             "parameters": {
@@ -270,7 +273,7 @@ You are responsible for giving aircraft the clearance to taxi in or to taxi out.
 Only perform the tasks that fall under your responsibility. 
 DO NOT make things up. 
 Use ONLY YOUR TOOLS to fulfill your tasks. 
-Report back to the orchestrator with ground_clearance_status.
+Report the returned values. 
             """ ${aaosa_instructions},
             "tools":["ground_clearance_agent"]
         },
@@ -279,7 +282,7 @@ Report back to the orchestrator with ground_clearance_status.
             "name": "ground_clearance_agent",
             "function": {
                 "description": """
-This agent clears aircraft for taxi in or taxi out in the airport ground.  
+This agent gives clearance to aircraft for taxi in or taxi out on the airport ground.  
                 """, 
                 "parameters": {
                     "type": "object", 
@@ -351,62 +354,6 @@ I check and return flight_status and gate_id.
                             "type": "string", 
                             "description": "This is the gate assigned to the aircraft parking."
                         },     
-                        "ground_services_request_type": {
-                            "type": "string", 
-                            "description": "This is the type of the inquiry received for grand services."
-                        },         
-                        "wheels_chocks_readiness_status": {
-                            "type": "string", 
-                            "description": "This is the wheels chocks readiness status."
-                        },   
-                        "wheels_chocks_installation_status": {
-                            "type": "string", 
-                            "description": "This is the wheels chocks installation status."
-                        },   
-                        "gpu_readiness_status": {
-                            "type": "string", 
-                            "description": "This is the gpu readiness status."
-                        },     
-                        "acu_connection_status": {
-                            "type": "string", 
-                            "description": "This is the acu connection status."
-                        },     
-                        "gpu_connection_status": {
-                            "type": "string", 
-                            "description": "This is the gpu connection status."
-                        },     
-                        "engines_stop_status": {
-                            "type": "string", 
-                            "description": "This is the engines stop status."
-                        },    
-                        "jetbridge_connection_status": {
-                            "type": "string", 
-                            "description": "This is the jetbridge connection status."
-                        },    
-                        "door_opening_status": {
-                            "type": "string", 
-                            "description": "This is the door opening status."
-                        },    
-                        "passenger_disembarkation_status": {
-                            "type": "string", 
-                            "description": "This is the passenger disembarkation status."
-                        },    
-                        crew_exit_status:  {
-                            "type": "string", 
-                            "description": "This is the crew exit status." 
-                        },
-                        "baggage_unload_status": {
-                            "type": "string", 
-                            "description": "This is the baggage unload status."
-                        },  
-                        "ground_clearance_type": {
-                            "type": "string", 
-                            "description": "This is the ground clearance type of of the aircraft"
-                        },  
-                        "ground_clearance_status": {
-                            "type": "string", 
-                            "description": "This is the ground clearance status of the aircraft"
-                        },    
                     }, 
                     "required": [] 
                 }

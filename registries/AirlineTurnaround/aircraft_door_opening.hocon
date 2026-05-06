@@ -12,7 +12,7 @@
     },
 
     "llm_config": {
-        "model_name": "claude-haiku-4-5-20251001",
+        "model_name": "gpt-5.4-mini",
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -115,88 +115,96 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "This is the status of jetbridge connect."
                         },  
+                        "door_opening_status": {
+                            "type": "string", 
+                            "description": "This is the door opening status."
+                        },  
                     }, 
                     "required": ["flight_number", "aircraft_type","gate_id","flight_status","jetbridge_connection_status"] 
                 }
             },
 
             "instructions": """
+You are the agent in charge of opening the aircraft door at the gate.
 
-You are the agent in charge of opening the door of the aircraft. 
-When user submits inquiry, proceed as follows: 
-1. Determine if the user prompt provides the following information: 
-    a. jetbridge connection status as jetbridge_connection_status with value such as'connected'
-    b. flight status as flight_status with value such as 'on blocks' or "landed"
-2. Call TrackerAPI to get the latest value of jetbridge_connection_status and flight_status
-    a. wait for its response 
-    b. store jetbridge connection status as jetbridge_connection_status, store flight status as flight_status
-3. If jetbridge_connection_status is 'connected' and flight_status includes 'on blocks' then go to step 6.
-4. If flight_status does not includes 'on blocks' 
-    a. return to user that the aircraft is not yet on blocks, so door can not be opened.
-    b. stop further processing.
-5. If jetbridge_connection_status is not 'connected',
-    a. call aircraft_jetbridge_connect to connect jetbridge
-    b. wait for its response 
-    c. Return to step 2.
-6. If jetbridge_connection_status is 'connected' and flight_status includes 'on blocks'  
-    a. call door_operator to open the door of the aircraft
-    b. Wait for its response and save it as door_opening_status
-    c. Report door_opening_status
-7. Call TrackerAPI to get the latest value of jetbridge_connection_status and door_opening_status
-    a. wait for its response 
-    b. store jetbridge connection status as jetbridge_connection_status, and store door opening status as door_opening_status
-8. Provide the door opening status report summary as: 
-    ************************************
-    * Summary of aircraft door opening *
-    ************************************
-    ** flight status **: [flight_status]
-    ** jet bridge connection status **: [jetbridge_connection_status]
-    ** door opening status **: [door_opening_status]
-            """ ${aaosa_instructions},
+CRITICAL: You are a sequential executor. Execute every step below in
+order. Do NOT return until you reach RETURN SUMMARY.
+
+STEP 1 — Resolve prerequisites
+  Call TrackerAPI with flight_number, aircraft_type, flight_status,
+  gate_id, jetbridge_connection_status.
+  Wait. Read back: flight_status, jetbridge_connection_status.
+
+STEP 2 — Verify flight status
+  flight_status must contain 'on blocks' or 'block'.
+  If not, stop and report: "Aircraft is not yet on blocks.
+  Door cannot be opened."
+
+STEP 3 — Ensure jetbridge is connected (ONE call if needed)
+  If jetbridge_connection_status already contains 'connected',
+  skip to STEP 4.
+  Otherwise:
+    Call /AirlineTurnaround/aircraft_jetbridge_connect with:
+      flight_number, aircraft_type, flight_status, gate_id.
+    Wait. Extract jetbridge_connection_status.
+    Call TrackerAPI to store jetbridge_connection_status.
+    If still not 'connected', stop and report failure.
+
+STEP 4 — Open the door
+  Call door_operator with:
+    flight_number, aircraft_type, flight_status, gate_id,
+    jetbridge_connection_status.
+  Wait. Extract door_opening_status from the response.
+  Call TrackerAPI to store door_opening_status.
+
+RETURN SUMMARY:
+  ************************************
+  * Summary of aircraft door opening *
+  ************************************
+  ** flight status                **: [flight_status]
+  ** jet bridge connection status **: [jetbridge_connection_status]
+  ** door opening status          **: [door_opening_status]
+            """,
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
                 "to_upstream": {
                     "sly_data": {
-                        "door_opening_status": true
+                        "door_opening_status": true,
                         "jetbridge_connection_status": true
                     }
-                }
+                },
                 "to_downstream": {
                     "sly_data": {
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "flight_status": true,
+                        "gate_id": true,
+                        "jetbridge_connection_status": true,
                         "door_opening_status": true
-                        "jetbridge_connection_status": true
                     }
-                }
+                },
                 "from_upstream": {
                     "sly_data": {
-                        "flight_number": true
-                        "aircraft_type": true
-                        "flight_status": true
-                        "gate_id": true 
-                        "acu_connection_status": true
-                        "gpu_connection_status": true
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "flight_status": true,
+                        "gate_id": true,
+                        "acu_connection_status": true,
+                        "gpu_connection_status": true,
                         "jetbridge_connection_status": true
                     }
-                }
+                },
                 "from_downstream": {
                     "sly_data": {
-                        "flight_number": true
-                        "aircraft_type": true
-                        "flight_status": true
-                        "gate_id": true 
-                        "acu_connection_status": true
-                        "gpu_connection_status": true 
-                        "jetbridge_connection_status": true
-                    }
-                }
-                "to_downstream": {
-                    "sly_data": {
-                        "flight_number": true
-                        "aircraft_type": true
-                        "flight_status": true
-                        "gate_id": true 
-                        "jetbridge_connection_status": true
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "flight_status": true,
+                        "gate_id": true,
+                        "acu_connection_status": true,
+                        "gpu_connection_status": true,
+                        "jetbridge_connection_status": true,
+                        "door_opening_status": true
                     }
                 }
             },
@@ -256,6 +264,10 @@ I check the status of the jetbridge connection to the aircraft.
                             "type": "string", 
                             "description": "This is the status of jetbridge connect."
                         },   
+                        "door_opening_status": {
+                            "type": "string", 
+                            "description": "This is the door opening status."
+                        },  
                     }, 
                     "required": [] 
                 }
@@ -292,6 +304,10 @@ This agent opens the door of the aircraft.
                             "type": "string", 
                             "description": "This is the status of jetbridge connect."
                         },     
+                        "door_opening_status": {
+                            "type": "string", 
+                            "description": "This is the door opening status."
+                        },  
                     }, 
                     "required": ["flight_number", "aircraft_type","gate_id","jetbridge_connection_status"] 
                 }

@@ -6,13 +6,13 @@
         "description": "Simple agent network using a single LLM-based agent",
         "tags": ["example"],
         "sample_queries": [
-            "Flight AF84 is on blocks at gate A1. ACU and GPU are connected to this B747. Connect the jet bridge.", 
+            "Flight AF84 is on blocks at gate A1. ACU and GPU are connected to this B747, and wheelchocks have been installed. Connect the jet bridge.", 
             "Flight AF84 is on blocks at gate A1. Connect the jet bridge."
         ]
     },
 
     "llm_config": {
-        "model_name": "claude-haiku-4-5-20251001",
+        "model_name": "gpt-5.4-mini",
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -118,49 +118,64 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                         "acu_connection_status": {
                             "type": "string", 
                             "description": "This is the status of acu connect."
-                        },         
+                        },        
+                        "wheelchocks_installation_status": {
+                            "type": "string", 
+                            "description": "This is the wheelchocks installation status."
+                        },    
                     }, 
                     "required": ["flight_number", "aircraft_type","gate_id","flight_status","acu_connection_status","gpu_connection_status"] 
                 }
             },
 
             "instructions": """
-You are the agent in charge of connecting jetbridge to aircraft. 
-When user submits inquiry, proceed as follows: 
-1. Determine if the followings are provided bythe user: 
-    a. flights status such as 'on blocks' or 'landed'
-    b. acu connection status such as 'connected' 
-    c. gpu connection status such as 'connected' 
-2. Call TrackerAPI 
-    a. wait for its response 
-    b. store all the available parameters.
-3. If flight status is not 'on blocks', the respond to user that jetbridge cannot be connected as flight status is not 'on blocks'.
-4. If acu_connection_status is not 'connected', or gpu_connection_status is not 'connected'
-    a. call your tools to make sure that acu_connection_status is 'connected' and gpu_connection_status is 'connected'
-    b. wait for their responses 
-5. Call TrackerAPI
-    a. wait for its response 
-    b. store acu connection status as acu_connection_status, store gpu connection status as gpu_connection_status, 
-    c. if acu_connection_status is not 'connected' or gpu_connection_status is not 'connected', go back to step 3.
-6. If acu_connection_status is 'connected', and gpu_connection_status is 'connected', and jetbridge_connection_status is not 'connected'
-    a. call jetbridge_operator to connect jetbridge to aircraft
-    b. Wait for its response and save it as jetbridge_connection_status
-    c. Report jetbridge_connection_status
-7. Call TrackerAPI 
-    a. wait for its response 
-    b. store all the available parameters.
-8. If acu_connection_status is not 'connected' or gpu_connection_status is not 'connected' or jetbridge_connection_status is not 'connected'
-    a. Report that jetbridge connection failed due to acu or gpu not connected
-9. Provide the jetbridge connection status report summary as: 
-    *****************************************
-    * Summary of aircraft jetbridge connect *
-    *****************************************
-    ** jetbridge connection status summary **: 
-    ** flight_status **: [flight_status]
-    ** acu_connection_status **: [acu_connection_status]
-    ** gpu_connection_status **: [gpu_connection_status]
-    ** jetbridge_connection_status **: [jetbridge_connection_status]
-            """ ${aaosa_instructions},
+You are the agent in charge of connecting the jetbridge to the aircraft.
+
+CRITICAL: You are a sequential executor. Execute every step in order.
+Do NOT return until you reach RETURN SUMMARY.
+
+STEP 1 — Resolve prerequisites
+  Call TrackerAPI with flight_number, aircraft_type, flight_status,
+  gate_id, acu_connection_status, gpu_connection_status,
+  wheelchocks_installation_status.
+  Wait. Read back all values.
+
+STEP 2 — Verify flight status
+  flight_status must contain 'on blocks' or 'block'.
+  If not, stop and report: "Cannot connect jetbridge — aircraft
+  is not yet on blocks."
+
+STEP 3 — Ensure ACU, GPU and wheelchocks are ready (ONE call if needed)
+  If acu_connection_status already contains 'connected' AND
+  gpu_connection_status already contains 'connected' AND
+  wheelchocks_installation_status already contains 'installed':
+    Skip to STEP 4.
+  Otherwise:
+    Call /AirlineTurnaround/aircraft_ground_acu_connect if
+    acu_connection_status is not 'connected'.
+    Call /AirlineTurnaround/aircraft_ground_gpu_connect if
+    gpu_connection_status is not 'connected'.
+    Wait for responses. Extract and store statuses.
+    If after these calls any prerequisite is still not satisfied,
+    stop and report which prerequisite failed.
+
+STEP 4 — Connect jetbridge
+  Call jetbridge_operator with:
+    flight_number, aircraft_type, flight_status, gate_id,
+    acu_connection_status, gpu_connection_status.
+  Wait. Extract jetbridge_connection_status from the response.
+  Call TrackerAPI to store jetbridge_connection_status.
+
+RETURN SUMMARY:
+  *****************************************
+  * Summary of aircraft jetbridge connect *
+  *****************************************
+  ** flight_status                   **: [flight_status]
+  ** acu connection status           **: [acu_connection_status]
+  ** gpu connection status           **: [gpu_connection_status]
+  ** wheelchocks installation status **: [wheelchocks_installation_status]
+  ** jetbridge connection status     **: [jetbridge_connection_status]
+            """,
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
@@ -168,37 +183,39 @@ When user submits inquiry, proceed as follows:
                     "sly_data": {
                         "jetbridge_connection_status": true
                     }
-                }
+                },
                 "to_downstream": {
                     "sly_data": {
                         "jetbridge_connection_status": true
                     }
-                }
+                },
                 "from_upstream": {
                     "sly_data": {
-                        "flight_number": true
-                        "aircraft_type": true
-                        "flight_status": true
-                        "gate_id": true 
-                        "acu_connection_status": true
-                        "gpu_connection_status": true
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "flight_status": true,
+                        "gate_id": true,
+                        "acu_connection_status": true,
+                        "gpu_connection_status": true,
+                        "wheelchocks_installation_status": true,
                         "jetbridge_connection_status": true
                     }
-                }
+                },
                 "from_downstream": {
                     "sly_data": {
-                        "flight_number": true
-                        "aircraft_type": true
-                        "flight_status": true
-                        "gate_id": true 
-                        "acu_connection_status": true
-                        "gpu_connection_status": true
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "flight_status": true,
+                        "gate_id": true,
+                        "acu_connection_status": true,
+                        "gpu_connection_status": true,
+                        "wheelchocks_installation_status": true,
                         "jetbridge_connection_status": true
                     }
                 }
             },
 
-            "tools": ["TrackerAPI","jetbridge_operator","/AirlineTurnaround/aircraft_acu_connect","/AirlineTurnaround/aircraft_gpu_connect"]
+            "tools": ["TrackerAPI","jetbridge_operator","/AirlineTurnaround/aircraft_ground_acu_connect","/AirlineTurnaround/aircraft_ground_gpu_connect"]
         },
 
         {
@@ -278,7 +295,7 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                             "type": "string", 
                             "description": "This is the wheels chocks readiness status."
                         },   
-                        "wheels_chocks_installation_status": {
+                        "wheelchocks_installation_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks installation status."
                         },   
@@ -294,7 +311,6 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                             "type": "string", 
                             "description": "This is the gpu connection status."
                         },     
-
                         "engines_stop_status": {
                             "type": "string", 
                             "description": "This is the engines stop status."

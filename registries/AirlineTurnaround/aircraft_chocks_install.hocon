@@ -11,7 +11,7 @@
     },
 
     "llm_config": {
-        "model_name": "claude-haiku-4-5-20251001",
+        "model_name": "gpt-5.4-mini",
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -234,13 +234,13 @@ I check the flight status.
                             "type": "string", 
                             "description": "This is the type of the inquiry received for grand services."
                         },         
-                        "wheels_chocks_readiness_status": {
+                        "wheelchocks_readiness_status": {
                             "type": "string", 
-                            "description": "This is the wheels chocks readiness status."
+                            "description": "This is the wheelchocks readiness status."
                         },   
-                        "wheels_chocks_installation_status": {
+                        "wheelchocks_installation_status": {
                             "type": "string", 
-                            "description": "This is the wheels chocks installation status."
+                            "description": "This is the wheelchocks installation status."
                         },   
                         "gpu_readiness_status": {
                             "type": "string", 
@@ -254,12 +254,10 @@ I check the flight status.
                             "type": "string", 
                             "description": "This is the gpu connection status."
                         },     
-
                         "engines_stop_status": {
                             "type": "string", 
                             "description": "This is the engines stop status."
                         },    
-
                         "jetbridge_connection_status": {
                             "type": "string", 
                             "description": "This is the jetbridge connection status."

@@ -1,4 +1,4 @@
-# Copyright © 2025 Cognizant Technology Solutions Corp, www.cognizant.com.
+# Copyright © 2025-2026 Cognizant Technology Solutions Corp, www.cognizant.com.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,6 +28,9 @@ from typing import Dict
 from typing import Tuple
 
 from dotenv import load_dotenv
+
+from plugins.env_validator.env_validator import EnvValidator
+from plugins.llm_config_validator.llm_config_validator_plugin import LlmConfigValidatorPlugin
 from plugins.log_bridge.process_log_bridge import ProcessLogBridge
 from plugins.phoenix.phoenix_plugin import PhoenixPlugin
 
@@ -51,13 +54,13 @@ class NeuroSanRunner:
         # Default Configuration
         self.args: Dict[str, Any] = {
             "server_host": os.getenv("NEURO_SAN_SERVER_HOST", "localhost"),
-            "server_grpc_port": int(os.getenv("NEURO_SAN_SERVER_GRPC_PORT", "30011")),
             "server_http_port": int(os.getenv("NEURO_SAN_SERVER_HTTP_PORT", "8080")),
             "server_connection": str(os.getenv("NEURO_SAN_SERVER_CONNECTION", "http")),
             "manifest_update_period_seconds": int(os.getenv("AGENT_MANIFEST_UPDATE_PERIOD_SECONDS", "5")),
             "default_sly_data": str(os.getenv("DEFAULT_SLY_DATA", "")),
             "nsflow_host": os.getenv("NSFLOW_HOST", "localhost"),
             "nsflow_port": int(os.getenv("NSFLOW_PORT", "4173")),
+            "nsflow_plugin_cruse": os.getenv("NSFLOW_PLUGIN_CRUSE", "false"),
             "log_level": os.getenv("LOG_LEVEL", "info"),
             "vite_api_protocol": os.getenv("VITE_API_PROTOCOL", "http"),
             "vite_ws_protocol": os.getenv("VITE_WS_PROTOCOL", "ws"),
@@ -72,6 +75,9 @@ class NeuroSanRunner:
             "agent_tool_path": os.getenv("AGENT_TOOL_PATH", os.path.join(self.root_dir, "coded_tools")),
             "agent_toolbox_info_file": os.getenv(
                 "AGENT_TOOLBOX_INFO_FILE", os.path.join(self.root_dir, "toolbox", "toolbox_info.hocon")
+            ),
+            "mcp_servers_info_file": os.getenv(
+                "MCP_SERVERS_INFO_FILE", os.path.join(self.root_dir, "mcp", "mcp_info.hocon")
             ),
             "logs_dir": self.logs_dir,
         }
@@ -96,7 +102,7 @@ class NeuroSanRunner:
         self.flask_webclient_process = None
         self.nsflow_process = None
 
-        # Initialize Phoenix manager
+        # Instantiate Phoenix plugin
         self.phoenix_plugin = PhoenixPlugin(self.args)
 
     def load_env_variables(self):
@@ -117,12 +123,6 @@ class NeuroSanRunner:
 
         parser.add_argument(
             "--server-host", type=str, default=self.args["server_host"], help="Host address for the Neuro SAN server"
-        )
-        parser.add_argument(
-            "--server-grpc-port",
-            type=int,
-            default=self.args["server_grpc_port"],
-            help="Port number for the Neuro SAN server grpc endpoint",
         )
         parser.add_argument(
             "--server-http-port",
@@ -158,6 +158,34 @@ class NeuroSanRunner:
         parser.add_argument(
             "--use-flask-web-client", action="store_true", help="Use the flask based neuro-san-web-client"
         )
+        parser.add_argument(
+            "--validate-keys",
+            type=int,
+            nargs="?",
+            const=3,
+            default=None,
+            metavar="{1,2,3}",
+            help="Validate API keys up to the specified tier: "
+            "1=placeholder detection, 2=format validation, "
+            "3=live API calls (default when flag is passed without a value). "
+            "Omit to skip validation entirely.",
+        )
+        default_llm_config = os.path.join(os.path.dirname(self.args["agent_manifest_file"]), "llm_config.hocon")
+        parser.add_argument(
+            "--check-llm-config",
+            nargs="?",
+            const=default_llm_config,
+            default=None,
+            metavar="HOCON_PATH",
+            help="Test every LLM configuration in a HOCON file by creating each "
+            "LLM instance and invoking it with a trivial prompt. "
+            "Accepts both agent network files (with a 'tools' list, testing each agent's "
+            "merged llm_config) and standalone studio llm_config files. "
+            "llm_configs that use a 'fallbacks' list are expanded and each model is tested individually. "
+            "Duplicate configurations are deduplicated so each unique model is called only once. "
+            "Exits with a non-zero code if any configuration fails. "
+            f"When passed without a value, defaults to {default_llm_config}.",
+        )
 
         args, _ = parser.parse_known_args()
         explicitly_passed_args = {arg for arg in sys.argv[1:] if arg.startswith("--")}
@@ -184,6 +212,7 @@ class NeuroSanRunner:
         os.environ["AGENT_MANIFEST_FILE"] = self.args["agent_manifest_file"]
         os.environ["AGENT_TOOL_PATH"] = self.args["agent_tool_path"]
         os.environ["AGENT_TOOLBOX_INFO_FILE"] = self.args["agent_toolbox_info_file"]
+        os.environ["MCP_SERVERS_INFO_FILE"] = self.args["mcp_servers_info_file"]
         os.environ["NEURO_SAN_SERVER_CONNECTION"] = self.args["server_connection"]
         os.environ["AGENT_MANIFEST_UPDATE_PERIOD_SECONDS"] = str(self.args["manifest_update_period_seconds"])
         os.environ["LOG_LEVEL"] = self.args["log_level"]
@@ -191,8 +220,10 @@ class NeuroSanRunner:
         print(f"AGENT_MANIFEST_FILE set to: {os.environ['AGENT_MANIFEST_FILE']}")
         print(f"AGENT_TOOL_PATH set to: {os.environ['AGENT_TOOL_PATH']}")
         print(f"AGENT_TOOLBOX_INFO_FILE set to: {os.environ['AGENT_TOOLBOX_INFO_FILE']}")
+        print(f"MCP_SERVERS_INFO_FILE set to: {os.environ['MCP_SERVERS_INFO_FILE']}")
         print(f"NEURO_SAN_SERVER_CONNECTION set to: {os.environ['NEURO_SAN_SERVER_CONNECTION']}")
-        print(f"AGENT_MANIFEST_UPDATE_PERIOD_SECONDS set to: {os.environ['AGENT_MANIFEST_UPDATE_PERIOD_SECONDS']}\n")
+        print(f"AGENT_MANIFEST_UPDATE_PERIOD_SECONDS set to: {os.environ['AGENT_MANIFEST_UPDATE_PERIOD_SECONDS']}")
+        print(f"LOG_LEVEL set to: {os.environ['LOG_LEVEL']}\n")
 
         # Phoenix / OpenTelemetry envs - delegate to PhoenixPlugin
         self.phoenix_plugin.set_environment_variables()
@@ -207,10 +238,14 @@ class NeuroSanRunner:
                 os.environ["NEURO_SAN_WEB_CLIENT_PORT"] = str(self.args["web_client_port"])
                 print(f"NEURO_SAN_WEB_CLIENT_PORT set to: {os.environ['NEURO_SAN_WEB_CLIENT_PORT']}")
             else:
+                os.environ["NSFLOW_HOST"] = str(self.args["nsflow_host"])
                 os.environ["NSFLOW_PORT"] = str(self.args["nsflow_port"])
+                os.environ["NSFLOW_PLUGIN_CRUSE"] = str(self.args["nsflow_plugin_cruse"])
                 os.environ["VITE_API_PROTOCOL"] = str(self.args["vite_api_protocol"])
                 os.environ["VITE_WS_PROTOCOL"] = str(self.args["vite_ws_protocol"])
+                print(f"NSFLOW_HOST set to: {os.environ['NSFLOW_HOST']}")
                 print(f"NSFLOW_PORT set to: {os.environ['NSFLOW_PORT']}")
+                print(f"NSFLOW_PLUGIN_CRUSE set to: {os.environ['NSFLOW_PLUGIN_CRUSE']}")
                 print(f"VITE_API_PROTOCOL set to: {os.environ['VITE_API_PROTOCOL']}")
                 print(f"VITE_WS_PROTOCOL set to: {os.environ['VITE_WS_PROTOCOL']}")
                 # Set env variable for using nsflow in client-only mode
@@ -221,14 +256,43 @@ class NeuroSanRunner:
         # Server-only env variables
         if not self.args["client_only"]:
             os.environ["NEURO_SAN_SERVER_HOST"] = self.args["server_host"]
-            os.environ["NEURO_SAN_SERVER_GRPC_PORT"] = str(self.args["server_grpc_port"])
             os.environ["NEURO_SAN_SERVER_HTTP_PORT"] = str(self.args["server_http_port"])
 
             print(f"NEURO_SAN_SERVER_HOST set to: {os.environ['NEURO_SAN_SERVER_HOST']}")
-            print(f"NEURO_SAN_SERVER_GRPC_PORT set to: {os.environ['NEURO_SAN_SERVER_GRPC_PORT']}\n")
             print(f"NEURO_SAN_SERVER_HTTP_PORT set to: {os.environ['NEURO_SAN_SERVER_HTTP_PORT']}\n")
 
         print("\n" + "=" * 50 + "\n")
+
+    def check_llm_config(self):
+        """Validate LLM configurations when --check-llm-config is specified."""
+        hocon_path = self.args.get("check_llm_config")
+        if not hocon_path:
+            return
+        LlmConfigValidatorPlugin().check(hocon_path)
+
+    def validate_keys(self):
+        """Validate LLM API keys when --validate-keys is specified."""
+        tier = self.args.get("validate_keys")
+        if not tier:
+            return
+
+        print(f"Validating LLM API keys (tier {tier})...")
+
+        if tier >= 3:
+            print("Live validation enabled - making API calls to verify keys...")
+
+        validator = EnvValidator()
+        results = validator.validate_all(tier=tier)
+        validator.print_results(results)
+
+        # Warn but don't block startup for missing/placeholder keys
+        if validator.has_warnings(results):
+            print("Note: Some API keys are not configured. Agents using those providers will fail.")
+            print("      Configure them in your .env file to enable all features.\n")
+
+        # For actual errors (invalid format, invalid key), warn more strongly
+        if validator.has_errors(results):
+            print("Error: Some API keys have validation errors. Check the results above.\n")
 
     @staticmethod
     def generate_html_files():
@@ -312,13 +376,10 @@ class NeuroSanRunner:
             "-u",
             "-m",
             "servers.neuro_san.neuro_san_server_wrapper",
-            "--port",
-            str(self.args["server_grpc_port"]),
             "--http_port",
             str(self.args["server_http_port"]),
         ]
         self.server_process = self.start_process(command, "NeuroSan", "logs/server.log")
-        print("NeuroSan server grpc started on port: ", self.args["server_grpc_port"])
         print("NeuroSan server http started on port: ", self.args["server_http_port"])
 
     def start_nsflow(self):
@@ -330,13 +391,15 @@ class NeuroSanRunner:
             "-m",
             "uvicorn",
             "nsflow.backend.main:app",
+            "--host",
+            str(self.args["nsflow_host"]),
             "--port",
             str(self.args["nsflow_port"]),
             "--reload",
         ]
 
         self.nsflow_process = self.start_process(command, "nsflow", "logs/nsflow.log")
-        print("nsflow client started on port: ", self.args["nsflow_port"])
+        print(f"nsflow client started on {self.args['nsflow_host']}:{self.args['nsflow_port']}")
 
     def start_flask_web_client(self):
         """Start the Flask web client."""
@@ -349,7 +412,7 @@ class NeuroSanRunner:
             "--server-host",
             self.args["server_host"],
             "--server-port",
-            str(self.args["server_grpc_port"]),
+            str(self.args["server_http_port"]),
             "--web-client-port",
             str(self.args["web_client_port"]),
             "--thinking-file",
@@ -368,7 +431,9 @@ class NeuroSanRunner:
             if self.is_windows:
                 self.server_process.terminate()
             else:
-                os.killpg(os.getpgid(self.server_process.pid), signal.SIGKILL)
+                os.killpg(os.getpgid(self.server_process.pid), signal.SIGTERM)
+            # Wait for the server to finish cleanup (e.g. flushing Langfuse traces)
+            self.server_process.wait(timeout=10)
 
         if self.flask_webclient_process:
             print(f"Stopping WEB CLIENT (PID {self.flask_webclient_process.pid})...")
@@ -414,10 +479,6 @@ class NeuroSanRunner:
                 conflicting_ports.append(self.args["nsflow_port"])
 
         if not self.args["client_only"] and self.args["server_host"] == "localhost":
-            if self.is_port_open(self.args["server_host"], self.args["server_grpc_port"]):
-                port_conflicts.append(f"Neuro-San server grpc port {self.args['server_grpc_port']} is already in use.")
-                conflicting_ports.append(self.args["server_grpc_port"])
-
             if self.is_port_open(self.args["server_host"], self.args["server_http_port"]):
                 port_conflicts.append(f"Neuro-San server http port {self.args['server_http_port']} is already in use.")
                 conflicting_ports.append(self.args["server_http_port"])
@@ -528,6 +589,12 @@ class NeuroSanRunner:
         # Set environment variables
         self.set_environment_variables()
 
+        # Validate LLM API keys if --validate-keys was specified
+        self.validate_keys()
+
+        # Validate LLM configurations if --check-llm-config was specified
+        self.check_llm_config()
+
         # Ensure logs directory exists
         os.makedirs("logs", exist_ok=True)
 
@@ -535,7 +602,8 @@ class NeuroSanRunner:
         signal.signal(signal.SIGINT, self.signal_handler)  # Handle Ctrl+C
         if self.is_windows:
             signal.signal(
-                signal.SIGBREAK, self.signal_handler  # pylint: disable=no-member
+                signal.SIGBREAK,  # pylint: disable=no-member
+                self.signal_handler,
             )  # Handle Ctrl+Break on Windows
         else:
             signal.signal(signal.SIGTERM, self.signal_handler)  # Handle kill command (not available on Windows)

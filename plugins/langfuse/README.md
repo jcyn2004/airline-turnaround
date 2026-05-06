@@ -29,8 +29,8 @@ pip install -r plugins/langfuse/requirements.txt
 
 ```bash
 LANGFUSE_ENABLED=true
-LANGFUSE_SECRET_KEY=sk-...
-LANGFUSE_PUBLIC_KEY=pk-...
+LANGFUSE_SECRET_KEY=sk-lf-...
+LANGFUSE_PUBLIC_KEY=pk-lf-...
 # Optional: LANGFUSE_HOST defaults to https://cloud.langfuse.com
 # But if you're in the US you might want to use this one instead:
 LANGFUSE_HOST=https://us.cloud.langfuse.com
@@ -44,7 +44,7 @@ All configuration is done via environment variables in your `.env` file.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `LANGFUSE_ENABLED` | `true` | Enable/disable Langfuse observability |
+| `LANGFUSE_ENABLED` | `false` | Enable/disable Langfuse observability |
 
 ### API Keys
 
@@ -57,7 +57,7 @@ All configuration is done via environment variables in your `.env` file.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `LANGFUSE_HOST` | `https://us.cloud.langfuse.com` | Langfuse instance URL |
+| `LANGFUSE_HOST` | `https://cloud.langfuse.com` | Langfuse instance URL |
 | `LANGFUSE_PROJECT_NAME` | `default` | Project name for organizing traces |
 | `LANGFUSE_RELEASE` | `dev` | Release version tag |
 | `LANGFUSE_DEBUG` | `false` | Enable debug logging |
