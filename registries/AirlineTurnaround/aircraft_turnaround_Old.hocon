@@ -240,46 +240,34 @@ STEP 0 - Validate inputs
 For INCOMING aircraft, execute the following steps in strict sequence:
 
 STEP 1 - Request air traffic clearance for landing
-  - Call /AirlineTurnaround/aircraft_crew_pilot with named parameters:
+  - Call /AirlineTurnaround/aircraft_crew_pilot with:
       flight_number, aircraft_type, aircraft_direction='incoming',
-      flight_status='incoming',
       task_id='STEP_1_LANDING_CLEARANCE',
-      instruction='Request clearance for landing.'
-  - Do NOT pre-fill clearance_type, assigned_runway_id, or assigned_runway_length.
-    These must come back from the sub-agent response, not be set by the manager.
+      and the explicit instruction: "Request clearance for landing."
   - Wait for response.
   - Verify the response echoes task_id='STEP_1_LANDING_CLEARANCE'.
     If it does not, discard and retry once before reporting a failure.
-  - Extract and store from the response:
-      clearance_type, assigned_runway_id, assigned_runway_length, flight_status.
-  - Do not proceed to STEP 2 until clearance_type contains 'CLEARED' and assigned_runway_id is not None.
+  - Extract and store: clearance_type, assigned_runway_id, assigned_runway_length, flight_status.
+  - Do not proceed to step 2 until clearance_type contains 'landing' and assigned_runway_id is not None.
 
 STEP 2 - Land the aircraft
-  - Call /AirlineTurnaround/aircraft_crew_pilot with named parameters:
+  - Call /AirlineTurnaround/aircraft_crew_pilot with:
       flight_number, aircraft_type, aircraft_direction,
-      flight_status='APPROACH',
       clearance_type, assigned_runway_id, assigned_runway_length,
       task_id='STEP_2_LAND_AIRCRAFT',
-      instruction='Land the aircraft.'
-  - CRITICAL: flight_status MUST be passed explicitly as 'APPROACH'. This
-    is required for BRANCH B routing inside aircraft_crew_pilot. If
-    flight_status is null or missing, the sub-agent cannot determine
-    it should execute a landing and will return a clearance summary instead.
-  - ALL parameters MUST be passed as named key-value pairs.
+      and the explicit instruction: "Land the aircraft."
   - Wait for response.
   - Verify the response echoes task_id='STEP_2_LAND_AIRCRAFT'.
     If it does not, discard and retry once before reporting a failure.
   - Do NOT reuse the response from STEP 1. This is a distinct call.
-  - Extract and store the new flight_status.
+  - Extract and store the new flight_status (expected value: 'landed').
+  - Do not proceed to step 3 until flight_status contains 'landed'.
   - VALIDATION: flight_status MUST be exactly 'landed'.
-    Any of the following are INVALID and must trigger a retry:
-      - clearance language (e.g. 'CLEARED_FOR_LANDING')
-      - runway references (e.g. 'cleared for landing on runway 19R')
-      - 'APPROACH' or any other ATC status
-    If flight_status is not exactly 'landed', retry ONCE with the
-    same parameters. If still not 'landed' after retry, stop and report:
+    If the response contains clearance language, runway references, or
+    any value other than 'landed', the sub-agent returned the wrong
+    output. Retry ONCE with the same parameters.
+    If still not 'landed' after retry, stop and report:
     "STEP 2 FAILED: aircraft did not land. Raw flight_status: [value]"
-  - Do not proceed to STEP 3 until flight_status is exactly 'landed'.
 
 STEP 3 - Gate assignment
   - Call /AirlineTurnaround/aircraft_gate_services with:
