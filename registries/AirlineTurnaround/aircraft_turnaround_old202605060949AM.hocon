@@ -240,31 +240,22 @@ STEP 0 - Validate inputs
 For INCOMING aircraft, execute the following steps in strict sequence:
 
 STEP 1 - Request air traffic clearance for landing
-  - Call /AirlineTurnaround/aircraft_crew_pilot with named parameters:
+  - Call /AirlineTurnaround/aircraft_crew_pilot with:
       flight_number, aircraft_type, aircraft_direction='incoming',
-      flight_status='incoming',
       task_id='STEP_1_LANDING_CLEARANCE',
-      instruction='Request clearance for landing.'
-  - Do NOT pre-fill clearance_type, assigned_runway_id, or assigned_runway_length.
-    These must come back from the sub-agent response, not be set by the manager.
+      and the explicit instruction: "Request clearance for landing."
   - Wait for response.
   - Verify the response echoes task_id='STEP_1_LANDING_CLEARANCE'.
     If it does not, discard and retry once before reporting a failure.
-  - Extract and store from the response:
-      clearance_type, assigned_runway_id, assigned_runway_length, flight_status.
-  - Do not proceed to STEP 2 until clearance_type contains 'CLEARED' and assigned_runway_id is not None.
+  - Extract and store: clearance_type, assigned_runway_id, assigned_runway_length, flight_status.
+  - Do not proceed to step 2 until clearance_type contains 'landing' and assigned_runway_id is not None.
 
 STEP 2 - Land the aircraft
-  - Call /AirlineTurnaround/aircraft_crew_pilot with named parameters:
+  - Call /AirlineTurnaround/aircraft_crew_pilot with:
       flight_number, aircraft_type, aircraft_direction,
-      flight_status='APPROACH',
       clearance_type, assigned_runway_id, assigned_runway_length,
       task_id='STEP_2_LAND_AIRCRAFT',
       instruction='Land the aircraft.'
-  - CRITICAL: flight_status MUST be passed explicitly as 'APPROACH'. This
-    is required for BRANCH B routing inside aircraft_crew_pilot. If
-    flight_status is null or missing, the sub-agent cannot determine
-    it should execute a landing and will return a clearance summary instead.
   - ALL parameters MUST be passed as named key-value pairs.
   - Wait for response.
   - Verify the response echoes task_id='STEP_2_LAND_AIRCRAFT'.

@@ -144,20 +144,30 @@ When user submits inquiry, proceed as follows:
     b. wait for its response    
     c. Return to step 2.
 6. If jetbridge_connection_status = 'connected' and door_opening_status includes 'open' 
-    a. call crew_exit_operator to debrief crew in the aircraft
+    a. call crew_exit_operator to exit the crew from the aircraft
     b. Wait for its response and save it as crew_exit_status
-    c. Report crew_exit_status
-7. Call TrackerAPI to get the latest value of jetbridge_connection_status and door_opening_status and crew_exit_status
-    a. wait for its response 
-    b. store jetbridge connection status as jetbridge_connection_status, store door opening status as door_opening_status, flight status as flight_status and crew exit status as crew_exit_status
-8. Provide the crew exit status report summary as: 
+    c. Do NOT report yet. crew_exit_operator may return an intermediate
+       status such as 'requested' or 'in progress'. You MUST proceed
+       to step 7 to confirm the final status via TrackerAPI.
+7. Call TrackerAPI to store and confirm crew_exit_status.
+    a. Wait for its response.
+    b. Store crew_exit_status from the TrackerAPI response.
+    c. VALIDATION: crew_exit_status MUST contain 'completed' or 'exited'.
+       If crew_exit_status is still 'requested', 'in progress', or any
+       other non-terminal value, wait briefly and call TrackerAPI again
+       (up to 2 retries) until a terminal status is confirmed.
+       If after 2 retries crew_exit_status is still not terminal,
+       report: "crew_exit_status FAILED: status did not reach completed.
+       Raw status: [crew_exit_status]"
+8. Provide the crew exit status report summary ONLY after crew_exit_status
+   is confirmed as 'completed' or 'exited'. Use this exact template:
     *********************************
     * Summary of aircraft crew exit *
     *********************************
     ** flight status **: [flight_status]
     ** jet bridge connection status **: [jetbridge_connection_status]
     ** door opening status **: [door_opening_status]
-    ** crew exit status **: [crew_exit_status]
+    ** crew exit status **: completed
             """ ${aaosa_instructions},
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 

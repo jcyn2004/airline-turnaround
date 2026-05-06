@@ -225,6 +225,8 @@ BRANCH B — Land the aircraft
   3. Wait. Extract: flight_status.
   4. Call TrackerAPI to store flight_status.
   5. RETURN SUMMARY:
+       flight_status MUST be exactly 'landed'. Do NOT echo the clearance
+       type, runway, or any ATC language in this field.
        *******************************
        * Summary of aircraft landing *
        *******************************
