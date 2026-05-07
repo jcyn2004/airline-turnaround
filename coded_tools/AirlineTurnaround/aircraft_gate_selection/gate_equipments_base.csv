@@ -6,7 +6,7 @@ jetway_04,jetway,A4,B747,no,7,yes,yes,yes,yes,0.125
 jetway_05,jetway,A5,B747,no,9,yes,yes,yes,yes,0.1
 jetway_06,jetway,A6,B747,no,12,yes,yes,yes,yes,0.07692307692307693
 jetway_07,jetway,A7,B747,no,16,yes,yes,yes,yes,0.058823529411764705
-jetway_08,jetway,A8,B747,yes,20,yes,yes,yes,yes,0.047619047619047616
+jetway_08,jetway,A8,B747,no,20,yes,yes,yes,yes,0.047619047619047616
 jetway_09,jetway,A9,B747,no,8,yes,yes,yes,yes,0.1111111111111111
 jetway_10,jetway,A10,B747,no,9,yes,yes,yes,yes,0.1
 jetway_11,jetway,A11,B747,no,13,yes,yes,yes,yes,0.07142857142857142
