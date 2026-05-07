@@ -374,6 +374,7 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS: List[str] = [
     "inspection_maintenance_status",
     "jetbridge_connection_status",
     "lavatory_service_status",
+    "stairtruck_connection_status",
     "passenger_disembarkation_status",
     "wheelchocks_installation_status",
     "wheelchocks_readiness_status",

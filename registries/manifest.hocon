@@ -36,6 +36,7 @@
     "AirlineTurnaround/aircraft_gate_services.hocon": true,
     "AirlineTurnaround/aircraft_ground_servicing.hocon": true, 
     "AirlineTurnaround/aircraft_cabin_services.hocon": true, 
+    "AirlineTurnaround/aircraft_stairtruck_connect.hocon": true,
 }
 
 #    "AirlineTurnaround/aircraft_disembark.hocon": true, 

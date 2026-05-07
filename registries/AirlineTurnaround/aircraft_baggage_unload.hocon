@@ -113,8 +113,16 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                         },       
                         "jetbridge_connection_status": {
                             "type": "string", 
-                            "description": "This is the status of jetbridge connection."
-                        },     
+                            "description": "This is the status of jetbridge connection. Null on stairtruck gates."
+                        },
+                        "stairtruck_connection_status": {
+                            "type": "string", 
+                            "description": "This is the status of stairtruck connection. Null on jetway gates."
+                        },
+                        "deplaning_equipment_type": {
+                            "type": "string", 
+                            "description": "This is the deplaning equipment type at the gate (jetway or stairtruck)."
+                        },
                         "door_opening_status": {
                             "type": "string", 
                             "description": "This is the status of aircraft door opening."
@@ -124,44 +132,56 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "description": "This is the baggage unload status."
                         },
                     }, 
-                    "required": ["flight_number", "aircraft_type","gate_id","flight_status","jetbridge_connection_status","door_opening_status"] 
+                    "required": ["flight_number", "aircraft_type","gate_id","flight_status","door_opening_status"] 
                 }
             },
 
             "instructions": """
-You are the agent in charge of unloading baggages from aircraft. 
-When user submits inquiry, proceed as follows: 
-1. Determine if the followings are provided by the user: 
-    a. jetbridge connection status as jetbridge_connection_status with value such as'connected'
-    b. door opening status as door_opening_status with value such as 'open' 
-    c. flight status as flight_status with value such as 'on blocks' 
-2. Call TrackerAPI and obtain the latest jetbridge_connection_status and door_opening_status and flight_status.
-    a. wait for its response 
-    b. store all the available parameters.
-3. If jetbridge_connection_status includes 'connected' and door_opening_status includes 'open' then go to step 6.
-4. If jetbridge_connection_status does not contain 'connected',
-    a. call aircraft_jetbridge_connect to connect jetbridge
-    b. wait for its response 
-    c. Return to step 2.
-5. If door_opening_status does not includes 'open'
-    a. call aircraft_door_open to open the door
-    b. wait for its responses 
-    c. Return to step 2.
-6. If jetbridge_connection_status = 'connected' and door_opening_status includes 'open' 
-    a. call baggage_unload_operator to unload baggages from aircraft
-    b. Wait for its response and save it as baggage_unload_status
-    c. Report baggage_unload_status
-7. Call TrackerAPI and obtain the latest value of jetbridge_connection_status, door_opening_status and flight_status, and baggage_unload_status.
-    a. wait for its response 
-    b. store all the available parameters.
-8. Provide the baggage unload status status report summary as: 
+You are the agent in charge of unloading baggages from aircraft.
+When user submits inquiry, proceed as follows:
+1. Determine if the following are provided: jetbridge_connection_status or
+   stairtruck_connection_status, door_opening_status, flight_status,
+   deplaning_equipment_type.
+2. Call TrackerAPI with all available parameters to get the latest values.
+   Wait for its response and store all available parameters.
+3. Determine equipment readiness based on deplaning_equipment_type:
+   - If deplaning_equipment_type contains 'jetway' or 'jetbridge':
+       Equipment is ready if jetbridge_connection_status contains 'connected'.
+   - If deplaning_equipment_type contains 'stairtruck' or 'stair':
+       Equipment is ready if stairtruck_connection_status contains 'connected'.
+   - If deplaning_equipment_type is unknown:
+       Accept either connection status as sufficient.
+   If equipment is ready AND door_opening_status includes 'open': go to step 6.
+4. If equipment is NOT connected:
+   - For jetway gate: call /AirlineTurnaround/aircraft_jetbridge_connect.
+   - For stairtruck gate: call /AirlineTurnaround/aircraft_stairtruck_connect
+     with flight_number, aircraft_type, flight_status, gate_id,
+     acu_connection_status, gpu_connection_status.
+   Wait for response. Return to step 2.
+5. If door_opening_status does not include 'open':
+   Call /AirlineTurnaround/aircraft_door_opening with:
+     flight_number, aircraft_type, flight_status, gate_id,
+     deplaning_equipment_type,
+     jetbridge_connection_status, stairtruck_connection_status.
+   Wait for response. Return to step 2.
+6. Equipment is connected and door is open.
+   Call baggage_unload_operator with:
+     flight_number, aircraft_type, flight_status, gate_id,
+     jetbridge_connection_status, stairtruck_connection_status,
+     door_opening_status.
+   Wait for its response and save it as baggage_unload_status.
+7. Call TrackerAPI to store baggage_unload_status.
+   Wait for its response and store all available parameters.
+8. Provide the baggage unload status report summary as:
     **************************************
     * Summary of aircraft baggage unload *
     **************************************
-    ** flight status **: [flight_status]
-    ** jetbridge connection status **: [jetbridge_connection_status]
-    ** door opening status **: [door_opening_status]
-    ** baggage unload status **: [baggage_unload_status]
+    ** flight status                 **: [flight_status]
+    ** deplaning equipment type      **: [deplaning_equipment_type]
+    ** jetbridge connection status   **: [jetbridge_connection_status]
+    ** stairtruck connection status  **: [stairtruck_connection_status]
+    ** door opening status           **: [door_opening_status]
+    ** baggage unload status         **: [baggage_unload_status]
             """ ${aaosa_instructions},
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
@@ -183,6 +203,8 @@ When user submits inquiry, proceed as follows:
                         "flight_status": true
                         "gate_id": true 
                         "jetbridge_connection_status": true
+                        "stairtruck_connection_status": true
+                        "deplaning_equipment_type": true
                         "door_opening_status": true 
                         "baggage_unload_status": true
                     }
@@ -194,6 +216,8 @@ When user submits inquiry, proceed as follows:
                         "flight_status": true
                         "gate_id": true 
                         "jetbridge_connection_status": true
+                        "stairtruck_connection_status": true
+                        "deplaning_equipment_type": true
                         "door_opening_status": true 
                         "baggage_unload_status": true
                     }
@@ -205,13 +229,15 @@ When user submits inquiry, proceed as follows:
                         "flight_status": true
                         "gate_id": true 
                         "jetbridge_connection_status": true
+                        "stairtruck_connection_status": true
+                        "deplaning_equipment_type": true
                         "door_opening_status": true 
                         "baggage_unload_status": true
                     }
                 }
             },
 
-            "tools":    ["TrackerAPI","baggage_unload_operator","/AirlineTurnaround/aircraft_door_opening","/AirlineTurnaround/aircraft_jetbridge_connect"]
+            "tools":    ["TrackerAPI","baggage_unload_operator","/AirlineTurnaround/aircraft_door_opening","/AirlineTurnaround/aircraft_jetbridge_connect","/AirlineTurnaround/aircraft_stairtruck_connect"]
         },
 
         {
@@ -241,8 +267,12 @@ This agent unloads baggages from the aircraft.
                         },    
                         "jetbridge_connection_status": {
                             "type": "string", 
-                            "description": "This is the status of jetbridge connection."
-                        },     
+                            "description": "This is the status of jetbridge connection. Null on stairtruck gates."
+                        },
+                        "stairtruck_connection_status": {
+                            "type": "string", 
+                            "description": "This is the status of stairtruck connection. Null on jetway gates."
+                        },
                         "door_opening_status": {
                             "type": "string", 
                             "description": "This is the status of aircraft door opening."
@@ -252,7 +282,7 @@ This agent unloads baggages from the aircraft.
                             "description": "This is the baggage unload status."
                         },         
                     }, 
-                    "required": ["flight_number", "aircraft_type","gate_id","jetbridge_connection_status","door_opening_status"] 
+                    "required": ["flight_number", "aircraft_type","gate_id","door_opening_status"] 
                 }
             },
             "class": "AirlineTurnaround.aircraft_baggage_unload.aircraft_baggage_unload.baggage_unload_operator" 
@@ -298,7 +328,15 @@ I check door opening status as door_opening_status.
                         "baggage_unload_status": {
                             "type": "string", 
                             "description": "This is the baggage unload status."
-                        },   
+                        },
+                        "stairtruck_connection_status": {
+                            "type": "string",
+                            "description": "This is the stairtruck connection status."
+                        },
+                        "deplaning_equipment_type": {
+                            "type": "string",
+                            "description": "This is the deplaning equipment type (jetway or stairtruck)."
+                        },
                     }, 
                     "required": [] 
                 }

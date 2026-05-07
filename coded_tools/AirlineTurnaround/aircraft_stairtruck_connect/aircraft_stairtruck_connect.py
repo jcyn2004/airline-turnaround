@@ -1,19 +1,15 @@
-import logging
-import pandas as pd
-import json 
-from neuro_san.interfaces.coded_tool import CodedTool
 from datetime import datetime
 import time
-import random
-import os
-import platform
-import fcntl
+from neuro_san.interfaces.coded_tool import CodedTool
+import logging
 from typing import Dict, Any, Union, Optional, Tuple, List, Literal, TypedDict
-import asyncio
-import re
 from enum import Enum
 from dataclasses import dataclass
+import re
+import pandas as pd
 from pathlib import Path
+
+# ---------- helpers ----------
 
 def _from_args_or_sly(args: Dict[str, Any], sly: Dict[str, Any], key: str) -> Any:
     """Prefer args[key]; fallback to sly_data[key]."""
@@ -25,124 +21,160 @@ def _from_sly_or_args(sly: Dict[str, Any], args: Dict[str, Any], key: str) -> An
     v = sly.get(key)
     return v if v is not None else args.get(key)
 
-# class execute_aircraft_landing(CodedTool):
-#     """
-#     CodedTool implementation that calls function for aircraft landing.
-#     """
+def _norm(s: Union[str, None]) -> str:
+    """Lowercase+strip (safe for None)."""
+    return (s or "").strip().lower()
 
-#     def __init__(self):
-#         pass
+# ---------- tool ----------
 
-#     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[str, Dict[str, Any]]:
-#         # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
-#         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
-#         # aircraft_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/aircraft_base.csv"
-#         aircraft_base = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_traffic_controller" / "aircraft_base.csv"
-#         # runway_base = "/Users/971244/workspace/airline-turnaround/coded_tools/AirlineTurnaround/aircraft_traffic_controller/runways_base.csv"
-#         runway_base = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_traffic_controller" / "runways_base.csv"
+class stairtruck_operator(CodedTool):
+    """
+    Coded tool for connecting the stairtruck to the aircraft.
+    Mirrors jetbridge_operator but sets stairtruck_connection_status.
+    """
 
-#         # Check aircraft type parameter passed by the agent
-#         flight_status: str = args.get("flight_status", None) 
-#         aircraft_type: str = args.get("aircraft_type", None)   
-#         flight_number: str = args.get("flight_number", None)   
-#         # traffic_direction: str = args.get("traffic_direction", None) 
-#         aircraft_direction: str = args.get("aircraft_direction", None) 
-#         clearance_type: str = args.get("clearance_type", None)   
-#         assigned_runway_id: str = args.get("assigned_runway_id", None)  
-#         assigned_runway_length: str = args.get("assigned_runway_length", None)  
+    def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
+        """
+        :param args: flight_number, aircraft_type, flight_status,
+                     gate_id, acu_connection_status, gpu_connection_status
+        :param sly_data: shared turnaround state
+        :return: stairtruck_connection_status string
+        """
+        
+        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+        file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
+        stairtruck_connection_status = 'retracted'
 
-#         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft landing agent data from args $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-#         print("clearance_type: ", clearance_type)
-#         print("flight_status: ", flight_status)
-#         print("aircraft_type: ", aircraft_type)
-#         print("flight_number: ", flight_number)
-#         # print("traffic_direction: ", traffic_direction)
-#         print("aircraft_direction: ", aircraft_direction)
-#         print("assigned_runway_id: ", assigned_runway_id)
-#         print("assigned_runway_length: ", assigned_runway_length)
-#         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+        # flight number is needed in particular. 
+        flight_number: str = args.get("flight_number", None)
+        if not flight_number:
+            print("No flight number provided. Trying to get it from sly_data")
+            flight_number = sly_data.get("flight_number")
+        if not flight_number:
+            error = "Error: Please provide a flight number for the request."
+            print(error)
+            return error       
+        
+        print("\n")
+        print("\n")
+        print("flight_number: ", flight_number)
+        print("\n")
+        print("\n")
 
-#         if flight_status is None: 
-#             flight_status: str = sly_data.get(flight_status, None)
-#         if flight_status: 
-#             flight_status = flight_status.lower().replace("_", " ").strip() 
-
-#         if aircraft_type is None: 
-#             aircraft_type: str = sly_data.get(aircraft_type, None)
-
-#         if flight_number is None: 
-#             flight_number: str = sly_data.get(flight_number, None)
-
-#         # if traffic_direction is None: 
-#         #     traffic_direction: str = sly_data.get(traffic_direction, None)
-
-#         if aircraft_direction is None: 
-#             aircraft_direction: str = sly_data.get(aircraft_direction, None)
-
-#         if clearance_type is None: 
-#             clearance_type: str = sly_data.get(clearance_type, None)
+        # aircraft type is required to fulfill the request.
+        aircraft_type: str = args.get("aircraft_type", None)
+        if not aircraft_type:
+            print("No aircraft type provided. Trying to get it from sly_data")
+            aircraft_type = sly_data.get("aircraft_type")
+        if not aircraft_type:
+            error = "Error: Please provide an aircraft type for the request."
+            print(error)
+            return error  
+        
+        print("\n")
+        print("\n")
+        print("aircraft_type: ", aircraft_type)
+        print("\n")
+        print("\n")
  
-#         if assigned_runway_id is None: 
-#             assigned_runway_id: str = sly_data.get(assigned_runway_id, None)
+        # flight status is required to fulfill the request.
+        flight_status: str = args.get("flight_status", None)
+        if not flight_status:
+            print("No flight status provided. Trying to get it from sly_data")
+            flight_status = sly_data.get("flight_status")
+        if not flight_status:
+            error = "Error: Please provide a flight status for the request."
+            print(error)
+            return error  
+        if flight_status: 
+            flight_status = flight_status.lower().replace("_", " ").strip()
 
-#         if assigned_runway_length is None: 
-#             assigned_runway_length: str = sly_data.get(assigned_runway_length, None)
+        print("\n")
+        print("\n")
+        print("flight_status: ", flight_status)
+        print("\n")
+        print("\n")
+         
+        # flight status is required to fulfill the request.
+        gate_id: str = args.get("gate_id", None)
+        if not gate_id:
+            print("No gate id provided. Trying to get it from sly_data")
+            gate_id = sly_data.get("gate_id")
+        if not gate_id:
+            error = "Error: Please provide a gate id for the request."
+            print(error)
+            return error  
+        
+        print("\n")
+        print("\n")
+        print("gate_id: ", gate_id)
+        print("\n")
+        print("\n")
+         
+        # engines stop status is required to fulfill the request.
+        acu_connection_status: str = args.get("acu_connection_status", None)
+        if not acu_connection_status:
+            print("No acu connection status provided. Trying to get it from sly_data")
+            acu_connection_status = sly_data.get("acu_connection_status")
+        if not acu_connection_status:
+            error = "Error: Please provide acu connection status for the request."
+            print(error)
+            return error  
+                
+        print("\n")
+        print("\n")
+        print("acu_connection_status: ", acu_connection_status)
+        print("\n")
+        print("\n")
+         
+        # wheels chocks installation status is required to fulfill the request.
+        gpu_connection_status: str = args.get("gpu_connection_status", None)
+        if not gpu_connection_status:
+            print("No gpu connection status provided. Trying to get it from sly_data")
+            gpu_connection_status = sly_data.get("gpu_connection_status")
+            # sly_data["gate_id"] = gate_id
+        if not gpu_connection_status:
+            error = "Error: Please provide gpu connection status for the request."
+            print(error)
+            return error  
+        
+        print("\n")
+        print("\n")
+        print("gpu_connection_status: ", gpu_connection_status)
+        print("\n")
+        print("\n")
 
-#         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft landing agent $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-#         print("clearance_type: ", clearance_type)
-#         print("flight_status: ", flight_status)
-#         print("aircraft_type: ", aircraft_type)
-#         print("flight_number: ", flight_number)
-#         # print("traffic_direction: ", traffic_direction)
-#         print("aircraft_direction: ", aircraft_direction)
-#         print("assigned_runway_id: ", assigned_runway_id)
-#         print("assigned_runway_length: ", assigned_runway_length)
-#         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+        if acu_connection_status is not None: 
+            acu_connection_status = acu_connection_status.lower()
+        if gpu_connection_status is not None: 
+            gpu_connection_status = gpu_connection_status.lower() 
 
-#         if clearance_type and flight_status:
-#             clearance_type = clearance_type.lower().strip().replace("_", " ")
-#             flight_status = flight_status.lower().strip().replace("_", " ")
+        if (('connected' in acu_connection_status) & ('connected' in gpu_connection_status)): 
+            stairtruck_connection_status = 'connected'
 
-#             if ((('cleared' in clearance_type) | ('landing' in clearance_type)) & ((flight_status is None) | ('approach' in flight_status ))):    
-#                 # time.sleep(0.5) 
-#                 flight_status = 'landed'
+            message = f"Flight {flight_number} with airplane type {aircraft_type} {flight_status} at gate {gate_id} has stairtruck connected. Its stairtruck connection status is {stairtruck_connection_status}."
+            print(message)
+            print("\n")
+            print("\n")
+            print(">>>>>>>>>>>>>>>>>>> DONE !!! >>>>>>>>>>>>>>>>>>")
 
-#                 print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft landing status update $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-#                 print("flight_status: ", flight_status)
+            timenow = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+            line = timenow + ": " + message
+            with open(file_path_log, mode="a", encoding="utf-8") as f:  
+                f.write(line + "\n")   
 
-#                 timenow = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-#                 line = f"{timenow}: flight {flight_number} has landed on runway {assigned_runway_id}"
+            sly_data["stairtruck_connection_status"] = stairtruck_connection_status
 
-#                 with open(file_path_log, mode="a", encoding="utf-8") as f:  
-#                     f.write(line + "\n")
+        message = f"Flight {flight_number} with airplane type {aircraft_type} {flight_status} at gate {gate_id} has stairtruck connected. Its stairtruck connection status is {stairtruck_connection_status}."
 
-#                 sly_data["flight_status"] = flight_status 
+        return stairtruck_connection_status
 
-#                 print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft operation status update $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-#                 print("flight_status: ", flight_status)
-#                 print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$") 
+    async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
+        """
+        Delegates to the synchronous invoke method because it's quick, non-blocking.
+        """
+        return self.invoke(args, sly_data)
 
-#             # else: 
-#             #     flight_status = 'pending'
-
-#             #     print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft operation status $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-#             #     print("flight_status: ", flight_status)
-
-#             #     timenow = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-#             #     line = f"{timenow}: flight {flight_number} needs clearance for landing"
-
-#             #     with open(file_path_log, mode="a", encoding="utf-8") as f:  
-#             #         f.write(line + "\n")
-
-#             #     sly_data["flight_status"] = flight_status 
-
-#             #     print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft operation status update $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-#             #     print("flight_status: ", flight_status)
-#             #     print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$") 
-
-#         return flight_status
-
- 
 #############################################################################
 # Tracker API for all parameters in the aircraft turnaround agentic system  #
 # This coded tool proceeds as follows:                                      #
@@ -424,50 +456,56 @@ class TrackerAPI(CodedTool):
 
 # Define tracked fields for flight turnaround operations
 FLIGHT_TURNAROUND_TRACKED_FIELDS = [
-    "acu_readiness_status", 
-    "aircraft_direction",
     "aircraft_type", 
-    "assigned_runway_id", 
-    "assigned_runway_length", 
-    "clearance_type",
-    "door_opening_status", 
-    "flight_number",
-    "flight_status", 
-    "gate_id", 
-    "ground_clearance_status", 
-    "ground_clearance_type", 
-    "jetbridge_connection_status", 
-    "passenger_disembarkation_status", 
-    "wheelchocks_readiness_status", 
-    "engines_stop_status", 
-    "deplaning_equipment_type", 
-    "deplaning_equipment_id", 
-    "gpu_connection_status", 
     "acu_connection_status",
-    "stairtruck_connection_status",
-]
+    "flight_number", 
+    "flight_status",
+    "gate_id", 
+    "gpu_connection_status", 
+    "stairtruck_connection_status"] 
+
+#     "acu_connection_status", 
+#     "acu_readiness_status",
+#     "aircraft_direction",
+#     "aircraft_landing_report",
+#     "aircraft_type",
+#     "assigned_runway_id",
+#     "assigned_runway_length",
+#     "baggage_unload_status", 
+#     "catering_loading_status", 
+#     "cleaning_cabin_status", 
+#     "clearance_landing_valid",
+#     "clearance_takeoff_valid", 
+#     "clearance_type",
+#     "crew_debrief_status", 
+#     "crew_exit_status", 
+#     "door_opening_status", 
+#     "engines_stop_status", 
+#     "flight_number",
+#     "flight_status",
+#     "fueling_status", 
+#     "gate_id",
+#     "gpu_connection_status", 
+#     "gpu_readiness_status",
+#     "ground_clearance_status",
+#     "ground_clearance_type",
+#     "ground_services_inquiry_type", 
+#     "ground_services_request_type",
+#     "inspection_maintenance_status", 
+#     "jetbridge_connection_status", 
+#     "jetbridge_status", 
+#     "lavatory_service_status", 
+#     "passenger_disembarkation_status", 
+#     "runway_length",
+#     "wheels_chocks_installation_status", 
+#     "wheels_chocks_readiness_status",
+# ]
+
 # Define which fields should be returned from the API
 FLIGHT_TURNAROUND_RETURN_FIELDS = [
-    "acu_readiness_status", 
-    "aircraft_direction",
-    "aircraft_type", 
-    "assigned_runway_id", 
-    "assigned_runway_length", 
-    "clearance_type",
-    "door_opening_status", 
-    "flight_number",
-    "flight_status", 
-    "gate_id", 
-    "ground_clearance_status", 
-    "ground_clearance_type", 
-    "jetbridge_connection_status", 
-    "passenger_disembarkation_status", 
-    "wheelchocks_readiness_status", 
-    "engines_stop_status", 
-    "deplaning_equipment_type", 
-    "deplaning_equipment_id", 
-    "gpu_connection_status", 
     "acu_connection_status",
+    "flight_status",
+    "gpu_connection_status", 
     "stairtruck_connection_status",
 ]
 

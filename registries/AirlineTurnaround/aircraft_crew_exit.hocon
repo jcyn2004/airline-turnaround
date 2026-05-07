@@ -113,61 +113,74 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                         },       
                         "jetbridge_connection_status": {
                             "type": "string", 
-                            "description": "This is the status of jetbridge connection."
-                        },     
+                            "description": "This is the status of jetbridge connection. Null on stairtruck gates."
+                        },
+                        "stairtruck_connection_status": {
+                            "type": "string", 
+                            "description": "This is the status of stairtruck connection. Null on jetway gates."
+                        },
+                        "deplaning_equipment_type": {
+                            "type": "string", 
+                            "description": "This is the deplaning equipment type at the gate (jetway or stairtruck)."
+                        },
                         "door_opening_status": {
                             "type": "string", 
                             "description": "This is the status of aircraft door opening."
                         },         
                     }, 
-                    "required": ["flight_number", "aircraft_type","gate_id","flight_status","jetbridge_connection_status","door_opening_status"] 
+                    "required": ["flight_number", "aircraft_type","gate_id","flight_status","door_opening_status"] 
                 }
             },
 
             "instructions": """
-You are the agent in charge of exiting crew in the aircraft. 
-When user submits inquiry, proceed as follows: 
-1. Determine if the followings are provided by the user: 
-    a. jetbridge connection status as jetbridge_connection_status with value such as'connected'
-    b. door opening status as door_opening_status with value such as 'open' 
-    c. flight status as flight_status with value such as 'on blocks' 
-2. Call TrackerAPI to get the latest value of jetbridge_connection_status and door_opening_status and flight status
-    a. wait for its response 
-    b. store jetbridge connection status as jetbridge_connection_status, store door opening status as door_opening_status and flight status as flight_status
-3. If jetbridge_connection_status = 'connected' and door_opening_status includes 'open' then go to step 6.
-4. If jetbridge_connection_status is not 'connected',
-    a. call aircraft_jetbridge_connect to connect jetbridge
-    b. wait for its response 
-    c. Return to step 2.
-5. If door_opening_status does not includes 'open'
-    a. call aircraft_door_open to open the door
-    b. wait for its response    
-    c. Return to step 2.
-6. If jetbridge_connection_status = 'connected' and door_opening_status includes 'open' 
-    a. call crew_exit_operator to exit the crew from the aircraft
-    b. Wait for its response and save it as crew_exit_status
-    c. Do NOT report yet. crew_exit_operator may return an intermediate
-       status such as 'requested' or 'in progress'. You MUST proceed
-       to step 7 to confirm the final status via TrackerAPI.
+You are the agent in charge of exiting crew in the aircraft.
+When user submits inquiry, proceed as follows:
+1. Determine what is provided: jetbridge_connection_status or
+   stairtruck_connection_status, door_opening_status, flight_status,
+   deplaning_equipment_type.
+2. Call TrackerAPI with all available parameters to get the latest values.
+   Wait for its response and store all available parameters.
+3. Determine equipment readiness based on deplaning_equipment_type:
+   - If 'jetway' or 'jetbridge': need jetbridge_connection_status='connected'.
+   - If 'stairtruck' or 'stair': need stairtruck_connection_status='connected'.
+   - If unknown: accept either connection status.
+   If equipment ready AND door_opening_status includes 'open': go to step 6.
+4. If equipment NOT connected:
+   - Jetway: call /AirlineTurnaround/aircraft_jetbridge_connect.
+   - Stairtruck: call /AirlineTurnaround/aircraft_stairtruck_connect with
+     flight_number, aircraft_type, flight_status, gate_id,
+     acu_connection_status, gpu_connection_status.
+   Wait for response. Return to step 2.
+5. If door_opening_status does not include 'open':
+   Call /AirlineTurnaround/aircraft_door_opening with:
+     flight_number, aircraft_type, flight_status, gate_id,
+     deplaning_equipment_type,
+     jetbridge_connection_status, stairtruck_connection_status.
+   Wait for response. Return to step 2.
+6. Equipment connected and door open.
+   Call crew_exit_operator with:
+     flight_number, aircraft_type, flight_status, gate_id,
+     jetbridge_connection_status, stairtruck_connection_status,
+     door_opening_status.
+   Wait for its response. Do NOT report yet — crew_exit_operator may
+   return an intermediate status such as 'requested' or 'in progress'.
+   Save as crew_exit_status and proceed to step 7.
 7. Call TrackerAPI to store and confirm crew_exit_status.
-    a. Wait for its response.
-    b. Store crew_exit_status from the TrackerAPI response.
-    c. VALIDATION: crew_exit_status MUST contain 'completed' or 'exited'.
-       If crew_exit_status is still 'requested', 'in progress', or any
-       other non-terminal value, wait briefly and call TrackerAPI again
-       (up to 2 retries) until a terminal status is confirmed.
-       If after 2 retries crew_exit_status is still not terminal,
-       report: "crew_exit_status FAILED: status did not reach completed.
-       Raw status: [crew_exit_status]"
-8. Provide the crew exit status report summary ONLY after crew_exit_status
-   is confirmed as 'completed' or 'exited'. Use this exact template:
+   Wait for its response. Store crew_exit_status.
+   VALIDATION: crew_exit_status MUST contain 'completed' or 'exited'.
+   If still 'requested', 'in progress', or non-terminal, retry TrackerAPI
+   up to 2 times. If still not terminal, report:
+   "crew_exit_status FAILED: status did not reach completed. Raw status: [crew_exit_status]"
+8. Provide crew exit status report ONLY after confirmed as 'completed' or 'exited':
     *********************************
     * Summary of aircraft crew exit *
     *********************************
-    ** flight status **: [flight_status]
-    ** jet bridge connection status **: [jetbridge_connection_status]
-    ** door opening status **: [door_opening_status]
-    ** crew exit status **: completed
+    ** flight status                 **: [flight_status]
+    ** deplaning equipment type      **: [deplaning_equipment_type]
+    ** jetbridge connection status   **: [jetbridge_connection_status]
+    ** stairtruck connection status  **: [stairtruck_connection_status]
+    ** door opening status           **: [door_opening_status]
+    ** crew exit status              **: completed
             """ ${aaosa_instructions},
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
@@ -195,6 +208,8 @@ When user submits inquiry, proceed as follows:
                         "flight_status": true
                         "gate_id": true 
                         "jetbridge_connection_status": true
+                        "stairtruck_connection_status": true
+                        "deplaning_equipment_type": true
                         "door_opening_status": true 
                         "crew_exit_status": true
                     }
@@ -206,6 +221,8 @@ When user submits inquiry, proceed as follows:
                         "flight_status": true
                         "gate_id": true 
                         "jetbridge_connection_status": true
+                        "stairtruck_connection_status": true
+                        "deplaning_equipment_type": true
                         "door_opening_status": true 
                         "crew_exit_status": true
                     }
@@ -217,13 +234,15 @@ When user submits inquiry, proceed as follows:
                         "flight_status": true
                         "gate_id": true 
                         "jetbridge_connection_status": true
+                        "stairtruck_connection_status": true
+                        "deplaning_equipment_type": true
                         "door_opening_status": true 
                         "crew_exit_status": true
                     }
                 }
             },
 
-            "tools":    ["TrackerAPI","crew_exit_operator","/AirlineTurnaround/aircraft_door_opening","/AirlineTurnaround/aircraft_jetbridge_connect"]
+            "tools":    ["TrackerAPI","crew_exit_operator","/AirlineTurnaround/aircraft_door_opening","/AirlineTurnaround/aircraft_jetbridge_connect","/AirlineTurnaround/aircraft_stairtruck_connect"]
         },
 
         {
@@ -253,14 +272,18 @@ This agent exits crew from the aircraft.
                         },    
                         "jetbridge_connection_status": {
                             "type": "string", 
-                            "description": "This is the status of jetbridge connection."
-                        },     
+                            "description": "This is the status of jetbridge connection. Null on stairtruck gates."
+                        },
+                        "stairtruck_connection_status": {
+                            "type": "string", 
+                            "description": "This is the status of stairtruck connection. Null on jetway gates."
+                        },
                         "door_opening_status": {
                             "type": "string", 
                             "description": "This is the status of aircraft door opening."
                         },         
                     }, 
-                    "required": ["flight_number", "aircraft_type","gate_id","jetbridge_connection_status","door_opening_status"] 
+                    "required": ["flight_number", "aircraft_type","gate_id","door_opening_status"] 
                 }
             },
             "class": "AirlineTurnaround.aircraft_crew_exit.aircraft_crew_exit.crew_exit_operator" 
@@ -343,7 +366,15 @@ I check door opening status as door_opening_status.
                         "crew_exit_status": {
                             "type": "string", 
                             "description": "This is the crew exit status."
-                        },    
+                        },
+                        "stairtruck_connection_status": {
+                            "type": "string",
+                            "description": "This is the stairtruck connection status."
+                        },
+                        "deplaning_equipment_type": {
+                            "type": "string",
+                            "description": "This is the deplaning equipment type (jetway or stairtruck)."
+                        },
                     }, 
                 }
             },

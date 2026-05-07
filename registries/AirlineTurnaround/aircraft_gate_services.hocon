@@ -147,6 +147,10 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "This is the wheelchocks installation status."
                         },   
+                        "stairtruck_connection_status": {
+                            "type": "string", 
+                            "description": "This is the status of stairtruck connection."
+                        },
                     }, 
                     "required": ["aircraft_type","flight_number"] 
                 }
@@ -190,19 +194,39 @@ BRANCH A — Gate assignment
     ** deplaning equipment readiness time **: [deplaning_equipment_readiness_time]
     ** deplaning equipment score          **: [deplaning_equipment_score]
 
-BRANCH B — Jetbridge connection
-  Triggers: inquiry asks to connect the jetbridge, or explicit
-  instruction "Connect the jetbridge."
+BRANCH B — Jetbridge or stairtruck connection
+  Triggers: inquiry asks to connect the jetbridge or stairtruck, or
+  the instruction contains "Connect the jetbridge" or
+  "Connect the stairtruck", or the instruction is "Connect the
+  deplaning equipment."
 
-  STEP 1 — Execute jetbridge connection
+  STEP 1 — Determine deplaning equipment type
+    Read deplaning_equipment_type from sly_data via TrackerAPI.
+    If deplaning_equipment_type contains 'jetway' or 'jetbridge':
+      Go to STEP 2A.
+    If deplaning_equipment_type contains 'stairtruck' or 'stair':
+      Go to STEP 2B.
+    If deplaning_equipment_type is not available, default to STEP 2A.
+
+  STEP 2A — Connect jetbridge (jetway gate)
     Call /AirlineTurnaround/aircraft_jetbridge_connect with:
       flight_number, aircraft_type, flight_status, gate_id,
       acu_connection_status, gpu_connection_status,
       wheelchocks_installation_status.
     Wait. Extract: jetbridge_connection_status.
     Call TrackerAPI to store jetbridge_connection_status.
+    Go to RETURN SUMMARY A.
 
-  STEP 2 — RETURN SUMMARY:
+  STEP 2B — Connect stairtruck (stairtruck gate)
+    Call /AirlineTurnaround/aircraft_stairtruck_connect with:
+      flight_number, aircraft_type, flight_status, gate_id,
+      acu_connection_status, gpu_connection_status,
+      wheelchocks_installation_status.
+    Wait. Extract: stairtruck_connection_status.
+    Call TrackerAPI to store stairtruck_connection_status.
+    Go to RETURN SUMMARY B.
+
+  RETURN SUMMARY A (jetbridge):
     ***********************************
     * Summary of jetbridge connection *
     ***********************************
@@ -211,6 +235,16 @@ BRANCH B — Jetbridge connection
     ** gpu_connection_status          **: [gpu_connection_status]
     ** wheelchocks installation status**: [wheelchocks_installation_status]
     ** jetbridge_connection_status    **: [jetbridge_connection_status]
+
+  RETURN SUMMARY B (stairtruck):
+    ************************************
+    * Summary of stairtruck connection *
+    ************************************
+    ** flight_status                  **: [flight_status]
+    ** acu_connection_status          **: [acu_connection_status]
+    ** gpu_connection_status          **: [gpu_connection_status]
+    ** wheelchocks installation status**: [wheelchocks_installation_status]
+    ** stairtruck_connection_status   **: [stairtruck_connection_status]
             """,
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
@@ -225,6 +259,7 @@ BRANCH B — Jetbridge connection
                         "door_opening_status": true, 
                         "passenger_disembarkation_status": true,
                         "jetbridge_connection_status": true, 
+                        "stairtruck_connection_status": true,
                         "deplaning_equipment_type": true, 
                         "deplaning_equipment_id": true, 
                         "gpu_connection_status": true, 
@@ -245,6 +280,7 @@ BRANCH B — Jetbridge connection
                         "door_opening_status": true, 
                         "passenger_disembarkation_status": true,
                         "jetbridge_connection_status": true, 
+                        "stairtruck_connection_status": true,
                         "deplaning_equipment_type": true, 
                         "deplaning_equipment_id": true, 
                         "gpu_connection_status": true, 
@@ -265,6 +301,7 @@ BRANCH B — Jetbridge connection
                         "door_opening_status": true, 
                         "passenger_disembarkation_status": true,
                         "jetbridge_connection_status": true, 
+                        "stairtruck_connection_status": true,
                         "deplaning_equipment_type": true, 
                         "deplaning_equipment_id": true, 
                         "gpu_connection_status": true, 
@@ -285,6 +322,7 @@ BRANCH B — Jetbridge connection
                         "door_opening_status": true, 
                         "passenger_disembarkation_status": true,
                         "jetbridge_connection_status": true, 
+                        "stairtruck_connection_status": true,
                         "deplaning_equipment_type": true, 
                         "deplaning_equipment_id": true, 
                         "gpu_connection_status": true, 
@@ -299,6 +337,7 @@ BRANCH B — Jetbridge connection
 
             "tools":    ["/AirlineTurnaround/aircraft_gate_selection",
                         "/AirlineTurnaround/aircraft_jetbridge_connect",
+                        "/AirlineTurnaround/aircraft_stairtruck_connect",
                         "TrackerAPI"]
         },  
 
@@ -367,6 +406,10 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                             "type": "string", 
                             "description": "This is the wheelchocks installation status."
                         },   
+                        "stairtruck_connection_status": {
+                            "type": "string", 
+                            "description": "This is the stairtruck connection status."
+                        },
                     }, 
                     "required": [] 
                 }

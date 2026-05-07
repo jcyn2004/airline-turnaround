@@ -3,12 +3,11 @@
 
     # Optional metadata describing this agent network
     "metadata": {
-        "description": "Simple agent network using a single LLM-based agent",
+        "description": "Agent network for connecting a stairtruck to the aircraft at the gate",
         "tags": ["example"],
         "sample_queries": [
-            "The B747 aircraft of flight AF84 is on blocks at gate A1. The engines are stopped and wheels chocks have been installed. Connect the ACU.", 
-            "The B747 aircraft of flight AF84 is on blocks at gate A1. Connect the ACU.", 
-            "The B747 aircraft of flight AF84 has been assigned gate A1. Report ACU readiness at the gate.", 
+            "Flight AF84 is on blocks at gate A1. ACU and GPU are connected to this B747, and wheelchocks have been installed. Connect the stairtruck.", 
+            "Flight AF84 is on blocks at gate A1. Connect the stairtruck."
         ]
     },
 
@@ -88,12 +87,10 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
     "tools": [
 
         {
-            "name": "acu_agent",
+            "name": "stairtruck_connect_agent",
             "function": {
                 "description": """
- I am in charge of acu at the gate. 
- I report the readiness status of ACU when user inquires.
- I connect ACU to the aircraft upon arrival at the gate when user inquires.
+ I am in charge of connecting the jetbridge to the aircraft at the gate. 
                 """
                 "parameters": {
                     "type": "object", 
@@ -114,112 +111,118 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "This is the gate where the aircraft is parked."
                         },       
-                        "engines_stop_status": {
+                        "gpu_connection_status": {
                             "type": "string", 
-                            "description": "This is the status of engines stop."
-                        },     
-                        "wheels_chocks_installation_status": {
-                            "type": "string", 
-                            "description": "This is the status of wheels chocks installation."
-                        },         
-                        "acu_readiness_status": {
-                            "type": "string", 
-                            "description": "This is the acu readiness status."
+                            "description": "This is the status of gpu connect."
                         },     
                         "acu_connection_status": {
                             "type": "string", 
-                            "description": "This is the acu connection status."
-                        },     
+                            "description": "This is the status of acu connect."
+                        },        
+                        "wheelchocks_installation_status": {
+                            "type": "string", 
+                            "description": "This is the wheelchocks installation status."
+                        },    
                     }, 
-                    "required": ["flight_number", "aircraft_type","flight_status","gate_id"] 
+                    "required": ["flight_number", "aircraft_type","gate_id","flight_status","acu_connection_status","gpu_connection_status"] 
                 }
             },
 
             "instructions": """
-You are the agent in charge of ACU at the gate.  
-When user submit inquiry about ACU, proceed as follows: 
-1. Read the inquiry and determine whether the user is inquiring about ACU readiness status or requesting ACU connection to the aircraft. 
-2. If the inquiry is not about either of these two, reply that you are not relevant to this inquiry and stop process here.
-3. If the inquiry is about ACU readiness status, call your tool to inquire about ACU readiness status as acu_readiness_status, and report its value back to user. stop process here. 
-4. If the inquiry is about ACU connection, read the inquiry and determine if the followings are provided:
-    a. flight status as flight_status with value such as 'on blocks', 
-    b. engines stop status as engines_stop_status with value such as 'stopped' or 'running',
-    c. wheels chocks installation status as wheels_chocks_installation_status with value such as 'installed' or 'not installed'.
-5. If flight_status is does not contain 'on' and 'blocks', or if engines_stop_status is not 'stopped', or if wheels_chocks_installation_status is not 'installed', 
-    a. call TrackerAPI
-    a. wait for its response 
-    b. store engines_stop_status and wheels_chucks_installation_status and flight_status
-6. If flight_status is not 'on blocks' or engines_stop_status is not 'stopped' or wheels_chocks_installation_status is not 'installed'
-    a. return to user that acu can not be connected unless flight_status is 'on blocks' and engines_stop_status is 'stopped' and wheels_chocks_installation_status is 'installed'
-    b. stop process here.
-7. If flight_status is 'on blocks' and engines_stop_status is 'stopped' and wheels_chucks_installation_status is 'installed'
-    a. call your tools to connect acu to aircraft
-    b. Wait for response on acu connection status and save it as acu_connection_status
-    c. Report acu_connection_statusback to user. 
-8. Call TrackerAPI
-    a. wait for its response 
-    b. store engines stop status as engines_stop_status, store wheels chucks installation status as wheels_chucks_installation_status, store acu connection status as acu_connection_status
-9. Provide the acu connection status report summary as: 
-    ***********************************
-    * Summary of aircraft acu connect *
-    ***********************************
-    ** flight status **: [flight_status]
-    ** engines stop status **: [engines_stop_status]
-    ** wheels chucks installation status **: [wheels_chucks_installation_status]
-    ** acu connection status summary **: [acu_connection_status]
-    ** acu readiness status summary **: [acu_readiness_status]
-            """ ${aaosa_instructions},
+You are the agent in charge of connecting the stairtruck to the aircraft.
+
+CRITICAL: You are a sequential executor. Execute every step in order.
+Do NOT return until you reach RETURN SUMMARY.
+
+STEP 1 — Resolve prerequisites
+  Call TrackerAPI with flight_number, aircraft_type, flight_status,
+  gate_id, acu_connection_status, gpu_connection_status,
+  wheelchocks_installation_status.
+  Wait. Read back all values.
+
+STEP 2 — Verify flight status
+  flight_status must contain 'on blocks' or 'block'.
+  If not, stop and report: "Cannot connect stairtruck — aircraft
+  is not yet on blocks."
+
+STEP 3 — Ensure ACU, GPU and wheelchocks are ready (ONE call if needed)
+  If acu_connection_status already contains 'connected' AND
+  gpu_connection_status already contains 'connected' AND
+  wheelchocks_installation_status already contains 'installed':
+    Skip to STEP 4.
+  Otherwise:
+    Call /AirlineTurnaround/aircraft_ground_acu_connect if
+    acu_connection_status is not 'connected'.
+    Call /AirlineTurnaround/aircraft_ground_gpu_connect if
+    gpu_connection_status is not 'connected'.
+    Wait for responses. Extract and store statuses.
+    If after these calls any prerequisite is still not satisfied,
+    stop and report which prerequisite failed.
+
+STEP 4 — Connect stairtruck
+  Call stairtruck_operator with:
+    flight_number, aircraft_type, flight_status, gate_id,
+    acu_connection_status, gpu_connection_status.
+  Wait. Extract stairtruck_connection_status from the response.
+  Call TrackerAPI to store stairtruck_connection_status.
+
+RETURN SUMMARY:
+  *******************************************
+  * Summary of aircraft stairtruck connect  *
+  *******************************************
+  ** flight_status                   **: [flight_status]
+  ** acu connection status           **: [acu_connection_status]
+  ** gpu connection status           **: [gpu_connection_status]
+  ** wheelchocks installation status **: [wheelchocks_installation_status]
+  ** stairtruck connection status    **: [stairtruck_connection_status]
+            """,
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
                 "to_upstream": {
                     "sly_data": {
-                        "acu_connection_status": true
+                        "stairtruck_connection_status": true
                     }
-                }
+                },
                 "to_downstream": {
                     "sly_data": {
-                        "flight_number": true
-                        "aircraft_type": true
-                        "flight_status": true
-                        "gate_id": true 
-                        "engines_stop_status": true
-                        "wheels_chocks_installation_status": true
-                        "acu_connection_status": true
+                        "stairtruck_connection_status": true
                     }
-                }
+                },
                 "from_upstream": {
                     "sly_data": {
-                        "flight_number": true
-                        "aircraft_type": true
-                        "flight_status": true
-                        "gate_id": true 
-                        "engines_stop_status": true
-                        "wheels_chocks_installation_status": true
-                        "acu_connection_status": true
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "flight_status": true,
+                        "gate_id": true,
+                        "acu_connection_status": true,
+                        "gpu_connection_status": true,
+                        "wheelchocks_installation_status": true,
+                        "stairtruck_connection_status": true
                     }
-                }
+                },
                 "from_downstream": {
                     "sly_data": {
-                        "flight_number": true
-                        "aircraft_type": true
-                        "flight_status": true
-                        "gate_id": true 
-                        "engines_stop_status": true
-                        "wheels_chocks_installation_status": true
-                        "acu_connection_status": true
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "flight_status": true,
+                        "gate_id": true,
+                        "acu_connection_status": true,
+                        "gpu_connection_status": true,
+                        "wheelchocks_installation_status": true,
+                        "stairtruck_connection_status": true
                     }
                 }
             },
 
-            "tools":    ["acu_operator","acu_setup","/AirlineTurnaround/aircraft_engines_stop","/AirlineTurnaround/aircraft_chocks_install","TrackerAPI"]
+            "tools": ["TrackerAPI","stairtruck_operator","/AirlineTurnaround/aircraft_ground_acu_connect","/AirlineTurnaround/aircraft_ground_gpu_connect"]
         },
 
         {
-            "name": "acu_operator",
+            "name": "stairtruck_operator",
             "function": {
                 "description": """
-This agent connects acu to the aircraft upon arrival at the gate. 
+This agent connects jetbridge to the aircraft. 
                 """,
                 "parameters": {
                     "type": "object", 
@@ -243,48 +246,16 @@ This agent connects acu to the aircraft upon arrival at the gate.
                         "acu_connection_status": {
                             "type": "string", 
                             "description": "This is the acu connection status."
-                        },          
+                        },     
+                        "gpu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the gpu connection status."
+                        },            
                     }, 
-                    "required": ["aircraft_type","gate_id"] 
+                    "required": ["flight_number", "aircraft_type","gate_id","acu_connection_status","gpu_connection_status"] 
                 }
             },
-            "class": "AirlineTurnaround.aircraft_ground_acu.aircraft_ground_acu.acu_operator" 
-        }, 
-
-        {
-            "name": "acu_setup",
-            "function": {
-                "description": """
-This agent report the status of acu readiness at the gate. 
-                """,
-                "parameters": {
-                    "type": "object", 
-                    "properties": {
-                        "flight_number": {
-                            "type": "string", 
-                            "description": "This is the flight number of the incoming aicraft."
-                        },   
-                        "aircraft_type": {
-                            "type": "string", 
-                            "description": "This is the type of the incoming aircraft."
-                        },         
-                        "flight_status": {
-                            "type": "string", 
-                            "description": "This is the flight status."
-                        },        
-                        "gate_id": {
-                            "type": "string", 
-                            "description": "This is the gate where the aircraft is parked."
-                        },           
-                        "acu_readiness_status": {
-                            "type": "string", 
-                            "description": "This is the acu readiness status."
-                        },   
-                    }, 
-                    "required": ["aircraft_type","gate_id"] 
-                }
-            },
-            "class": "AirlineTurnaround.aircraft_ground_acu.aircraft_ground_acu.acu_setup" 
+            "class": "AirlineTurnaround.aircraft_stairtruck_connect.aircraft_stairtruck_connect.stairtruck_operator" 
         }, 
 
         {
@@ -293,7 +264,7 @@ This agent report the status of acu readiness at the gate.
 
                 "description": """
 I am the flight tracker in charge of logging parameters during aircraft turnaround. 
-I check engines stop status as engines_stop_status. 
+I check engines stop status as statusengines_stop_status. 
 I check wheels chucks installation status as wheels_chucks_installation_status. 
                 """
 
@@ -324,17 +295,21 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                             "type": "string", 
                             "description": "This is the wheels chocks readiness status."
                         },   
-                        "wheels_chocks_installation_status": {
+                        "wheelchocks_installation_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks installation status."
                         },   
-                        "acu_readiness_status": {
+                        "gpu_readiness_status": {
                             "type": "string", 
-                            "description": "This is the acu readiness status."
+                            "description": "This is the gpu readiness status."
                         },     
                         "acu_connection_status": {
                             "type": "string", 
                             "description": "This is the acu connection status."
+                        },     
+                        "gpu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the gpu connection status."
                         },     
                         "engines_stop_status": {
                             "type": "string", 
@@ -344,6 +319,11 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                             "type": "string", 
                             "description": "This is the jetbridge connection status."
                         },    
+                        "stairtruck_connection_status": {
+                            "type": "string", 
+                            "description": "This is the stairtruck connection status."
+                        },    
+
                         "door_opening_status": {
                             "type": "string", 
                             "description": "This is the door opening status."
@@ -352,7 +332,7 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                     "required": [] 
                 }
             },
-            "class": "AirlineTurnaround.aircraft_ground_acu.aircraft_ground_acu.TrackerAPI" 
+            "class": "AirlineTurnaround.aircraft_stairtruck_connect.aircraft_stairtruck_connect.TrackerAPI" 
         }, 
     ],
 }

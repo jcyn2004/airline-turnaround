@@ -104,13 +104,21 @@ class crew_debrief_operator(CodedTool):
             print(error)
             return error  
 
-        # jetbridge connection status is required to fulfill the request.
+        # Accept either jetbridge or stairtruck connection status
         jetbridge_connection_status: str = args.get("jetbridge_connection_status", None)
         if not jetbridge_connection_status:
-            print("No jetbridge_connection_status provided. Trying to get it from sly_data")
             jetbridge_connection_status = sly_data.get("jetbridge_connection_status")
-        if not jetbridge_connection_status:
-            error = "Error: Please provide jetbridge connection status for the request."
+
+        stairtruck_connection_status: str = args.get("stairtruck_connection_status", None)
+        if not stairtruck_connection_status:
+            stairtruck_connection_status = sly_data.get("stairtruck_connection_status")
+
+        equipment_connected = (
+            (jetbridge_connection_status and 'connected' in jetbridge_connection_status.lower()) or
+            (stairtruck_connection_status and 'connected' in stairtruck_connection_status.lower())
+        )
+        if not equipment_connected:
+            error = "Error: Neither jetbridge nor stairtruck is connected. Cannot proceed."
             print(error)
             return error  
 
@@ -136,7 +144,7 @@ class crew_debrief_operator(CodedTool):
         print("\n")
         print("\n")
 
-        if jetbridge_connection_status == 'connected' and 'open' in door_opening_status:
+        if equipment_connected and door_opening_status and 'open' in door_opening_status:
             crew_debrief_status = 'completed'
             message = f"Flight {flight_number} with airplane type {aircraft_type} {flight_status} at gate {gate_id} has jetbridge {jetbridge_connection_status} and aircraft door {door_opening_status}.  installed. Its crew debrief status is status is {crew_debrief_status}."
             print(message)
@@ -440,14 +448,16 @@ class TrackerAPI(CodedTool):
 
 # Define tracked fields for flight turnaround operations
 FLIGHT_TURNAROUND_TRACKED_FIELDS = [
-    "aircraft_type", 
-    'crew_debrief_status', 
+    "aircraft_type",
+    "crew_debrief_status",
+    "deplaning_equipment_type",
     "door_opening_status", 
     "flight_number", 
     "flight_status", 
     "gate_id", 
     "jetbridge_connection_status",
-    "passenger_disembarkation_status"] 
+    "passenger_disembarkation_status",
+    "stairtruck_connection_status"] 
 
 #     "acu_connection_status", 
 #     "acu_readiness_status",
@@ -489,10 +499,13 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
 
 # Define which fields should be returned from the API
 FLIGHT_TURNAROUND_RETURN_FIELDS = [
-    'crew_debrief_status', 
+    "crew_debrief_status",
+    "deplaning_equipment_type",
     "door_opening_status", 
     "flight_status",
-    "passenger_disembarkation_status"
+    "jetbridge_connection_status",
+    "passenger_disembarkation_status",
+    "stairtruck_connection_status",
 ]
 
 # =============================================================================
