@@ -105,13 +105,22 @@ class passenger_disembark_operator(CodedTool):
             print(error)
             return error  
 
-        # jetbridge connection status is required to fulfill the request.
+        # Accept either jetbridge or stairtruck connection status
         jetbridge_connection_status: str = args.get("jetbridge_connection_status", None)
         if not jetbridge_connection_status:
-            print("No jetbridge_connection_status provided. Trying to get it from sly_data")
             jetbridge_connection_status = sly_data.get("jetbridge_connection_status")
-        if not jetbridge_connection_status:
-            error = "Error: Please provide jetbridge connection status for the request."
+
+        stairtruck_connection_status: str = args.get("stairtruck_connection_status", None)
+        if not stairtruck_connection_status:
+            stairtruck_connection_status = sly_data.get("stairtruck_connection_status")
+
+        # At least one equipment must be connected
+        equipment_connected = (
+            (jetbridge_connection_status and 'connected' in jetbridge_connection_status.lower()) or
+            (stairtruck_connection_status and 'connected' in stairtruck_connection_status.lower())
+        )
+        if not equipment_connected:
+            error = "Error: Neither jetbridge nor stairtruck is connected. Cannot disembark passengers."
             print(error)
             return error  
 
@@ -137,7 +146,7 @@ class passenger_disembark_operator(CodedTool):
         print("\n")
         print("\n")
 
-        if jetbridge_connection_status == 'connected' and 'open' in door_opening_status:
+        if equipment_connected and door_opening_status and 'open' in door_opening_status:
             passenger_disembarkation_status = 'completed'
             message = f"Flight {flight_number} with airplane type {aircraft_type} {flight_status} at gate {gate_id} has jetbridge {jetbridge_connection_status} and aircraft door {door_opening_status}.  installed. Its passenger disembarkation status is status is {passenger_disembarkation_status}."
             print(message)
@@ -442,12 +451,14 @@ class TrackerAPI(CodedTool):
 
 # Define tracked fields for flight turnaround operations
 FLIGHT_TURNAROUND_TRACKED_FIELDS = [
-    "aircraft_type", 
+    "aircraft_type",
+    "deplaning_equipment_type",
+    "door_opening_status",
     "flight_number", 
     "flight_status",
-    "door_opening_status", 
     "jetbridge_connection_status",
-    "passenger_disembarkation_status"] 
+    "passenger_disembarkation_status",
+    "stairtruck_connection_status"] 
 
 #     "acu_connection_status", 
 #     "acu_readiness_status",
@@ -489,10 +500,12 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
 
 # Define which fields should be returned from the API
 FLIGHT_TURNAROUND_RETURN_FIELDS = [
+    "deplaning_equipment_type",
+    "door_opening_status",
     "flight_status",
-    "door_opening_status", 
     "jetbridge_connection_status",
     "passenger_disembarkation_status",
+    "stairtruck_connection_status",
 ]
 
 # =============================================================================

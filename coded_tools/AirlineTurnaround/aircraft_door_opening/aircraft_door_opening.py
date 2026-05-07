@@ -119,26 +119,32 @@ class door_operator(CodedTool):
         print("\n")
         print("\n")
 
-        # wheels chocks installation status is required to fulfill the request.
+        # Accept either jetbridge or stairtruck connection status
         jetbridge_connection_status: str = args.get("jetbridge_connection_status", None)
         if not jetbridge_connection_status:
-            print("No jetbridge connection status provided. Trying to get it from sly_data")
             jetbridge_connection_status = sly_data.get("jetbridge_connection_status")
-        if not jetbridge_connection_status:
-            error = "Error: Please provide jetbridge connection status for the request."
+
+        stairtruck_connection_status: str = args.get("stairtruck_connection_status", None)
+        if not stairtruck_connection_status:
+            stairtruck_connection_status = sly_data.get("stairtruck_connection_status")
+
+        equipment_connected = (
+            (jetbridge_connection_status and 'connected' in jetbridge_connection_status.lower()) or
+            (stairtruck_connection_status and 'connected' in stairtruck_connection_status.lower())
+        )
+        if not equipment_connected:
+            error = "Error: Neither jetbridge nor stairtruck is connected. Cannot open door."
             print(error)
-            return error  
-        
+            return error
+
         print("\n")
         print("\n")
         print("jetbridge_connection_status: ", jetbridge_connection_status)
+        print("stairtruck_connection_status: ", stairtruck_connection_status)
         print("\n")
         print("\n")
 
-        if jetbridge_connection_status is not None: 
-            jetbridge_connection_status = jetbridge_connection_status.lower() 
-
-        if ('connected' in jetbridge_connection_status): 
+        if equipment_connected:
             door_opening_status = 'open'
 
             message = f"Flight {flight_number} with airplane type {aircraft_type} {flight_status} at gate {gate_id} has door opened. Its door opening status is {door_opening_status}." 
@@ -443,12 +449,14 @@ class TrackerAPI(CodedTool):
 
 # Define tracked fields for flight turnaround operations
 FLIGHT_TURNAROUND_TRACKED_FIELDS = [
-    "aircraft_type", 
+    "aircraft_type",
+    "deplaning_equipment_type",
     "door_opening_status",
     "flight_number", 
     "flight_status", 
     "gate_id", 
-    "jetbridge_connection_status"] 
+    "jetbridge_connection_status",
+    "stairtruck_connection_status"] 
 
 #     "acu_connection_status", 
 #     "acu_readiness_status",
@@ -490,10 +498,16 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
 
 # Define which fields should be returned from the API
 FLIGHT_TURNAROUND_RETURN_FIELDS = [
+    "deplaning_equipment_type",
     "door_opening_status",
     "flight_status",
-    "jetbridge_connection_status",
+    "stairtruck_connection_status",
 ]
+# NOTE: jetbridge_connection_status is intentionally excluded from RETURN_FIELDS.
+# The door opening agent does not need to echo it back — the turnaround manager
+# already holds it from STEP 9. Returning it here caused stale sly_data values
+# to bleed into the door opening summary and mislead downstream agents on
+# stairtruck gates (where jetbridge was never connected).
 
 # =============================================================================
 # Usage Examples

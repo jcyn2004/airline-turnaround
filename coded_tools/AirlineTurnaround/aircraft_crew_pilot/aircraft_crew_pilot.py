@@ -343,7 +343,7 @@ class TrackerAPI(CodedTool):
         value = sly_data.get(field_name)
 
         if value is not None:
-            value = self._normalise_field(field_name, value)
+            value = self._normalise_field(field_name, value, sly_data)
             if value is None:
                 # _normalise_field rejected this value (e.g. 'APPROACH') as a
                 # transient status that must not persist. Delete it from sly_data
@@ -362,7 +362,7 @@ class TrackerAPI(CodedTool):
         value = args.get(field_name)
 
         if value is not None:
-            value = self._normalise_field(field_name, value)
+            value = self._normalise_field(field_name, value, sly_data)
             if value is None:
                 # Transient value from args — do not write to sly_data.
                 logger.info(f"[SKIP]  {field_name}: transient value from args not stored")
@@ -375,7 +375,7 @@ class TrackerAPI(CodedTool):
         logger.warning(f"[NOT FOUND] {field_name}: No value in sly_data or args")
         return None, DataSource.NOT_FOUND
 
-    def _normalise_field(self, field_name: str, value: str) -> str:
+    def _normalise_field(self, field_name: str, value: str, sly_data: Dict[str, Any] = None) -> str:
         """
         Normalise a field value to its canonical form.
 
@@ -399,26 +399,37 @@ class TrackerAPI(CodedTool):
         Returns:
             Normalised value string.
         """
-        if field_name != "flight_status":
+        # ── flight_status normalisation ────────────────────────────────
+        if field_name == "flight_status":
+            normalised = value.lower().replace("_", " ").strip()
+            if "land" in normalised:
+                return "landed"
+            if "block" in normalised:
+                return "on blocks"
+            if "approach" in normalised or "taxi" in normalised:
+                # Transient ATC/ground-movement statuses ('APPROACH', 'TAXIING_IN',
+                # 'TAXIING_OUT', etc.) must not be persisted in sly_data.
+                # Returning None causes _process_field to evict any existing value
+                # and skip the write, leaving the field unset so the real terminal
+                # status from the next step can be stored without interference.
+                return None
+            # Other mid-transit values are returned as-is so they fail downstream
+            # validation checks — a clear failure is better than silent poisoning.
             return value
 
-        normalised = value.lower().replace("_", " ").strip()
-        if "land" in normalised:
-            return "landed"
-        if "block" in normalised:
-            return "on blocks"
-        if "approach" in normalised or "taxi" in normalised:
-            # Transient ATC/ground-movement statuses ('APPROACH', 'TAXIING_IN',
-            # 'TAXIING_OUT', etc.) must not be persisted in sly_data.
-            # If stored, the sly_data-first policy will return them on the next
-            # TrackerAPI read, blocking the correct terminal status
-            # ('landed', 'on blocks') from ever being written.
-            # Returning None causes _process_field to evict any existing value
-            # and skip the write, leaving the field unset so the real status
-            # from the next step can be stored without interference.
-            return None
-        # Other mid-transit values are returned as-is so they fail downstream
-        # validation checks — a clear failure is better than silent poisoning.
+        # ── ground_clearance_status normalisation ──────────────────────
+        if field_name == "ground_clearance_status":
+            normalised = value.lower().replace("_", " ").strip()
+            if "grant" in normalised or "clear" in normalised:
+                # 'GRANTED' is valid while the aircraft is taxiing in.
+                # Once flight_status='on blocks' is confirmed in sly_data,
+                # the clearance is complete and stale. Evict it so that the
+                # next turnaround's STEP 5 TrackerAPI call finds null and
+                # BRANCH C/D routes correctly for the new clearance request.
+                if sly_data and sly_data.get("flight_status") == "on blocks":
+                    return None
+            return value
+
         return value
     
     def _build_return_tuple(

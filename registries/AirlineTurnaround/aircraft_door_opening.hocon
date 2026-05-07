@@ -118,9 +118,29 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                         "door_opening_status": {
                             "type": "string", 
                             "description": "This is the door opening status."
-                        },  
+                        },
+                        "stairtruck_connection_status": {
+                            "type": "string", 
+                            "description": "This is the status of stairtruck connection."
+                        },
+                        "deplaning_equipment_type": {
+                            "type": "string", 
+                            "description": "This is the deplaning equipment type (jetway or stairtruck)."
+                        },
+                        "acu_connection_status": {
+                            "type": "string",
+                            "description": "ACU connection status. Required when internally calling stairtruck_connect."
+                        },
+                        "gpu_connection_status": {
+                            "type": "string",
+                            "description": "GPU connection status. Required when internally calling stairtruck_connect."
+                        },
+                        "wheelchocks_installation_status": {
+                            "type": "string",
+                            "description": "Wheelchocks installation status."
+                        },
                     }, 
-                    "required": ["flight_number", "aircraft_type","gate_id","flight_status","jetbridge_connection_status"] 
+                    "required": ["flight_number", "aircraft_type","gate_id","flight_status"] 
                 }
             },
 
@@ -132,28 +152,56 @@ order. Do NOT return until you reach RETURN SUMMARY.
 
 STEP 1 — Resolve prerequisites
   Call TrackerAPI with flight_number, aircraft_type, flight_status,
-  gate_id, jetbridge_connection_status.
-  Wait. Read back: flight_status, jetbridge_connection_status.
+  gate_id, jetbridge_connection_status, stairtruck_connection_status,
+  deplaning_equipment_type.
+  Wait. Read back all values.
 
 STEP 2 — Verify flight status
   flight_status must contain 'on blocks' or 'block'.
   If not, stop and report: "Aircraft is not yet on blocks.
   Door cannot be opened."
 
-STEP 3 — Ensure jetbridge is connected (ONE call if needed)
-  If jetbridge_connection_status already contains 'connected',
-  skip to STEP 4.
-  Otherwise:
-    Call /AirlineTurnaround/aircraft_jetbridge_connect with:
-      flight_number, aircraft_type, flight_status, gate_id.
-    Wait. Extract jetbridge_connection_status.
-    Call TrackerAPI to store jetbridge_connection_status.
-    If still not 'connected', stop and report failure.
+STEP 3 — Ensure deplaning equipment is connected (ONE call if needed)
+  Check deplaning_equipment_type:
+    - If deplaning_equipment_type contains 'jetway' or 'jetbridge':
+        Required: jetbridge_connection_status contains 'connected'.
+        If not connected: call /AirlineTurnaround/aircraft_jetbridge_connect.
+        Wait. Store jetbridge_connection_status via TrackerAPI.
+        If still not connected, stop and report failure.
+    - If deplaning_equipment_type contains 'stairtruck' or 'stair':
+        Required: stairtruck_connection_status contains 'connected'.
+        If not connected: call /AirlineTurnaround/aircraft_stairtruck_connect
+        with named parameters:
+          flight_number, aircraft_type, flight_status, gate_id,
+          acu_connection_status, gpu_connection_status,
+          wheelchocks_installation_status.
+        CRITICAL: acu_connection_status and gpu_connection_status MUST be
+        passed explicitly — stairtruck_operator requires both to be
+        'connected' to proceed. Do NOT omit them.
+        Wait. Store stairtruck_connection_status via TrackerAPI.
+        If still not connected, stop and report failure.
+    - If deplaning_equipment_type is unknown:
+        Accept either jetbridge_connection_status='connected'
+        OR stairtruck_connection_status='connected' as sufficient.
+        If neither is connected, call /AirlineTurnaround/aircraft_jetbridge_connect
+        as default. Wait. Store result via TrackerAPI.
 
 STEP 4 — Open the door
-  Call door_operator with:
+  Before calling door_operator, confirm the correct equipment is connected:
+    - If deplaning_equipment_type contains 'jetway' or 'jetbridge':
+        Confirm jetbridge_connection_status='connected' (verified in STEP 3).
+        Pass jetbridge_connection_status='connected' to door_operator.
+    - If deplaning_equipment_type contains 'stairtruck' or 'stair':
+        Confirm stairtruck_connection_status='connected' (verified in STEP 3).
+        Pass stairtruck_connection_status='connected' to door_operator.
+        Do NOT pass jetbridge_connection_status — leave it null.
+    - If deplaning_equipment_type is unknown:
+        Pass whichever connection status is 'connected'.
+  If the required connection status is not confirmed as 'connected',
+  do NOT proceed — return to STEP 3 to reconnect.
+  Call door_operator with named parameters:
     flight_number, aircraft_type, flight_status, gate_id,
-    jetbridge_connection_status.
+    jetbridge_connection_status, stairtruck_connection_status.
   Wait. Extract door_opening_status from the response.
   Call TrackerAPI to store door_opening_status.
 
@@ -161,9 +209,11 @@ RETURN SUMMARY:
   ************************************
   * Summary of aircraft door opening *
   ************************************
-  ** flight status                **: [flight_status]
-  ** jet bridge connection status **: [jetbridge_connection_status]
-  ** door opening status          **: [door_opening_status]
+  ** flight status                   **: [flight_status]
+  ** deplaning equipment type        **: [deplaning_equipment_type]
+  ** jetbridge connection status     **: [jetbridge_connection_status]
+  ** stairtruck connection status    **: [stairtruck_connection_status]
+  ** door opening status             **: [door_opening_status]
             """,
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
@@ -192,7 +242,10 @@ RETURN SUMMARY:
                         "gate_id": true,
                         "acu_connection_status": true,
                         "gpu_connection_status": true,
-                        "jetbridge_connection_status": true
+                        "wheelchocks_installation_status": true,
+                        "jetbridge_connection_status": true,
+                        "stairtruck_connection_status": true,
+                        "deplaning_equipment_type": true
                     }
                 },
                 "from_downstream": {
@@ -204,12 +257,14 @@ RETURN SUMMARY:
                         "acu_connection_status": true,
                         "gpu_connection_status": true,
                         "jetbridge_connection_status": true,
+                        "stairtruck_connection_status": true,
+                        "deplaning_equipment_type": true,
                         "door_opening_status": true
                     }
                 }
             },
 
-            "tools":    ["TrackerAPI","door_operator","/AirlineTurnaround/aircraft_jetbridge_connect"]
+            "tools":    ["TrackerAPI","door_operator","/AirlineTurnaround/aircraft_jetbridge_connect","/AirlineTurnaround/aircraft_stairtruck_connect"]
         },
 
         {
@@ -267,7 +322,15 @@ I check the status of the jetbridge connection to the aircraft.
                         "door_opening_status": {
                             "type": "string", 
                             "description": "This is the door opening status."
-                        },  
+                        },
+                        "stairtruck_connection_status": {
+                            "type": "string", 
+                            "description": "This is the stairtruck connection status."
+                        },
+                        "deplaning_equipment_type": {
+                            "type": "string", 
+                            "description": "This is the deplaning equipment type (jetway or stairtruck)."
+                        },
                     }, 
                     "required": [] 
                 }
@@ -302,14 +365,18 @@ This agent opens the door of the aircraft.
                         },     
                         "jetbridge_connection_status": {
                             "type": "string", 
-                            "description": "This is the status of jetbridge connect."
-                        },     
+                            "description": "This is the status of jetbridge connect. Null on stairtruck gates."
+                        },
+                        "stairtruck_connection_status": {
+                            "type": "string",
+                            "description": "This is the status of stairtruck connection. Null on jetway gates."
+                        },
                         "door_opening_status": {
                             "type": "string", 
                             "description": "This is the door opening status."
                         },  
                     }, 
-                    "required": ["flight_number", "aircraft_type","gate_id","jetbridge_connection_status"] 
+                    "required": ["flight_number", "aircraft_type","gate_id"] 
                 }
             },
             "class": "AirlineTurnaround.aircraft_door_opening.aircraft_door_opening.door_operator" 
