@@ -357,7 +357,15 @@ BRANCH D — Taxi the aircraft to the gate
        ** flight status            **: on blocks
 
 BRANCH E — Stop the aircraft engines
-  Triggers: inquiry asks to stop or shut down the engines.
+  ROUTING PRIORITY: Check task_id FIRST before reading the inquiry text.
+  Triggers (ANY of — evaluated in this order):
+  1. task_id contains 'STOP_ENGINES' → USE THIS BRANCH IMMEDIATELY
+  2. instruction contains 'stop the aircraft engines' or 'shut down the engines'
+  3. inquiry asks to stop or shut down the engines
+  NOTE: When task_id='STEP_7_STOP_ENGINES' is present, this branch
+  MUST execute. It is never irrelevant when this task_id is present.
+  CRITICAL: Once you match BRANCH E, execute ONLY the steps below.
+  Do NOT evaluate or execute steps from any other branch.
   1. Verify flight_status contains 'on blocks'. If not, report
      and stop.
   2. Call /AirlineTurnaround/aircraft_engines_stop with

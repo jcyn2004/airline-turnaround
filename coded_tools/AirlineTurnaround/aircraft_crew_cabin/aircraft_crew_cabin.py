@@ -424,6 +424,7 @@ class TrackerAPI(CodedTool):
 
 # Define tracked fields for flight turnaround operations
 FLIGHT_TURNAROUND_TRACKED_FIELDS = [
+    "acu_connection_status",
     "acu_readiness_status", 
     "aircraft_direction",
     "aircraft_type", 
@@ -436,17 +437,20 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
     "door_opening_status", 
     "flight_number",
     "flight_status", 
-    "gate_id", 
+    "gate_id",
+    "gpu_connection_status",
     "ground_clearance_status", 
     "ground_clearance_type", 
-    "jetbridge_connection_status", 
-    "passenger_disembarkation_status", 
+    "jetbridge_connection_status",
+    "passenger_disembarkation_status",
     "stairtruck_connection_status",
+    "wheelchocks_installation_status",
     "wheelchocks_readiness_status", 
 ]
 
 # Define which fields should be returned from the API
 FLIGHT_TURNAROUND_RETURN_FIELDS = [
+    "acu_connection_status",
     "acu_readiness_status", 
     "aircraft_direction",
     "aircraft_type", 
@@ -459,12 +463,14 @@ FLIGHT_TURNAROUND_RETURN_FIELDS = [
     "door_opening_status", 
     "flight_number",
     "flight_status", 
-    "gate_id", 
+    "gate_id",
+    "gpu_connection_status",
     "ground_clearance_status", 
     "ground_clearance_type", 
-    "jetbridge_connection_status", 
-    "passenger_disembarkation_status", 
+    "jetbridge_connection_status",
+    "passenger_disembarkation_status",
     "stairtruck_connection_status",
+    "wheelchocks_installation_status",
     "wheelchocks_readiness_status", 
 ]
 

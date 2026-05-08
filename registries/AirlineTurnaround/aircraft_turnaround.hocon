@@ -184,7 +184,7 @@ You are in charge of aircraft turnaround at the airport.
                         },
                         "task_id": {
                             "type": "string",
-                            "description": "Correlation token passed to aircraft_crew_pilot to uniquely identify each call. Must be echoed back unchanged in the response."
+                            "description": "Correlation token passed to sub-agents to uniquely identify each call. Must be echoed back unchanged in the response. Routing: STEP_10_DOOR_OPENING / STEP_11_PAX_DISEMBARKATION / STEP_13_CREW_DEBRIEF go to aircraft_crew_cabin; all other task_ids go to aircraft_crew_pilot."
                         },
                     }, 
                     "required": ["aircraft_direction","flight_number","aircraft_type"] 
@@ -229,6 +229,20 @@ CRITICAL EXECUTION RULES — READ BEFORE STARTING:
      two tools at once, stop — issue only the first call and wait for
      its response before proceeding. Violating this rule causes the
      workflow to restart from STEP 1, which is a critical failure.
+
+TOOL ROUTING CHEATSHEET — override model priors, consult before every tool call:
+  Cabin crew tasks (door, pax, debrief) → /AirlineTurnaround/aircraft_crew_cabin
+    STEP 10 — door opening        → aircraft_crew_cabin   (NOT aircraft_crew_pilot)
+    STEP 11 — pax disembarkation  → aircraft_crew_cabin   (NOT aircraft_crew_pilot)
+    STEP 13 — crew debrief        → aircraft_crew_cabin   (NOT aircraft_crew_pilot)
+  Pilot tasks (ATC, landing, taxi, engines, crew exit) → /AirlineTurnaround/aircraft_crew_pilot
+    STEP 1  — landing clearance   → aircraft_crew_pilot
+    STEP 2  — land aircraft       → aircraft_crew_pilot
+    STEP 5  — ground clearance    → aircraft_crew_pilot
+    STEP 6  — taxi to gate        → aircraft_crew_pilot
+    STEP 7  — stop engines        → aircraft_crew_pilot
+    STEP 14 — crew exit           → aircraft_crew_pilot
+  All other agents are called by their exact path as documented per step.
 
 STEP 0 - Validate inputs
   - Extract: flight_number, aircraft_type, aircraft_direction directly
@@ -422,56 +436,68 @@ STEP 9 - Connect deplaning equipment (jetbridge or stairtruck)
     Passing the wrong field causes a false 'connected' value to persist
     in sly_data and be forwarded to downstream agents incorrectly.
 
-STEP 10 - Open aircraft doors
-  - Call /AirlineTurnaround/aircraft_door_opening with named parameters:
+STEP 10 - Open aircraft doors (via cabin crew agent)
+  - CRITICAL: Call /AirlineTurnaround/aircraft_crew_cabin — NOT aircraft_crew_pilot.
+    The pilot agent has no door-opening branch and will return "not relevant".
+    aircraft_crew_cabin owns BRANCH A (STEP_10_DOOR_OPENING). Use it exclusively.
+  - Call /AirlineTurnaround/aircraft_crew_cabin with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
+      task_id='STEP_10_DOOR_OPENING',
+      instruction='Open the aircraft door.',
       deplaning_equipment_type,
-      jetbridge_connection_status, stairtruck_connection_status.
+      jetbridge_connection_status, stairtruck_connection_status,
+      acu_connection_status, gpu_connection_status,
+      wheelchocks_installation_status.
+  - ALL parameters MUST be passed as named key-value pairs.
   - Wait for response.
   - Extract and store: door_opening_status.
+  - VALIDATION: door_opening_status MUST contain 'open'.
+    If not, retry ONCE. If still not 'open' after retry, stop and report:
+    "STEP 10 FAILED: door could not be opened."
+  - Do NOT proceed to STEP 11 until door_opening_status contains 'open'.
 
-STEP 11 - Passenger disembarkation
+STEP 11 - Passenger disembarkation (via cabin crew agent)
   - CRITICAL: This step involves a sub-agent that may take time to respond.
     Issue this as a single, isolated tool call. Do NOT issue any other tool
     call in the same turn. Do NOT restart from STEP 1 or any earlier step
     while waiting. Simply wait for the response before doing anything else.
-  - Call /AirlineTurnaround/aircraft_disembark with named parameters:
+  - Call /AirlineTurnaround/aircraft_crew_cabin with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
+      task_id='STEP_11_PAX_DISEMBARKATION',
+      instruction='Disembark passengers from the aircraft.',
       door_opening_status,
-      jetbridge_connection_status, stairtruck_connection_status,
-      deplaning_equipment_type.
+      deplaning_equipment_type,
+      jetbridge_connection_status, stairtruck_connection_status.
+  - ALL parameters MUST be passed as named key-value pairs.
   - Wait for response. This is the ONLY action in this turn.
   - Extract passenger_disembarkation_status from the response.
-  - VALIDATION: Treat ANY of the following as a FAILED response —
-    do NOT store or forward these values downstream:
+  - VALIDATION: passenger_disembarkation_status MUST contain 'completed'.
+    Treat ANY of the following as a FAILED response:
       'not provided', 'none', 'null', 'pending', 'not started',
       any value that does not contain 'completed'.
-  - If the response is a FAILED response:
-      Call /AirlineTurnaround/aircraft_disembark again with the same
-      parameters plus passenger_disembarkation_status=null explicitly.
-      Wait for response.
-      If still not 'completed' after 1 retry, stop and report:
-        "STEP 11 FAILED: aircraft_disembark did not return
-         passenger_disembarkation_status=completed after 2 attempts.
-         Raw response: [response]"
-      Do NOT continue past STEP 11 unless passenger_disembarkation_status
-      contains 'completed'. Do NOT pass any failed value to later steps.
+  - If the response is a FAILED response, retry ONCE with the same parameters.
+    If still not 'completed' after retry, stop and report:
+      "STEP 11 FAILED: passenger disembarkation did not complete.
+       Raw response: [response]"
+  - Do NOT continue past STEP 11 unless passenger_disembarkation_status
+    contains 'completed'.
 
 STEP 12 - Baggage unloading
   - CRITICAL — ONE CALL, THEN WAIT, NOTHING ELSE:
-    aircraft_baggage_unload is a slow sub-agent. You MUST issue this
+    aircraft_ground_servicing is a slow sub-agent. You MUST issue this
     call in complete isolation. The instant you issue this call, STOP.
     Do not generate any further tool calls. Do not call aircraft_crew_pilot.
     Do not call TrackerAPI. Do not issue STEP_1_LANDING_CLEARANCE or any
     other step. Do not restart from any earlier step.
     If you find yourself about to invoke STEP_1_LANDING_CLEARANCE or any
-    other agent while aircraft_baggage_unload has not yet responded,
+    other agent while aircraft_ground_servicing has not yet responded,
     you are violating this rule — cancel that call and wait.
     The response WILL arrive. Simply wait for it.
-  - Call /AirlineTurnaround/aircraft_baggage_unload with:
+  - Call /AirlineTurnaround/aircraft_ground_servicing with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
       jetbridge_connection_status, stairtruck_connection_status,
-      door_opening_status.
+      deplaning_equipment_type, door_opening_status,
+      instruction='Unload baggage from the aircraft.'
   - Wait for response. This is the ONLY action in this turn.
     Do not produce any other output until the response arrives.
   - Extract and store: baggage_unload_status.
@@ -527,6 +553,10 @@ STEP 14 - Crew exit (pilot-authorised)
   - Do NOT proceed to STEP 15 until crew_exit_status contains 'completed'.
 
 STEP 15 - Cabin cleaning
+  - CRITICAL: Parameters MUST be passed as individual named key-value pairs —
+    NOT wrapped in an args list, NOT as {"args": [...]}, NOT as a positional list.
+    CORRECT:   {"flight_number": "AF84", "aircraft_type": "B747", ..., "instruction": "Clean the aircraft cabin."}
+    INCORRECT: {"args": [{"flight_number": "AF84", ..., "instruction": "Clean the aircraft cabin."}]}
   - Call /AirlineTurnaround/aircraft_cabin_services with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
       passenger_disembarkation_status, crew_exit_status,
@@ -540,6 +570,10 @@ STEP 15 - Cabin cleaning
   - Extract and store: cabin_cleaning_status.
 
 STEP 16 - Lavatory servicing
+  - CRITICAL: Parameters MUST be passed as individual named key-value pairs —
+    NOT wrapped in an args list, NOT as {"args": [...]}, NOT as a positional list.
+    CORRECT:   {"flight_number": "AF84", "aircraft_type": "B747", ..., "instruction": "Service the aircraft lavatory."}
+    INCORRECT: {"args": [{"flight_number": "AF84", ..., "instruction": "Service the aircraft lavatory."}]}
   - Call /AirlineTurnaround/aircraft_cabin_services with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
       passenger_disembarkation_status, crew_exit_status,
@@ -553,6 +587,10 @@ STEP 16 - Lavatory servicing
   - Extract and store: lavatory_service_status.
 
 STEP 17 - Catering loading
+  - CRITICAL: Parameters MUST be passed as individual named key-value pairs —
+    NOT wrapped in an args list, NOT as {"args": [...]}, NOT as a positional list.
+    CORRECT:   {"flight_number": "AF84", "aircraft_type": "B747", ..., "instruction": "Load catering supplies."}
+    INCORRECT: {"args": [{"flight_number": "AF84", ..., "instruction": "Load catering supplies."}]}
   - Call /AirlineTurnaround/aircraft_cabin_services with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
       passenger_disembarkation_status, crew_exit_status,
@@ -723,18 +761,13 @@ STEP 20 - Final report
 
             "tools": [
                 "TrackerAPI",
-                "/AirlineTurnaround/aircraft_baggage_unload",
                 "/AirlineTurnaround/aircraft_cabin_services", 
-                "/AirlineTurnaround/aircraft_crew_pilot", 
-                "/AirlineTurnaround/aircraft_disembark",
-                "/AirlineTurnaround/aircraft_door_opening",
+                "/AirlineTurnaround/aircraft_crew_cabin",    # STEP 10 door opening, STEP 11 pax disembarkation, STEP 13 crew debrief
+                "/AirlineTurnaround/aircraft_crew_pilot",    # STEP 1/2 ATC+landing, STEP 5/6 taxi, STEP 7 engines, STEP 14 crew exit
                 "/AirlineTurnaround/aircraft_gate_services",
                 "/AirlineTurnaround/aircraft_ground_rampservices",
                 "/AirlineTurnaround/aircraft_ground_readiness",
-                "/AirlineTurnaround/aircraft_ground_servicing", 
-                "/AirlineTurnaround/aircraft_lavatory_service",
-                "/AirlineTurnaround/aircraft_crew_exit", 
-                "/AirlineTurnaround/aircraft_crew_debrief", 
+                "/AirlineTurnaround/aircraft_ground_servicing",  # STEP 12 baggage unload, STEP 18 inspection, STEP 19 fueling
             ], 
         }, 
 
