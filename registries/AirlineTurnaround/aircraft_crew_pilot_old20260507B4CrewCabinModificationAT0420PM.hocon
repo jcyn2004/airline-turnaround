@@ -380,12 +380,6 @@ BRANCH F — Authorise and execute crew exit
   3. inquiry asks the pilot to authorise crew exit
   NOTE: When task_id='STEP_14_CREW_EXIT' is present, this branch
   MUST execute. It is never irrelevant when this task_id is present.
-  CRITICAL: Once you match BRANCH F, execute ONLY the steps below.
-  Do NOT evaluate or execute any steps from BRANCH A, B, C, D, or E.
-  Do NOT check aircraft_direction — it is not required for this branch.
-  Do NOT call aircraft_landing, aircraft_taxiing, aircraft_ground_traffic,
-  aircraft_engines_stop, or any other tool except aircraft_crew_exit
-  and TrackerAPI.
 
   STEP 1 — Verify prerequisites from the incoming parameters
     The turnaround manager passes all prerequisite statuses directly as
@@ -404,9 +398,7 @@ BRANCH F — Authorise and execute crew exit
   STEP 2 — Pilot authorises crew exit
     All prerequisites confirmed from args. The pilot is authorising
     crew exit.
-    CRITICAL: Call ONLY /AirlineTurnaround/aircraft_crew_exit.
-    Do NOT call any other agent or tool in this step.
-    Issue this as a single isolated tool call and wait.
+    CRITICAL: Issue this as a single isolated tool call and wait.
     Call /AirlineTurnaround/aircraft_crew_exit with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
       deplaning_equipment_type,
@@ -531,7 +523,6 @@ If no branch matches, reply you are not relevant.
                 "/AirlineTurnaround/aircraft_ground_readiness",
                 "/AirlineTurnaround/aircraft_traffic_controller",
                 "/AirlineTurnaround/aircraft_engines_stop",
-                "/AirlineTurnaround/aircraft_crew_exit",
                 "TrackerAPI"
             ]
         },  

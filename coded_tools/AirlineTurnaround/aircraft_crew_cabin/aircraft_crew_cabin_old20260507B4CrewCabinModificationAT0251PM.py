@@ -217,9 +217,8 @@ class TrackerAPI(CodedTool):
             Tuple containing values for all fields defined in config.return_fields
             
         Note:
-            - If a field exists in sly_data, that value is used (read mode); args is ignored
-            - If a field doesn't exist in sly_data, args is consulted and, if found,
-              written into sly_data for subsequent calls (write mode)
+            - If a field exists in args, it's written to sly_data (write mode)
+            - If a field doesn't exist in args, it's read from sly_data (read mode)
         """
         logger.info("=" * 60)
         logger.info("TrackerAPI invoked")
@@ -285,7 +284,7 @@ class TrackerAPI(CodedTool):
         config: TrackerConfig
     ) -> Dict[str, Optional[str]]:
         """
-        Process all tracked fields by checking sly_data first, then falling back to args.
+        Process all tracked fields by checking args first, then falling back to sly_data.
         
         Args:
             args: Input arguments potentially containing new values
@@ -308,28 +307,22 @@ class TrackerAPI(CodedTool):
         return field_values
     
     def _process_field(
-        self, 
-        field_name: str, 
-        args: Dict[str, Any], 
+        self,
+        field_name: str,
+        args: Dict[str, Any],
         sly_data: Dict[str, Any]
     ) -> Tuple[Optional[str], DataSource]:
         """
-        Process a single field by attempting to read from sly_data first,
-        falling back to args only when sly_data has no value for the field.
+        Process a single field by reading sly_data first, falling back to
+        args only when sly_data has no value for the field.
 
         Priority:
-          1. sly_data[field_name] – authoritative running state; returned
+          1. sly_data[field_name] - authoritative running state; returned
              immediately when present. args is ignored for this field.
-          2. args[field_name]     – used only when sly_data is None;
+          2. args[field_name]     - used only when sly_data is None;
              the value is also written into sly_data so subsequent calls
              find it under rule 1.
-          3. Neither source       – returns (None, NOT_FOUND).
-
-        For flight_status specifically, the value is normalised to a
-        canonical token ('landed', 'taxiing', 'on blocks') before being
-        stored or returned. This prevents verbose LLM-extracted phrases
-        such as 'landed on runway 19R' from propagating into downstream
-        agents and failing their flight_status checks.
+          3. Neither source       - returns (None, NOT_FOUND).
 
         Args:
             field_name: Name of the field to process
@@ -343,18 +336,6 @@ class TrackerAPI(CodedTool):
         value = sly_data.get(field_name)
 
         if value is not None:
-            value = self._normalise_field(field_name, value, sly_data)
-            if value is None:
-                # _normalise_field rejected this value (e.g. 'APPROACH') as a
-                # transient status that must not persist. Delete it from sly_data
-                # so a subsequent write of the real value (e.g. 'landed') is not
-                # blocked by the sly_data-first policy.
-                del sly_data[field_name]
-                logger.info(f"[EVICT] {field_name}: transient value removed from sly_data")
-                return None, DataSource.NOT_FOUND
-            # Write the normalised value back so stale raw values are
-            # corrected in sly_data on the next read.
-            sly_data[field_name] = value
             logger.info(f"[READ]  {field_name}: '{value}' (source: sly_data)")
             return value, DataSource.SLY_DATA
 
@@ -362,75 +343,13 @@ class TrackerAPI(CodedTool):
         value = args.get(field_name)
 
         if value is not None:
-            value = self._normalise_field(field_name, value, sly_data)
-            if value is None:
-                # Transient value from args — do not write to sly_data.
-                logger.info(f"[SKIP]  {field_name}: transient value from args not stored")
-                return None, DataSource.NOT_FOUND
             sly_data[field_name] = value
-            logger.info(f"[WRITE] {field_name}: '{value}' (source: args → sly_data)")
+            logger.info(f"[WRITE] {field_name}: '{value}' (source: args -> sly_data)")
             return value, DataSource.ARGS
 
         # 3. Not found anywhere
         logger.warning(f"[NOT FOUND] {field_name}: No value in sly_data or args")
         return None, DataSource.NOT_FOUND
-
-    def _normalise_field(self, field_name: str, value: str, sly_data: Dict[str, Any] = None) -> str:
-        """
-        Normalise a field value to its canonical form.
-
-        Handles flight_status, which the LLM often returns as a verbose
-        phrase (e.g. 'landed on runway 19R') or an intermediate system
-        status (e.g. 'TAXIING_IN', 'APPROACH') instead of the canonical
-        token expected by downstream agents and coded tools.
-
-        Canonical flight_status tokens: 'landed', 'on blocks'.
-        Note: 'TAXIING_IN' and similar mid-transit values are deliberately
-        NOT mapped — they represent an incomplete state and must not be
-        stored as the authoritative flight_status. The taxiing coded tool
-        sets flight_status='on blocks' directly when taxiing completes.
-
-        All other fields are returned unchanged.
-
-        Args:
-            field_name: Name of the field being normalised.
-            value: Raw value to normalise.
-
-        Returns:
-            Normalised value string.
-        """
-        # ── flight_status normalisation ────────────────────────────────
-        if field_name == "flight_status":
-            normalised = value.lower().replace("_", " ").strip()
-            if "land" in normalised:
-                return "landed"
-            if "block" in normalised:
-                return "on blocks"
-            if "approach" in normalised or "taxi" in normalised:
-                # Transient ATC/ground-movement statuses ('APPROACH', 'TAXIING_IN',
-                # 'TAXIING_OUT', etc.) must not be persisted in sly_data.
-                # Returning None causes _process_field to evict any existing value
-                # and skip the write, leaving the field unset so the real terminal
-                # status from the next step can be stored without interference.
-                return None
-            # Other mid-transit values are returned as-is so they fail downstream
-            # validation checks — a clear failure is better than silent poisoning.
-            return value
-
-        # ── ground_clearance_status normalisation ──────────────────────
-        if field_name == "ground_clearance_status":
-            normalised = value.lower().replace("_", " ").strip()
-            if "grant" in normalised or "clear" in normalised:
-                # 'GRANTED' is valid while the aircraft is taxiing in.
-                # Once flight_status='on blocks' is confirmed in sly_data,
-                # the clearance is complete and stale. Evict it so that the
-                # next turnaround's STEP 5 TrackerAPI call finds null and
-                # BRANCH C/D routes correctly for the new clearance request.
-                if sly_data and sly_data.get("flight_status") == "on blocks":
-                    return None
-            return value
-
-        return value
     
     def _build_return_tuple(
         self, 
@@ -505,54 +424,40 @@ class TrackerAPI(CodedTool):
 
 # Define tracked fields for flight turnaround operations
 FLIGHT_TURNAROUND_TRACKED_FIELDS = [
+    "acu_readiness_status", 
     "aircraft_direction",
     "aircraft_type", 
     "assigned_runway_id", 
     "assigned_runway_length", 
-    "baggage_unload_status",
     "clearance_type",
-    "crew_debrief_status",
-    "crew_exit_status",
-    "deplaning_equipment_type",
-    "door_opening_status",
-    "engines_stop_status",
+    "door_opening_status", 
     "flight_number",
     "flight_status", 
     "gate_id", 
     "ground_clearance_status", 
     "ground_clearance_type", 
-    "jetbridge_connection_status",
-    "passenger_disembarkation_status",
-    "stairtruck_connection_status",
+    "jetbridge_connection_status", 
+    "passenger_disembarkation_status", 
     "wheelchocks_readiness_status", 
-    "acu_readiness_status", 
-    "gpu_readiness_status", 
 ]
 
 # Define which fields should be returned from the API
 FLIGHT_TURNAROUND_RETURN_FIELDS = [
+    "acu_readiness_status", 
     "aircraft_direction",
     "aircraft_type", 
     "assigned_runway_id", 
     "assigned_runway_length", 
-    "baggage_unload_status",
     "clearance_type",
-    "crew_debrief_status",
-    "crew_exit_status",
-    "deplaning_equipment_type",
-    "door_opening_status",
-    "engines_stop_status",
+    "door_opening_status", 
     "flight_number",
     "flight_status", 
     "gate_id", 
     "ground_clearance_status", 
     "ground_clearance_type", 
-    "jetbridge_connection_status",
-    "passenger_disembarkation_status",
-    "stairtruck_connection_status",
+    "jetbridge_connection_status", 
+    "passenger_disembarkation_status", 
     "wheelchocks_readiness_status", 
-    "acu_readiness_status", 
-    "gpu_readiness_status", 
 ]
 
 # =============================================================================

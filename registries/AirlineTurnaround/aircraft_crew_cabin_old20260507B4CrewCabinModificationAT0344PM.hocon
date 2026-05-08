@@ -139,14 +139,6 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string",
                             "description": "This is the crew debrief status."
                         },
-                        "baggage_unload_status": {
-                            "type": "string",
-                            "description": "This is the baggage unload status. Required for BRANCH C crew debrief."
-                        },
-                        "task_id": {
-                            "type": "string",
-                            "description": "Correlation token — echo back in response. Use to route: STEP_13_CREW_DEBRIEF triggers BRANCH C."
-                        },
                     }, 
                     "required": ["aircraft_type","flight_status","flight_number"] 
                 }
@@ -235,29 +227,22 @@ BRANCH B — Disembark passengers
     ** passenger disembarkation status  **: [passenger_disembarkation_status]
 
 BRANCH C — Crew debrief
-  ROUTING PRIORITY: Check task_id FIRST before reading the inquiry text.
-  Triggers (ANY of — evaluated in this order):
-  1. task_id contains 'CREW_DEBRIEF' → USE THIS BRANCH IMMEDIATELY
-  2. instruction contains 'debrief the crew' or 'crew debrief'
-  3. inquiry asks to debrief the crew
-  NOTE: When task_id='STEP_13_CREW_DEBRIEF' is present, this branch
-  MUST execute. It is never irrelevant when this task_id is present.
+  Triggers: inquiry asks to debrief the crew, or explicit instruction
+  "Debrief the crew." or task contains 'crew debrief'.
 
-  STEP 1 — Resolve and verify prerequisites
+  STEP 1 — Resolve prerequisites
     Call TrackerAPI with flight_number, aircraft_type, flight_status,
     gate_id, door_opening_status, passenger_disembarkation_status,
-    baggage_unload_status, jetbridge_connection_status,
-    stairtruck_connection_status, deplaning_equipment_type.
+    jetbridge_connection_status, stairtruck_connection_status,
+    deplaning_equipment_type.
     Wait. Read back all values.
-    Verify ALL of the following before proceeding:
-      - flight_status contains 'on blocks'
-      - passenger_disembarkation_status contains 'completed'
-      - baggage_unload_status contains 'completed'
-    If any prerequisite is not satisfied, stop and report which one
-    failed. Do NOT call aircraft_crew_debrief until all are confirmed.
 
-  STEP 2 — Execute crew debrief
-    All prerequisites confirmed.
+  STEP 2 — Verify prerequisites
+    flight_status must contain 'on blocks' or 'block'.
+    passenger_disembarkation_status must contain 'completed'.
+    If either is not satisfied, stop and report which prerequisite failed.
+
+  STEP 3 — Execute crew debrief
     CRITICAL: Issue this as a single isolated tool call and wait.
     Call /AirlineTurnaround/aircraft_crew_debrief with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
@@ -268,16 +253,14 @@ BRANCH C — Crew debrief
     Extract crew_debrief_status from the response.
     Call TrackerAPI to store crew_debrief_status.
 
-  STEP 3 — RETURN SUMMARY:
+  STEP 4 — RETURN SUMMARY:
     ************************************
     * Summary of aircraft crew debrief *
     ************************************
-    ** task_id                       **: [task_id]
     ** flight status                 **: [flight_status]
     ** deplaning equipment type      **: [deplaning_equipment_type]
     ** door opening status           **: [door_opening_status]
     ** passenger disembarkation      **: [passenger_disembarkation_status]
-    ** baggage unload                **: [baggage_unload_status]
     ** crew debrief status           **: [crew_debrief_status]
             """,
 
@@ -295,9 +278,7 @@ BRANCH C — Crew debrief
                         "jetbridge_connection_status": true,
                         "stairtruck_connection_status": true,
                         "deplaning_equipment_type": true,
-                        "crew_debrief_status": true,
-                        "baggage_unload_status": true,
-                        "task_id": true
+                        "crew_debrief_status": true
                     }
                 }
                 "to_downstream": {
@@ -312,9 +293,7 @@ BRANCH C — Crew debrief
                         "jetbridge_connection_status": true,
                         "stairtruck_connection_status": true,
                         "deplaning_equipment_type": true,
-                        "crew_debrief_status": true,
-                        "baggage_unload_status": true,
-                        "task_id": true
+                        "crew_debrief_status": true
                     }
                 }
                 "from_upstream": {
@@ -329,9 +308,7 @@ BRANCH C — Crew debrief
                         "jetbridge_connection_status": true,
                         "stairtruck_connection_status": true,
                         "deplaning_equipment_type": true,
-                        "crew_debrief_status": true,
-                        "baggage_unload_status": true,
-                        "task_id": true
+                        "crew_debrief_status": true
                     }
                 }
                 "from_downstream": {
@@ -346,9 +323,7 @@ BRANCH C — Crew debrief
                         "jetbridge_connection_status": true,
                         "stairtruck_connection_status": true,
                         "deplaning_equipment_type": true,
-                        "crew_debrief_status": true,
-                        "baggage_unload_status": true,
-                        "task_id": true
+                        "crew_debrief_status": true
                     }
                 }
             },
@@ -415,14 +390,6 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                         "crew_debrief_status": {
                             "type": "string",
                             "description": "This is the crew debrief status."
-                        },
-                        "baggage_unload_status": {
-                            "type": "string",
-                            "description": "This is the baggage unload status."
-                        },
-                        "task_id": {
-                            "type": "string",
-                            "description": "Correlation token."
                         },
                     }, 
                     "required": [] 

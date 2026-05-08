@@ -429,7 +429,10 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
     "aircraft_type", 
     "assigned_runway_id", 
     "assigned_runway_length", 
+    "baggage_unload_status",
     "clearance_type",
+    "crew_debrief_status",
+    "deplaning_equipment_type",
     "door_opening_status", 
     "flight_number",
     "flight_status", 
@@ -438,6 +441,7 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
     "ground_clearance_type", 
     "jetbridge_connection_status", 
     "passenger_disembarkation_status", 
+    "stairtruck_connection_status",
     "wheelchocks_readiness_status", 
 ]
 
@@ -448,7 +452,10 @@ FLIGHT_TURNAROUND_RETURN_FIELDS = [
     "aircraft_type", 
     "assigned_runway_id", 
     "assigned_runway_length", 
+    "baggage_unload_status",
     "clearance_type",
+    "crew_debrief_status",
+    "deplaning_equipment_type",
     "door_opening_status", 
     "flight_number",
     "flight_status", 
@@ -457,6 +464,7 @@ FLIGHT_TURNAROUND_RETURN_FIELDS = [
     "ground_clearance_type", 
     "jetbridge_connection_status", 
     "passenger_disembarkation_status", 
+    "stairtruck_connection_status",
     "wheelchocks_readiness_status", 
 ]
 

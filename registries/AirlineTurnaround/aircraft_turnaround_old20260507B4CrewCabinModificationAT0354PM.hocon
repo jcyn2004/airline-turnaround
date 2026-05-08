@@ -725,6 +725,8 @@ STEP 20 - Final report
                 "TrackerAPI",
                 "/AirlineTurnaround/aircraft_baggage_unload",
                 "/AirlineTurnaround/aircraft_cabin_services", 
+                "/AirlineTurnaround/aircraft_crew_debrief", 
+                "/AirlineTurnaround/aircraft_crew_exit", 
                 "/AirlineTurnaround/aircraft_crew_pilot", 
                 "/AirlineTurnaround/aircraft_disembark",
                 "/AirlineTurnaround/aircraft_door_opening",
@@ -733,8 +735,6 @@ STEP 20 - Final report
                 "/AirlineTurnaround/aircraft_ground_readiness",
                 "/AirlineTurnaround/aircraft_ground_servicing", 
                 "/AirlineTurnaround/aircraft_lavatory_service",
-                "/AirlineTurnaround/aircraft_crew_exit", 
-                "/AirlineTurnaround/aircraft_crew_debrief", 
             ], 
         }, 
 

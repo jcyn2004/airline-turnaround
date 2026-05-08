@@ -157,7 +157,11 @@ You are in charge of aircraft turnaround at the airport.
                         "jetbridge_connection_status": {
                             "type": "string", 
                             "description": "This is the jetbridge connection status."
-                        },    
+                        },
+                        "stairtruck_connection_status": {
+                            "type": "string", 
+                            "description": "This is the stairtruck connection status."
+                        },
                         "door_opening_status": {
                             "type": "string", 
                             "description": "This is the door opening status."
@@ -240,48 +244,83 @@ STEP 0 - Validate inputs
 For INCOMING aircraft, execute the following steps in strict sequence:
 
 STEP 1 - Request air traffic clearance for landing
-  - Call /AirlineTurnaround/aircraft_crew_pilot with:
+  - Call /AirlineTurnaround/aircraft_crew_pilot with named parameters:
       flight_number, aircraft_type, aircraft_direction='incoming',
+      flight_status='incoming',
       task_id='STEP_1_LANDING_CLEARANCE',
-      and the explicit instruction: "Request clearance for landing."
+      instruction='Request clearance for landing.'
+  - Do NOT pre-fill clearance_type, assigned_runway_id, or assigned_runway_length.
+    These must come back from the sub-agent response, not be set by the manager.
   - Wait for response.
   - Verify the response echoes task_id='STEP_1_LANDING_CLEARANCE'.
     If it does not, discard and retry once before reporting a failure.
-  - Extract and store: clearance_type, assigned_runway_id, assigned_runway_length, flight_status.
-  - Do not proceed to step 2 until clearance_type contains 'landing' and assigned_runway_id is not None.
+  - Extract and store from the response:
+      clearance_type, assigned_runway_id, assigned_runway_length, flight_status.
+  - Do not proceed to STEP 2 until clearance_type contains 'CLEARED' and assigned_runway_id is not None.
 
 STEP 2 - Land the aircraft
-  - Call /AirlineTurnaround/aircraft_crew_pilot with:
-      flight_number, aircraft_type, aircraft_direction,
+  - Call /AirlineTurnaround/aircraft_crew_pilot with named parameters:
+      flight_number, aircraft_type, aircraft_direction='incoming',
+      flight_status='APPROACH',
       clearance_type, assigned_runway_id, assigned_runway_length,
       task_id='STEP_2_LAND_AIRCRAFT',
-      and the explicit instruction: "Land the aircraft."
+      instruction='Land the aircraft.'
+  - CRITICAL: flight_status MUST be passed explicitly as 'APPROACH' and
+    aircraft_direction MUST be passed explicitly as 'incoming'. Both are
+    required for BRANCH B routing inside aircraft_crew_pilot. If either
+    is null or missing, the sub-agent returns a clearance summary instead
+    of a landing summary.
+  - ALL parameters MUST be passed as named key-value pairs.
   - Wait for response.
-  - Verify the response echoes task_id='STEP_2_LAND_AIRCRAFT'.
-    If it does not, discard and retry once before reporting a failure.
   - Do NOT reuse the response from STEP 1. This is a distinct call.
-  - Extract and store the new flight_status (expected value: 'landed').
-  - Do not proceed to step 3 until flight_status contains 'landed'.
+  - Inspect the response summary header:
+      VALID response:   '* Summary of aircraft landing *'
+      INVALID response: '* Summary of air traffic clearance *'
+    If the header contains 'clearance', the sub-agent returned the wrong
+    branch. This is NOT a landing confirmation. Proceed to retry immediately.
+  - Extract and store the new flight_status.
   - VALIDATION: flight_status MUST be exactly 'landed'.
-    If the response contains clearance language, runway references, or
-    any value other than 'landed', the sub-agent returned the wrong
-    output. Retry ONCE with the same parameters.
-    If still not 'landed' after retry, stop and report:
+    Any of the following are INVALID and MUST trigger an immediate retry —
+    do NOT report failure yet:
+      - 'APPROACH'
+      - 'CLEARED_FOR_LANDING'
+      - any clearance or ATC phrasing
+      - any value that is not exactly 'landed'
+  - RETRY (if validation failed): Issue a second call to
+    /AirlineTurnaround/aircraft_crew_pilot with the IDENTICAL parameters
+    as the first call. This is a mandatory retry — do NOT skip it and do
+    NOT report failure before attempting it. Issue it as a single isolated
+    tool call and wait for the response.
+  - If flight_status is still not exactly 'landed' after the retry,
+    stop and report:
     "STEP 2 FAILED: aircraft did not land. Raw flight_status: [value]"
+  - Do not proceed to STEP 3 until flight_status is exactly 'landed'.
 
 STEP 3 - Gate assignment
   - Call /AirlineTurnaround/aircraft_gate_services with:
       flight_number, aircraft_type.
   - Wait for response.
   - Extract and store: gate_id, deplaning_equipment_type.
-  - Do not proceed to step 4 until deplaning_equipment_type is not None.
+  - VALIDATION: gate_id MUST be a gate identifier (e.g. 'A1', 'B12').
+    It must NOT be a runway ID (e.g. '19R', '28L') or null.
+    If gate_id is null, looks like a runway, or the sub-agent was
+    unreachable, stop and report:
+    "STEP 3 FAILED: gate could not be assigned. Raw response: [response]"
+    Do NOT proceed with a runway ID as a gate_id under any circumstance.
+  - Do not proceed to STEP 4 until gate_id is a valid gate and
+    deplaning_equipment_type is not None.
 
 STEP 4 - Ground services readiness check
   - Call /AirlineTurnaround/aircraft_ground_readiness with:
       aircraft_type, gate_id.
   - Wait for response.
   - Extract and store: wheelchocks_readiness_status, acu_readiness_status, gpu_readiness_status.
-  - Do not proceed to step 5 until wheelchocks_readiness_status is ready, and acu_readiness_status is ready, and gpu_readiness_status is ready.
+  - VALIDATION: all three statuses must be 'ready'. If any contains
+    'error', 'not relevant', or is null, the gate_id passed was likely
+    invalid. Stop and report:
+    "STEP 4 FAILED: ground services readiness could not be confirmed.
+     gate_id used: [gate_id]. Raw response: [response]"
+  - Do not proceed to STEP 5 until all three statuses are 'ready'.
 
 STEP 5 - Request ground traffic clearance to taxi in
   - Call /AirlineTurnaround/aircraft_crew_pilot with:
@@ -294,13 +333,20 @@ STEP 5 - Request ground traffic clearance to taxi in
     Do NOT pass ground_clearance_type or instruction via clearance_type
     or any other field, and do NOT pass them as a positional list.
   - Wait for response.
-  - Verify the response echoes task_id='STEP_5_GROUND_CLEARANCE_TAXI_IN'.
-    If it does not, discard and retry once before reporting a failure.
+  - VALIDATION: A valid STEP 5 response MUST contain
+    ground_clearance_status with a value of 'GRANTED' or similar.
+    The response may also show flight_status as 'TAXIING_IN' — this is
+    normal and expected. Do NOT treat 'TAXIING_IN' as an error or a
+    reason to retry. It simply means the clearance was granted and the
+    aircraft has begun taxiing. Ignore flight_status entirely in this step.
+  - If ground_clearance_status does NOT contain 'grant' or 'clear',
+    retry ONCE with the same parameters. If still not granted, stop and
+    report: "STEP 5 FAILED: ground clearance was not granted."
   - Extract and store: ground_clearance_type, ground_clearance_status.
   - Do NOT extract or update flight_status from this response —
     the clearance response reflects authority status, not aircraft state.
     Your working flight_status remains 'landed' until STEP 6 confirms 'on blocks'.
-  - Do not proceed to STEP 6 unless ground_clearance_status contains
+  - Proceed immediately to STEP 6 once ground_clearance_status contains
     'grant' or 'GRANT' or 'clear' or 'CLEAR'.
 
 STEP 6 - Taxi the aircraft to the gate
@@ -347,33 +393,54 @@ STEP 8 - Ground ramp services (wheelchocks install + ACU connect + GPU connect)
   - Wait for response.
   - Extract and store: wheelchocks_installation_status, acu_connection_status, gpu_connection_status.
 
-STEP 9 - Connect jetbridge
-  - Call /AirlineTurnaround/aircraft_gate_services with:
+STEP 9 - Connect deplaning equipment (jetbridge or stairtruck)
+  - Check deplaning_equipment_type from your working context (set at STEP 3):
+      - 'jetway' or 'jetbridge' → use instruction='Connect the jetbridge.'
+      - 'stairtruck' or 'stair' → use instruction='Connect the stairtruck.'
+      - unknown → default to instruction='Connect the jetbridge.'
+  - Call /AirlineTurnaround/aircraft_gate_services with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
-      acu_connection_status, gpu_connection_status, wheelchocks_installation_status,
-      and the explicit instruction: "Connect the jetbridge."
+      acu_connection_status, gpu_connection_status,
+      wheelchocks_installation_status, deplaning_equipment_type,
+      instruction=<determined above>
+  - ALL parameters MUST be passed as named key-value pairs.
   - Wait for response.
-  - Extract and store: jetbridge_connection_status.
-  - VALIDATION: jetbridge_connection_status MUST contain 'connected'.
-    If not, retry once with the same parameters.
+  - Extract and store the connection status:
+      - If jetbridge: extract jetbridge_connection_status.
+      - If stairtruck: extract stairtruck_connection_status.
+  - VALIDATION: the extracted connection status MUST contain 'connected'.
+    If not, retry ONCE with the same parameters.
     If still not 'connected' after retry, stop and report:
-      "STEP 9 FAILED: jetbridge could not be connected."
-  - Do NOT proceed to STEP 10 unless jetbridge_connection_status
-    contains 'connected'.
-  - Call TrackerAPI with jetbridge_connection_status='connected'
-    explicitly to overwrite any stale 'not connected' value in sly_data.
+      "STEP 9 FAILED: deplaning equipment could not be connected.
+       Equipment type: [deplaning_equipment_type]"
+  - Do NOT proceed to STEP 10 until the connection status contains 'connected'.
+  - Call TrackerAPI to record ONLY the relevant connection status:
+      - If jetbridge: pass jetbridge_connection_status='connected'.
+        Do NOT pass stairtruck_connection_status.
+      - If stairtruck: pass stairtruck_connection_status='connected'.
+        Do NOT pass jetbridge_connection_status.
+    Passing the wrong field causes a false 'connected' value to persist
+    in sly_data and be forwarded to downstream agents incorrectly.
 
 STEP 10 - Open aircraft doors
-  - Call /AirlineTurnaround/aircraft_door_opening with:
-      flight_number, aircraft_type, flight_status, gate_id, jetbridge_connection_status.
+  - Call /AirlineTurnaround/aircraft_door_opening with named parameters:
+      flight_number, aircraft_type, flight_status, gate_id,
+      deplaning_equipment_type,
+      jetbridge_connection_status, stairtruck_connection_status.
   - Wait for response.
   - Extract and store: door_opening_status.
 
 STEP 11 - Passenger disembarkation
-  - Call /AirlineTurnaround/aircraft_disembark with:
+  - CRITICAL: This step involves a sub-agent that may take time to respond.
+    Issue this as a single, isolated tool call. Do NOT issue any other tool
+    call in the same turn. Do NOT restart from STEP 1 or any earlier step
+    while waiting. Simply wait for the response before doing anything else.
+  - Call /AirlineTurnaround/aircraft_disembark with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
-      jetbridge_connection_status, door_opening_status.
-  - Wait for response.
+      door_opening_status,
+      jetbridge_connection_status, stairtruck_connection_status,
+      deplaning_equipment_type.
+  - Wait for response. This is the ONLY action in this turn.
   - Extract passenger_disembarkation_status from the response.
   - VALIDATION: Treat ANY of the following as a FAILED response —
     do NOT store or forward these values downstream:
@@ -391,16 +458,22 @@ STEP 11 - Passenger disembarkation
       contains 'completed'. Do NOT pass any failed value to later steps.
 
 STEP 12 - Baggage unloading
-  - CRITICAL: aircraft_baggage_unload is a sub-agent network that may
-    take time to respond. You MUST issue this as a single, isolated tool
-    call and do absolutely nothing else until its response arrives.
-    Do NOT issue any other tool call in the same turn as this one.
-    Do NOT call aircraft_crew_pilot, TrackerAPI, or any other tool
-    while waiting. Do NOT restart from STEP 1 or any earlier step
-    while waiting. Simply wait.
+  - CRITICAL — ONE CALL, THEN WAIT, NOTHING ELSE:
+    aircraft_baggage_unload is a slow sub-agent. You MUST issue this
+    call in complete isolation. The instant you issue this call, STOP.
+    Do not generate any further tool calls. Do not call aircraft_crew_pilot.
+    Do not call TrackerAPI. Do not issue STEP_1_LANDING_CLEARANCE or any
+    other step. Do not restart from any earlier step.
+    If you find yourself about to invoke STEP_1_LANDING_CLEARANCE or any
+    other agent while aircraft_baggage_unload has not yet responded,
+    you are violating this rule — cancel that call and wait.
+    The response WILL arrive. Simply wait for it.
   - Call /AirlineTurnaround/aircraft_baggage_unload with:
-      flight_number, aircraft_type, flight_status, gate_id, jetbridge_connection_status, door_opening_status.
+      flight_number, aircraft_type, flight_status, gate_id,
+      jetbridge_connection_status, stairtruck_connection_status,
+      door_opening_status.
   - Wait for response. This is the ONLY action in this turn.
+    Do not produce any other output until the response arrives.
   - Extract and store: baggage_unload_status.
   - VALIDATION: baggage_unload_status MUST contain 'completed' or 'unloaded'.
     If the response does not arrive, is empty, or does not contain
@@ -413,17 +486,32 @@ STEP 12 - Baggage unloading
     'completed' or 'unloaded'.
 
 STEP 13 - Crew debrief
-  - Call /AirlineTurnaround/aircraft_crew_debrief with:
+  - CRITICAL: This step involves a sub-agent that may take time to respond.
+    Issue this as a single, isolated tool call. Do NOT issue any other tool
+    call in the same turn. Do NOT restart from STEP 1 or any earlier step
+    while waiting. Simply wait for the response before doing anything else.
+  - Call /AirlineTurnaround/aircraft_crew_cabin with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
-      jetbridge_connection_status, door_opening_status.
-  - Wait for response.
+      deplaning_equipment_type,
+      jetbridge_connection_status, stairtruck_connection_status,
+      door_opening_status, passenger_disembarkation_status,
+      instruction='Debrief the crew.'
+  - Wait for response. This is the ONLY action in this turn.
   - Extract and store: crew_debrief_status.
 
-STEP 14 - Crew exit
-  - Call /AirlineTurnaround/aircraft_crew_exit with named parameters:
+STEP 14 - Crew exit (pilot-authorised)
+  - The pilot must authorise crew exit after verifying all prior steps
+    are complete. Call /AirlineTurnaround/aircraft_crew_pilot with
+    named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
-      jetbridge_connection_status, door_opening_status.
-  - Wait for response.
+      task_id='STEP_14_CREW_EXIT',
+      instruction='Authorise and execute crew exit.',
+      passenger_disembarkation_status, baggage_unload_status,
+      crew_debrief_status, door_opening_status,
+      deplaning_equipment_type,
+      jetbridge_connection_status, stairtruck_connection_status.
+  - ALL parameters MUST be passed as named key-value pairs.
+  - Wait for response. This is the ONLY action in this turn.
   - Extract and store: crew_exit_status.
   - VALIDATION: crew_exit_status MUST contain 'completed' or 'exited'.
     The following are INVALID intermediate statuses that must trigger a retry:
@@ -535,7 +623,8 @@ STEP 20 - Final report
   ** ACU Connection       **: [acu_connection_status]
   ** GPU Readiness        **: [gpu_readiness_status]
   ** GPU Connection       **: [gpu_connection_status]
-  ** Jetbridge            **: [jetbridge_connection_status]
+  ** Jetbridge            **: [jetbridge_connection_status or 'not applicable']
+  ** Stairtruck           **: [stairtruck_connection_status or 'not applicable']
   ** Door Opening         **: [door_opening_status]
   ** Pax Disembarkation   **: [passenger_disembarkation_status]
   ** Baggage Unload       **: [baggage_unload_status]
@@ -704,7 +793,11 @@ I am the tracker of the aircraft turnaround process. I store parameters and and 
                         "jetbridge_connection_status": {
                             "type": "string", 
                             "description": "This is the jetbridge connection status."
-                        },    
+                        },
+                        "stairtruck_connection_status": {
+                            "type": "string", 
+                            "description": "This is the stairtruck connection status."
+                        },
                         "door_opening_status": {
                             "type": "string", 
                             "description": "This is the door opening status."
