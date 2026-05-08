@@ -160,14 +160,6 @@ taxiing the aircraft, and stopping engines.
                             "type": "string",
                             "description": "Correlation token supplied by the caller to uniquely identify this call. Must be echoed back unchanged in every response summary."
                         },
-                        "passenger_disembarkation_status": {"type": "string", "description": "Passenger disembarkation status. Required for BRANCH F crew exit authorisation."},
-                        "baggage_unload_status": {"type": "string", "description": "Baggage unload status. Required for BRANCH F crew exit authorisation."},
-                        "crew_debrief_status": {"type": "string", "description": "Crew debrief status. Required for BRANCH F crew exit authorisation."},
-                        "crew_exit_status": {"type": "string", "description": "Crew exit status."},
-                        "door_opening_status": {"type": "string", "description": "Door opening status."},
-                        "jetbridge_connection_status": {"type": "string", "description": "Jetbridge connection status."},
-                        "stairtruck_connection_status": {"type": "string", "description": "Stairtruck connection status."},
-                        "deplaning_equipment_type": {"type": "string", "description": "Deplaning equipment type (jetway or stairtruck)."},
                     }, 
                     "required": ["aircraft_type","flight_number"] 
                 }
@@ -372,63 +364,6 @@ BRANCH E — Stop the aircraft engines
        ** flight status       **: [flight_status]
        ** engines stop status **: [engines_stop_status]
 
-BRANCH F — Authorise and execute crew exit
-  ROUTING PRIORITY: Check task_id FIRST before reading the inquiry text.
-  Triggers (ANY of — evaluated in this order):
-  1. task_id contains 'CREW_EXIT' → USE THIS BRANCH IMMEDIATELY
-  2. instruction contains 'crew exit' or 'exit the crew' or 'authorise and execute crew exit'
-  3. inquiry asks the pilot to authorise crew exit
-  NOTE: When task_id='STEP_14_CREW_EXIT' is present, this branch
-  MUST execute. It is never irrelevant when this task_id is present.
-  CRITICAL: Once you match BRANCH F, execute ONLY the steps below.
-  Do NOT evaluate or execute any steps from BRANCH A, B, C, D, or E.
-  Do NOT check aircraft_direction — it is not required for this branch.
-  Do NOT call aircraft_landing, aircraft_taxiing, aircraft_ground_traffic,
-  aircraft_engines_stop, or any other tool except aircraft_crew_exit
-  and TrackerAPI.
-
-  STEP 1 — Verify prerequisites from the incoming parameters
-    The turnaround manager passes all prerequisite statuses directly as
-    named parameters. Read them from the args — do NOT call TrackerAPI
-    to resolve them, as TrackerAPI's local sly_data may not yet reflect
-    the latest values from upstream sub-agents.
-    Required values from args:
-      - flight_status (must contain 'on blocks')
-      - passenger_disembarkation_status (must contain 'completed')
-      - baggage_unload_status (must contain 'completed')
-      - crew_debrief_status (must contain 'completed')
-    If any of these values is missing or does not meet the requirement,
-    stop and report which prerequisite failed. Do NOT call
-    aircraft_crew_exit until all four are confirmed from the args.
-
-  STEP 2 — Pilot authorises crew exit
-    All prerequisites confirmed from args. The pilot is authorising
-    crew exit.
-    CRITICAL: Call ONLY /AirlineTurnaround/aircraft_crew_exit.
-    Do NOT call any other agent or tool in this step.
-    Issue this as a single isolated tool call and wait.
-    Call /AirlineTurnaround/aircraft_crew_exit with named parameters:
-      flight_number, aircraft_type, flight_status, gate_id,
-      deplaning_equipment_type,
-      jetbridge_connection_status, stairtruck_connection_status,
-      door_opening_status.
-    Wait for response. This is the ONLY action in this turn.
-    Extract crew_exit_status from the response.
-
-  STEP 3 — Store result
-    Call TrackerAPI to store crew_exit_status.
-
-  STEP 4 — RETURN SUMMARY:
-    *****************************************
-    * Summary of pilot-authorised crew exit *
-    *****************************************
-    ** task_id                        **: [task_id]
-    ** flight status                  **: [flight_status]
-    ** passenger disembarkation       **: [passenger_disembarkation_status]
-    ** baggage unload                 **: [baggage_unload_status]
-    ** crew debrief                   **: [crew_debrief_status]
-    ** crew exit status               **: [crew_exit_status]
-
 ─────────────────────────────────────────────────────────────
 If no branch matches, reply you are not relevant.
             """,
@@ -531,7 +466,6 @@ If no branch matches, reply you are not relevant.
                 "/AirlineTurnaround/aircraft_ground_readiness",
                 "/AirlineTurnaround/aircraft_traffic_controller",
                 "/AirlineTurnaround/aircraft_engines_stop",
-                "/AirlineTurnaround/aircraft_crew_exit",
                 "TrackerAPI"
             ]
         },  

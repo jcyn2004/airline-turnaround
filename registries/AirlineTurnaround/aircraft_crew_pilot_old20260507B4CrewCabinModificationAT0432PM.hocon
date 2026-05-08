@@ -531,7 +531,6 @@ If no branch matches, reply you are not relevant.
                 "/AirlineTurnaround/aircraft_ground_readiness",
                 "/AirlineTurnaround/aircraft_traffic_controller",
                 "/AirlineTurnaround/aircraft_engines_stop",
-                "/AirlineTurnaround/aircraft_crew_exit",
                 "TrackerAPI"
             ]
         },  

@@ -485,36 +485,27 @@ STEP 12 - Baggage unloading
   - Do NOT proceed to STEP 13 unless baggage_unload_status contains
     'completed' or 'unloaded'.
 
-STEP 13 - Crew debrief (via cabin crew agent)
+STEP 13 - Crew debrief
   - CRITICAL: This step involves a sub-agent that may take time to respond.
     Issue this as a single, isolated tool call. Do NOT issue any other tool
     call in the same turn. Do NOT restart from STEP 1 or any earlier step
     while waiting. Simply wait for the response before doing anything else.
   - Call /AirlineTurnaround/aircraft_crew_cabin with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
-      task_id='STEP_13_CREW_DEBRIEF',
-      instruction='Debrief the crew.',
       deplaning_equipment_type,
       jetbridge_connection_status, stairtruck_connection_status,
       door_opening_status, passenger_disembarkation_status,
-      baggage_unload_status.
-  - ALL parameters MUST be passed as named key-value pairs.
+      instruction='Debrief the crew.'
   - Wait for response. This is the ONLY action in this turn.
   - Extract and store: crew_debrief_status.
 
-STEP 14 - Crew exit (pilot-authorised)
-  - The pilot must authorise crew exit after verifying all prior steps
-    are complete. Call /AirlineTurnaround/aircraft_crew_pilot with
-    named parameters:
+STEP 14 - Crew exit
+  - Call /AirlineTurnaround/aircraft_crew_exit with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
-      task_id='STEP_14_CREW_EXIT',
-      instruction='Authorise and execute crew exit.',
-      passenger_disembarkation_status, baggage_unload_status,
-      crew_debrief_status, door_opening_status,
       deplaning_equipment_type,
-      jetbridge_connection_status, stairtruck_connection_status.
-  - ALL parameters MUST be passed as named key-value pairs.
-  - Wait for response. This is the ONLY action in this turn.
+      jetbridge_connection_status, stairtruck_connection_status,
+      door_opening_status.
+  - Wait for response.
   - Extract and store: crew_exit_status.
   - VALIDATION: crew_exit_status MUST contain 'completed' or 'exited'.
     The following are INVALID intermediate statuses that must trigger a retry:
@@ -725,6 +716,8 @@ STEP 20 - Final report
                 "TrackerAPI",
                 "/AirlineTurnaround/aircraft_baggage_unload",
                 "/AirlineTurnaround/aircraft_cabin_services", 
+                "/AirlineTurnaround/aircraft_crew_debrief", 
+                "/AirlineTurnaround/aircraft_crew_exit", 
                 "/AirlineTurnaround/aircraft_crew_pilot", 
                 "/AirlineTurnaround/aircraft_disembark",
                 "/AirlineTurnaround/aircraft_door_opening",
@@ -733,8 +726,6 @@ STEP 20 - Final report
                 "/AirlineTurnaround/aircraft_ground_readiness",
                 "/AirlineTurnaround/aircraft_ground_servicing", 
                 "/AirlineTurnaround/aircraft_lavatory_service",
-                "/AirlineTurnaround/aircraft_crew_exit", 
-                "/AirlineTurnaround/aircraft_crew_debrief", 
             ], 
         }, 
 
