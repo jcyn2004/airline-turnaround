@@ -242,6 +242,12 @@ TOOL ROUTING CHEATSHEET — override model priors, consult before every tool cal
     STEP 6  — taxi to gate        → aircraft_crew_pilot
     STEP 7  — stop engines        → aircraft_crew_pilot
     STEP 14 — crew exit           → aircraft_crew_pilot
+  Ground operation tasks → /AirlineTurnaround/aircraft_ground_operation
+    STEP 4  — ground readiness    → aircraft_ground_operation (instruction: 'Check ground services readiness.')
+    STEP 8  — ramp services       → aircraft_ground_operation (instruction: 'Execute ground ramp services.')
+    STEP 12 — baggage unload      → aircraft_ground_operation (instruction: 'Unload baggage from the aircraft.')
+    STEP 18 — inspection/maint    → aircraft_ground_operation (instruction: 'Perform inspection and maintenance.')
+    STEP 19 — fueling             → aircraft_ground_operation (instruction: 'Fuel the aircraft.')
   All other agents are called by their exact path as documented per step.
 
 STEP 0 - Validate inputs
@@ -325,9 +331,16 @@ STEP 3 - Gate assignment
     deplaning_equipment_type is not None.
 
 STEP 4 - Ground services readiness check
-  - Call /AirlineTurnaround/aircraft_ground_readiness with:
-      aircraft_type, gate_id.
-  - Wait for response.
+  - CRITICAL — ONE CALL, THEN WAIT, NOTHING ELSE:
+    aircraft_ground_operation is a slow sub-agent. You MUST issue this
+    call in complete isolation. The instant you issue this call, STOP.
+    Do not generate any further tool calls in parallel. Do not restart
+    from STEP 1 or any earlier step while waiting. Do not call any other
+    agent until this response arrives. Simply wait.
+  - Call /AirlineTurnaround/aircraft_ground_operation with named parameters:
+      aircraft_type, gate_id,
+      instruction='Check ground services readiness.'
+  - Wait for response. This is the ONLY action in this turn.
   - Extract and store: wheelchocks_readiness_status, acu_readiness_status, gpu_readiness_status.
   - VALIDATION: all three statuses must be 'ready'. If any contains
     'error', 'not relevant', or is null, the gate_id passed was likely
@@ -401,9 +414,10 @@ STEP 7 - Stop engines
   - Extract and store: engines_stop_status.
 
 STEP 8 - Ground ramp services (wheelchocks install + ACU connect + GPU connect)
-  - Call /AirlineTurnaround/aircraft_ground_rampservices with:
+  - Call /AirlineTurnaround/aircraft_ground_operation with named parameters:
       flight_number, aircraft_type, gate_id, flight_status, engines_stop_status,
-      wheelchocks_readiness_status, acu_readiness_status, gpu_readiness_status.
+      wheelchocks_readiness_status, acu_readiness_status, gpu_readiness_status,
+      instruction='Execute ground ramp services.'
   - Wait for response.
   - Extract and store: wheelchocks_installation_status, acu_connection_status, gpu_connection_status.
 
@@ -484,16 +498,16 @@ STEP 11 - Passenger disembarkation (via cabin crew agent)
 
 STEP 12 - Baggage unloading
   - CRITICAL — ONE CALL, THEN WAIT, NOTHING ELSE:
-    aircraft_ground_servicing is a slow sub-agent. You MUST issue this
+    aircraft_ground_operation is a slow sub-agent. You MUST issue this
     call in complete isolation. The instant you issue this call, STOP.
     Do not generate any further tool calls. Do not call aircraft_crew_pilot.
     Do not call TrackerAPI. Do not issue STEP_1_LANDING_CLEARANCE or any
     other step. Do not restart from any earlier step.
     If you find yourself about to invoke STEP_1_LANDING_CLEARANCE or any
-    other agent while aircraft_ground_servicing has not yet responded,
+    other agent while aircraft_ground_operation has not yet responded,
     you are violating this rule — cancel that call and wait.
     The response WILL arrive. Simply wait for it.
-  - Call /AirlineTurnaround/aircraft_ground_servicing with named parameters:
+  - Call /AirlineTurnaround/aircraft_ground_operation with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
       jetbridge_connection_status, stairtruck_connection_status,
       deplaning_equipment_type, door_opening_status,
@@ -602,7 +616,7 @@ STEP 17 - Catering loading
   - Extract and store: catering_loading_status.
 
 STEP 18 - Inspection and maintenance
-  - Call /AirlineTurnaround/aircraft_ground_servicing with named parameters:
+  - Call /AirlineTurnaround/aircraft_ground_operation with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
       passenger_disembarkation_status, crew_exit_status,
       baggage_unload_status,
@@ -625,7 +639,7 @@ STEP 18 - Inspection and maintenance
     contains 'completed'.
 
 STEP 19 - Fueling
-  - Call /AirlineTurnaround/aircraft_ground_servicing with named parameters:
+  - Call /AirlineTurnaround/aircraft_ground_operation with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
       passenger_disembarkation_status, crew_exit_status,
       baggage_unload_status,
@@ -765,9 +779,7 @@ STEP 20 - Final report
                 "/AirlineTurnaround/aircraft_crew_cabin",    # STEP 10 door opening, STEP 11 pax disembarkation, STEP 13 crew debrief
                 "/AirlineTurnaround/aircraft_crew_pilot",    # STEP 1/2 ATC+landing, STEP 5/6 taxi, STEP 7 engines, STEP 14 crew exit
                 "/AirlineTurnaround/aircraft_gate_services",
-                "/AirlineTurnaround/aircraft_ground_rampservices",
-                "/AirlineTurnaround/aircraft_ground_readiness",
-                "/AirlineTurnaround/aircraft_ground_servicing",  # STEP 12 baggage unload, STEP 18 inspection, STEP 19 fueling
+                "/AirlineTurnaround/aircraft_ground_operation",  # STEP 4 readiness, STEP 8 ramp services, STEP 12 baggage, STEP 18 inspection, STEP 19 fueling
             ], 
         }, 
 
