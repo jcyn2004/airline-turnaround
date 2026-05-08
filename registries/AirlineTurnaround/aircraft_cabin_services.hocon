@@ -96,8 +96,24 @@ I perform aircraft cabin services including lavatory service, cabin cleaning, an
             },
 
             "instructions": """
-You are the agent in charge of performing cabin services when the aircraft is at the gate after passengers and crew have disembarked. 
-When user submits inquiry for cabin services, proceed as follows: 
+You are the agent in charge of performing cabin services when the aircraft is at the gate after passengers and crew have disembarked.
+
+CRITICAL — PARAMETER UNWRAPPING:
+You may receive parameters in two formats. Before doing anything else, check the incoming call:
+  FORMAT A (correct named pairs): {"flight_number": "AF84", "aircraft_type": "B747", ..., "instruction": "..."}
+  FORMAT B (args-wrapped):        {"args": [{"flight_number": "AF84", "aircraft_type": "B747", ..., "instruction": "..."}]}
+If you receive FORMAT B, extract the object inside args[0] and treat it exactly as FORMAT A.
+Do NOT process args as a list — unwrap it and work with the inner object's fields directly.
+
+CRITICAL — INSTRUCTION ROUTING:
+You will receive an "instruction" field that determines which branch to execute.
+Read the instruction field FIRST and route immediately:
+  instruction contains 'clean'    → execute step 3 (cabin cleaning)
+  instruction contains 'lavatory' → execute step 4 (lavatory service)
+  instruction contains 'catering' → execute step 5 (catering loading)
+Do NOT ask for clarification if the instruction field is present — route and execute directly.
+
+When user submits inquiry for cabin services, proceed as follows:
 1. Read the inquiry and determine if it is about cabin services such as lavatory service, cabin cleaning, and catering loading.
     a. If not, reply that you are not relevant to this inquiry and stop process here. 
     b. If it is about cabin services, continue to step 2.
@@ -160,7 +176,7 @@ When user submits inquiry for cabin services, proceed as follows:
                 "properties": {
                     "flight_number": {
                         "type": "string", 
-                        "description": "This is the flight number of the incoming aicraft."
+                        "description": "This is the flight number of the incoming aircraft."
                     },   
                     "aircraft_type": {
                         "type": "string", 
@@ -173,21 +189,37 @@ When user submits inquiry for cabin services, proceed as follows:
                     "gate_id": {
                         "type": "string", 
                         "description": "This is the gate where the aircraft is parked."
-                    },                
+                    },
+                    "passenger_disembarkation_status": {
+                        "type": "string",
+                        "description": "This is the passenger disembarkation status. Must be 'completed' before cabin services can begin."
+                    },
+                    "crew_exit_status": {
+                        "type": "string",
+                        "description": "This is the crew exit status. Must be 'completed' before cabin services can begin."
+                    },
+                    "baggage_unload_status": {
+                        "type": "string",
+                        "description": "This is the baggage unload status."
+                    },
+                    "instruction": {
+                        "type": "string",
+                        "description": "The specific cabin service to perform. Contains 'clean' for cabin cleaning, 'lavatory' for lavatory service, or 'catering' for catering loading."
+                    },
                     "catering_loading_status": {
                         "type": "string", 
                         "description": "This is the catering loading status."
                     },  
-                    cabin_cleaning_status: {
+                    "cabin_cleaning_status": {
                         "type": "string", 
-                        "description": "cabin cleaning status"
+                        "description": "Cabin cleaning status."
                     }, 
                     "lavatory_service_status": {
                         "type": "string", 
-                        "description": "lavatory service status."                            
+                        "description": "Lavatory service status."                            
                     }   
                 }, 
-                "required": ["aircraft_type","gate_id"] 
+                "required": ["aircraft_type", "gate_id"] 
             },
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 

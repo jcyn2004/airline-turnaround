@@ -159,7 +159,15 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                         "jetbridge_connection_status": {
                             "type": "string", 
                             "description": "This is the jetbridge connection status."
-                        },    
+                        },
+                        "stairtruck_connection_status": {
+                            "type": "string",
+                            "description": "This is the stairtruck connection status."
+                        },
+                        "deplaning_equipment_type": {
+                            "type": "string",
+                            "description": "This is the deplaning equipment type (jetway or stairtruck)."
+                        },
                         "door_opening_status": {
                             "type": "string", 
                             "description": "This is the door opening status."
@@ -209,23 +217,41 @@ If the instruction does not match any branch below,
 reply you are not relevant and stop.
 
 BRANCH A — Baggage unloading
-  Triggers: instruction contains 'baggage' or 'unload'.
+  ROUTING PRIORITY: Check instruction field FIRST.
+  Triggers (ANY of — evaluated in this order):
+  1. instruction contains 'baggage' or 'unload' → USE THIS BRANCH IMMEDIATELY
+  2. inquiry asks to unload baggage or cargo
+  NOTE: When instruction contains 'baggage' or 'unload', this branch
+  MUST execute. It is never irrelevant when this instruction is present.
+  CRITICAL: Once you match BRANCH A, execute ONLY the steps below.
+  Do NOT evaluate or execute steps from any other branch.
+  Do NOT call TrackerAPI before executing the baggage unload —
+  read all prerequisite values directly from the incoming args.
 
   STEP 1 — Execute baggage unloading
-    Call /AirlineTurnaround/aircraft_baggage_unload with:
+    CRITICAL: Call ONLY /AirlineTurnaround/aircraft_baggage_unload.
+    Issue this as a single isolated tool call and wait.
+    Call /AirlineTurnaround/aircraft_baggage_unload with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
-      passenger_disembarkation_status.
-    Wait. Extract baggage_unload_status.
+      jetbridge_connection_status, stairtruck_connection_status,
+      door_opening_status.
+    Wait for response. This is the ONLY action in this turn.
+    Extract baggage_unload_status from the response.
+    VALIDATION: baggage_unload_status must contain 'completed' or 'unloaded'.
+    If not, report failure: "Baggage unload FAILED. Response: [response]"
+    Do NOT fabricate a completed status.
     Call TrackerAPI to store baggage_unload_status.
 
   RETURN SUMMARY:
     **************************************
     * Summary of aircraft baggage unload *
     **************************************
-    ** flight status              **: [flight_status]
-    ** jetbridge connection status**: [jetbridge_connection_status]
-    ** door opening status        **: [door_opening_status]
-    ** baggage unload status      **: [baggage_unload_status]
+    ** flight status                 **: [flight_status]
+    ** deplaning equipment type      **: [deplaning_equipment_type]
+    ** jetbridge connection status   **: [jetbridge_connection_status]
+    ** stairtruck connection status  **: [stairtruck_connection_status]
+    ** door opening status           **: [door_opening_status]
+    ** baggage unload status         **: [baggage_unload_status]
 
 BRANCH B — Inspection and maintenance
   Triggers: instruction contains 'inspection' or 'maintenance'.
@@ -301,6 +327,8 @@ BRANCH C — Fueling
                         "engines_stop_status": true,
                         "door_opening_status": true,
                         "jetbridge_connection_status": true,
+                        "stairtruck_connection_status": true,
+                        "deplaning_equipment_type": true,
                         "passenger_disembarkation_status": true, 
                         "crew_exit_status": true, 
                         "baggage_unload_status": true, 
@@ -325,6 +353,8 @@ BRANCH C — Fueling
                         "engines_stop_status": true,
                         "door_opening_status": true,
                         "jetbridge_connection_status": true,
+                        "stairtruck_connection_status": true,
+                        "deplaning_equipment_type": true,
                         "passenger_disembarkation_status": true, 
                         "crew_exit_status": true, 
                         "baggage_unload_status": true, 
@@ -349,6 +379,8 @@ BRANCH C — Fueling
                         "engines_stop_status": true,
                         "door_opening_status": true,
                         "jetbridge_connection_status": true,
+                        "stairtruck_connection_status": true,
+                        "deplaning_equipment_type": true,
                         "passenger_disembarkation_status": true, 
                         "crew_exit_status": true, 
                         "baggage_unload_status": true, 
@@ -373,6 +405,8 @@ BRANCH C — Fueling
                         "engines_stop_status": true,
                         "door_opening_status": true,
                         "jetbridge_connection_status": true,
+                        "stairtruck_connection_status": true,
+                        "deplaning_equipment_type": true,
                         "passenger_disembarkation_status": true, 
                         "crew_exit_status": true, 
                         "baggage_unload_status": true, 

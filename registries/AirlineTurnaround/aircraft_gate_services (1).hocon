@@ -6,8 +6,8 @@
         "description": "Simple agent network using a single LLM-based agent",
         "tags": ["example"],
         "sample_queries": [
-            "The B747 aircraft of flight AF84 is on blocks at gate A1. The jetbridge is connected to the plane. Open the aircraft door.",
-            "The B747 aircraft of flight AF84 is on blocks at gate A1. The jetbridge is connected to the plane. The aircraft door is open. Disembark passengers from the aircraft.",
+            "Assign a gate for the parking flight AF84 which is a B747.", 
+            "Flight AF84 is on blocks at gate A1. ACU and GPU are connected to this B747, and wheelchocks have been installed. Connect the jet bridge.", 
         ]
     },
 
@@ -87,10 +87,10 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
     "tools": [
 
         {
-            "name": "cabin_crew_agent",
+            "name": "gate_crew_agent",
             "function": {
                 "description": """
- I am in charge of servicing passengers when they are in the aircraft cabin in any phase of flight.
+ I am responsibke for gate assignment and jetbridge connection during the aircraft turnaround. 
                 """
                 "parameters": {
                     "type": "object", 
@@ -127,141 +127,157 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "This is the status of jetbridge connect."
                         },
+                        "deplaning_equipment_id": {
+                            "type": "string", 
+                            "description": "This is the deplaning equipment id at the assigned gate. "
+                        },    
+                        "deplaning_equipment_type": {
+                            "type": "string", 
+                            "description": "This is the deplaning equipment type at the assigned gate. "
+                        },      
+                        "acu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the air_conditioning_unit connection status."
+                        },   
+                        "gpu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the ground_power_unit connection status."
+                        },   
+                        "wheelchocks_installation_status": {
+                            "type": "string", 
+                            "description": "This is the wheelchocks installation status."
+                        },   
                         "stairtruck_connection_status": {
-                            "type": "string",
+                            "type": "string", 
                             "description": "This is the status of stairtruck connection."
                         },
-                        "deplaning_equipment_type": {
+                        "instruction": {
                             "type": "string",
-                            "description": "This is the deplaning equipment type (jetway or stairtruck)."
-                        },
-                        "crew_debrief_status": {
-                            "type": "string",
-                            "description": "This is the crew debrief status."
+                            "description": "The specific action to perform. 'Connect the jetbridge.' triggers BRANCH B jetway path. 'Connect the stairtruck.' triggers BRANCH B stairtruck path."
                         },
                     }, 
-                    "required": ["aircraft_type","flight_status","flight_number"] 
+                    "required": ["aircraft_type","flight_number"] 
                 }
             },
 
             "instructions": """
-You are the agent in charge of cabin service in all phases of flight when
-passengers are onboard. You may be called by the turnaround orchestrator
-or directly by a user.
+You are the agent in charge of gate activities during aircraft turnaround.
+This covers gate assignment and jetbridge connection.
 
 CRITICAL: You are a sequential executor. When you identify the correct
-branch below, execute every step in order. Do NOT return until you reach
+branch, execute every step in order. Do NOT return until you reach
 the RETURN SUMMARY of the matched branch.
 
 ─────────────────────────────────────────────────────────────
-ROUTING — read the full inquiry and match the PRIMARY INTENT.
+ROUTING — check instruction field FIRST, then inquiry text.
 ─────────────────────────────────────────────────────────────
-If the inquiry is not about cabin service (embarking, disembarking,
-opening or closing the door), reply that you are not relevant and stop.
+CRITICAL: The caller passes an `instruction` field as a named parameter.
+Always check the instruction field before reading the inquiry text.
+If the inquiry is not about gate assignment or jetbridge/stairtruck
+connection, reply you are not relevant and stop.
 
-BRANCH A — Open the aircraft door
-  Triggers: inquiry asks to open the door, or explicit instruction
-  "Open the aircraft door."
+BRANCH A — Gate assignment
+  ROUTING PRIORITY: Check instruction field FIRST.
+  Triggers (ANY of — evaluated in this order):
+  1. instruction field is absent or null AND gate_id is null → USE THIS BRANCH
+  2. instruction contains 'assign' or 'gate' or 'select' → USE THIS BRANCH
+  3. inquiry asks to assign a gate, select a gate, or find a parking gate
+  NOTE: If gate_id is already set in the args, this branch is NOT needed —
+  skip to BRANCH B.
+  CRITICAL: Once you match BRANCH A, execute ONLY the steps below.
 
-  STEP 1 — Resolve prerequisites from inquiry or sly_data
-    Call TrackerAPI with flight_number, aircraft_type, flight_status,
-    gate_id, jetbridge_connection_status.
-    Wait. Read back: flight_status, jetbridge_connection_status.
+  STEP 1 — Execute gate assignment
+    Call /AirlineTurnaround/aircraft_gate_selection with:
+      flight_number, aircraft_type.
+    Wait. Extract: gate_id, deplaning_equipment_type,
+    deplaning_equipment_id, deplaning_equipment_readiness_time,
+    deplaning_equipment_score.
+    Call TrackerAPI to store gate_id and deplaning_equipment_type.
 
-  STEP 2 — Verify flight status
-    flight_status must contain 'on blocks' or 'block'.
-    If not, stop and report: "Aircraft is not yet on blocks.
-    Door cannot be opened."
+  STEP 2 — RETURN SUMMARY:
+    **************************************
+    * Summary of aircraft gate selection *
+    **************************************
+    ** flight number                      **: [flight_number]
+    ** aircraft type                      **: [aircraft_type]
+    ** gate id                            **: [gate_id]
+    ** deplaning equipment type           **: [deplaning_equipment_type]
+    ** deplaning equipment id             **: [deplaning_equipment_id]
+    ** deplaning equipment readiness time **: [deplaning_equipment_readiness_time]
+    ** deplaning equipment score          **: [deplaning_equipment_score]
 
-  STEP 3 — Execute door opening
-    Call /AirlineTurnaround/aircraft_door_opening with:
+BRANCH B — Jetbridge or stairtruck connection
+  ROUTING PRIORITY: Check instruction field FIRST.
+  Triggers (ANY of — evaluated in this order):
+  1. instruction contains 'jetbridge' or 'jet bridge' → USE THIS BRANCH, go to STEP 2A
+  2. instruction contains 'stairtruck' or 'stair' → USE THIS BRANCH, go to STEP 2B
+  3. instruction contains 'connect' or 'deplaning' → USE THIS BRANCH
+  4. inquiry asks to connect the jetbridge or stairtruck
+  NOTE: When the manager passes instruction='Connect the jetbridge.' or
+  instruction='Connect the stairtruck.', this branch MUST execute immediately.
+  It is never irrelevant when these instructions are present.
+  CRITICAL: Once you match BRANCH B, execute ONLY the steps below.
+  Do NOT fall through to an ambiguous response — the instruction field
+  is authoritative. If instruction contains 'jetbridge', go to STEP 2A.
+  If instruction contains 'stairtruck', go to STEP 2B.
+
+  STEP 1 — Determine deplaning equipment type from args
+    CRITICAL: Read deplaning_equipment_type DIRECTLY from the incoming
+    args. Do NOT call TrackerAPI to resolve this — TrackerAPI may not
+    yet have the value and will return null, causing incorrect routing.
+    The manager always passes deplaning_equipment_type as a named parameter.
+    Read it from args:
+      If deplaning_equipment_type contains 'jetway' or 'jetbridge' → STEP 2A.
+      If deplaning_equipment_type contains 'stairtruck' or 'stair' → STEP 2B.
+    If deplaning_equipment_type is null or absent, check the instruction field:
+      If instruction contains 'jetbridge' → STEP 2A.
+      If instruction contains 'stairtruck' → STEP 2B.
+      Otherwise → default to STEP 2A.
+    Do NOT call any tool in this step.
+
+  STEP 2A — Connect jetbridge (jetway gate)
+    CRITICAL: Call ONLY /AirlineTurnaround/aircraft_jetbridge_connect.
+    Issue this as a single isolated tool call and wait.
+    Call /AirlineTurnaround/aircraft_jetbridge_connect with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
-      jetbridge_connection_status.
-    Wait. Extract door_opening_status from the response.
-    Call TrackerAPI to store door_opening_status.
-
-  STEP 4 — RETURN SUMMARY:
-    ************************************
-    * Summary of aircraft door opening *
-    ************************************
-    ** flight status                **: [flight_status]
-    ** jet bridge connection status **: [jetbridge_connection_status]
-    ** door opening status          **: [door_opening_status]
-
-BRANCH B — Disembark passengers
-  Triggers: inquiry asks to disembark passengers, or explicit instruction
-  "Disembark passengers from the aircraft."
-
-  STEP 1 — Resolve prerequisites from inquiry or sly_data
-    Call TrackerAPI with flight_number, aircraft_type, flight_status,
-    gate_id, jetbridge_connection_status, door_opening_status.
-    Wait. Read back all five values.
-
-  STEP 2 — Verify flight status
-    flight_status must contain 'on blocks' or 'block'.
-    If not, stop and report: "Aircraft is not yet on blocks.
-    Passengers cannot be disembarked."
-
-  STEP 3 — Ensure door is open
-    If door_opening_status does not contain 'open':
-      Call /AirlineTurnaround/aircraft_door_opening with:
-        flight_number, aircraft_type, flight_status, gate_id,
-        jetbridge_connection_status.
-      Wait. Extract and store door_opening_status.
-      If door is still not open, stop and report failure.
-
-  STEP 4 — Execute passenger disembarkation
-    Call /AirlineTurnaround/aircraft_disembark with:
-      flight_number, aircraft_type, flight_status, gate_id,
-      jetbridge_connection_status, door_opening_status.
-    Wait. Extract passenger_disembarkation_status from the response.
-    Call TrackerAPI to store passenger_disembarkation_status.
-
-  STEP 5 — RETURN SUMMARY:
-    *********************************
-    * Summary of aircraft disembark *
-    *********************************
-    ** flight status                    **: [flight_status]
-    ** jet bridge connection status     **: [jetbridge_connection_status]
-    ** door opening status              **: [door_opening_status]
-    ** passenger disembarkation status  **: [passenger_disembarkation_status]
-
-BRANCH C — Crew debrief
-  Triggers: inquiry asks to debrief the crew, or explicit instruction
-  "Debrief the crew." or task contains 'crew debrief'.
-
-  STEP 1 — Resolve prerequisites
-    Call TrackerAPI with flight_number, aircraft_type, flight_status,
-    gate_id, door_opening_status, passenger_disembarkation_status,
-    jetbridge_connection_status, stairtruck_connection_status,
-    deplaning_equipment_type.
-    Wait. Read back all values.
-
-  STEP 2 — Verify prerequisites
-    flight_status must contain 'on blocks' or 'block'.
-    passenger_disembarkation_status must contain 'completed'.
-    If either is not satisfied, stop and report which prerequisite failed.
-
-  STEP 3 — Execute crew debrief
-    CRITICAL: Issue this as a single isolated tool call and wait.
-    Call /AirlineTurnaround/aircraft_crew_debrief with named parameters:
-      flight_number, aircraft_type, flight_status, gate_id,
-      deplaning_equipment_type,
-      jetbridge_connection_status, stairtruck_connection_status,
-      door_opening_status.
+      acu_connection_status, gpu_connection_status,
+      wheelchocks_installation_status.
     Wait for response. This is the ONLY action in this turn.
-    Extract crew_debrief_status from the response.
-    Call TrackerAPI to store crew_debrief_status.
+    Extract: jetbridge_connection_status.
+    Call TrackerAPI to store jetbridge_connection_status.
+    Go to RETURN SUMMARY A.
 
-  STEP 4 — RETURN SUMMARY:
+  STEP 2B — Connect stairtruck (stairtruck gate)
+    CRITICAL: Call ONLY /AirlineTurnaround/aircraft_stairtruck_connect.
+    Issue this as a single isolated tool call and wait.
+    Call /AirlineTurnaround/aircraft_stairtruck_connect with named parameters:
+      flight_number, aircraft_type, flight_status, gate_id,
+      acu_connection_status, gpu_connection_status,
+      wheelchocks_installation_status.
+    Wait for response. This is the ONLY action in this turn.
+    Extract: stairtruck_connection_status.
+    Call TrackerAPI to store stairtruck_connection_status.
+    Go to RETURN SUMMARY B.
+
+  RETURN SUMMARY A (jetbridge):
+    ***********************************
+    * Summary of jetbridge connection *
+    ***********************************
+    ** flight_status                  **: [flight_status]
+    ** acu_connection_status          **: [acu_connection_status]
+    ** gpu_connection_status          **: [gpu_connection_status]
+    ** wheelchocks installation status**: [wheelchocks_installation_status]
+    ** jetbridge_connection_status    **: [jetbridge_connection_status]
+
+  RETURN SUMMARY B (stairtruck):
     ************************************
-    * Summary of aircraft crew debrief *
+    * Summary of stairtruck connection *
     ************************************
-    ** flight status                 **: [flight_status]
-    ** deplaning equipment type      **: [deplaning_equipment_type]
-    ** door opening status           **: [door_opening_status]
-    ** passenger disembarkation      **: [passenger_disembarkation_status]
-    ** crew debrief status           **: [crew_debrief_status]
+    ** flight_status                  **: [flight_status]
+    ** acu_connection_status          **: [acu_connection_status]
+    ** gpu_connection_status          **: [gpu_connection_status]
+    ** wheelchocks installation status**: [wheelchocks_installation_status]
+    ** stairtruck_connection_status   **: [stairtruck_connection_status]
             """,
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
@@ -275,10 +291,16 @@ BRANCH C — Crew debrief
                         "engines_stop_status": true,
                         "door_opening_status": true, 
                         "passenger_disembarkation_status": true,
-                        "jetbridge_connection_status": true,
+                        "jetbridge_connection_status": true, 
                         "stairtruck_connection_status": true,
-                        "deplaning_equipment_type": true,
-                        "crew_debrief_status": true
+                        "deplaning_equipment_type": true, 
+                        "deplaning_equipment_id": true, 
+                        "gpu_connection_status": true, 
+                        "gpu_readiness_status": true,
+                        "acu_connection_status": true, 
+                        "acu_readiness_status": true, 
+                        "wheelchocks_readiness_status": true,
+                        "wheelchocks_installation_status": true,
                     }
                 }
                 "to_downstream": {
@@ -290,10 +312,16 @@ BRANCH C — Crew debrief
                         "engines_stop_status": true,
                         "door_opening_status": true, 
                         "passenger_disembarkation_status": true,
-                        "jetbridge_connection_status": true,
+                        "jetbridge_connection_status": true, 
                         "stairtruck_connection_status": true,
-                        "deplaning_equipment_type": true,
-                        "crew_debrief_status": true
+                        "deplaning_equipment_type": true, 
+                        "deplaning_equipment_id": true, 
+                        "gpu_connection_status": true, 
+                        "gpu_readiness_status": true,
+                        "acu_connection_status": true, 
+                        "acu_readiness_status": true, 
+                        "wheelchocks_readiness_status": true,
+                        "wheelchocks_installation_status": true,
                     }
                 }
                 "from_upstream": {
@@ -305,10 +333,16 @@ BRANCH C — Crew debrief
                         "engines_stop_status": true,
                         "door_opening_status": true, 
                         "passenger_disembarkation_status": true,
-                        "jetbridge_connection_status": true,
+                        "jetbridge_connection_status": true, 
                         "stairtruck_connection_status": true,
-                        "deplaning_equipment_type": true,
-                        "crew_debrief_status": true
+                        "deplaning_equipment_type": true, 
+                        "deplaning_equipment_id": true, 
+                        "gpu_connection_status": true, 
+                        "gpu_readiness_status": true,
+                        "acu_connection_status": true, 
+                        "acu_readiness_status": true, 
+                        "wheelchocks_readiness_status": true,
+                        "wheelchocks_installation_status": true,
                     }
                 }
                 "from_downstream": {
@@ -320,17 +354,23 @@ BRANCH C — Crew debrief
                         "engines_stop_status": true,
                         "door_opening_status": true, 
                         "passenger_disembarkation_status": true,
-                        "jetbridge_connection_status": true,
+                        "jetbridge_connection_status": true, 
                         "stairtruck_connection_status": true,
-                        "deplaning_equipment_type": true,
-                        "crew_debrief_status": true
+                        "deplaning_equipment_type": true, 
+                        "deplaning_equipment_id": true, 
+                        "gpu_connection_status": true, 
+                        "gpu_readiness_status": true,
+                        "acu_connection_status": true, 
+                        "acu_readiness_status": true, 
+                        "wheelchocks_readiness_status": true,
+                        "wheelchocks_installation_status": true,
                     }
                 }
             },
 
-            "tools":    ["/AirlineTurnaround/aircraft_door_opening",
-                        "/AirlineTurnaround/aircraft_disembark",
-                        "/AirlineTurnaround/aircraft_crew_debrief",
+            "tools":    ["/AirlineTurnaround/aircraft_gate_selection",
+                        "/AirlineTurnaround/aircraft_jetbridge_connect",
+                        "/AirlineTurnaround/aircraft_stairtruck_connect",
                         "TrackerAPI"]
         },  
 
@@ -379,23 +419,37 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                             "type": "string", 
                             "description": "This is the status of jetbridge connect."
                         },
-                        "stairtruck_connection_status": {
-                            "type": "string",
-                            "description": "This is the stairtruck connection status."
-                        },
+                        "deplaning_equipment_id": {
+                            "type": "string", 
+                            "description": "This is the deplaning equipment id at the assigned gate. "
+                        },    
                         "deplaning_equipment_type": {
-                            "type": "string",
-                            "description": "This is the deplaning equipment type (jetway or stairtruck)."
-                        },
-                        "crew_debrief_status": {
-                            "type": "string",
-                            "description": "This is the crew debrief status."
+                            "type": "string", 
+                            "description": "This is the deplaning equipment type at the assigned gate. "
+                        },      
+                        "acu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the air_conditioning_unit connection status."
+                        },   
+                        "gpu_connection_status": {
+                            "type": "string", 
+                            "description": "This is the ground_power_unit connection status."
+                        },   
+                        "wheelchocks_installation_status": {
+                            "type": "string", 
+                            "description": "This is the wheelchocks installation status."
+                        },   
+                        "stairtruck_connection_status": {
+                            "type": "string", 
+                            "description": "This is the stairtruck connection status."
                         },
                     }, 
                     "required": [] 
                 }
             },
-            "class": "AirlineTurnaround.aircraft_crew_cabin.aircraft_crew_cabin.TrackerAPI" 
+            "class": "AirlineTurnaround.aircraft_gate_services.aircraft_gate_services.TrackerAPI" 
         }, 
     ],
 }
+
+ 

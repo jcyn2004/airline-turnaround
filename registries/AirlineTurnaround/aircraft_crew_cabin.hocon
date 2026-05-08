@@ -145,7 +145,19 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                         },
                         "task_id": {
                             "type": "string",
-                            "description": "Correlation token — echo back in response. Use to route: STEP_13_CREW_DEBRIEF triggers BRANCH C."
+                            "description": "Correlation token — echo back in response. Routing: STEP_10_DOOR_OPENING triggers BRANCH A, STEP_11_PAX_DISEMBARKATION triggers BRANCH B, STEP_13_CREW_DEBRIEF triggers BRANCH C."
+                        },
+                        "acu_connection_status": {
+                            "type": "string",
+                            "description": "ACU connection status. Required for door opening."
+                        },
+                        "gpu_connection_status": {
+                            "type": "string",
+                            "description": "GPU connection status. Required for door opening."
+                        },
+                        "wheelchocks_installation_status": {
+                            "type": "string",
+                            "description": "Wheelchocks installation status. Required for door opening."
                         },
                     }, 
                     "required": ["aircraft_type","flight_status","flight_number"] 
@@ -168,69 +180,93 @@ If the inquiry is not about cabin service (embarking, disembarking,
 opening or closing the door), reply that you are not relevant and stop.
 
 BRANCH A — Open the aircraft door
-  Triggers: inquiry asks to open the door, or explicit instruction
-  "Open the aircraft door."
+  ROUTING PRIORITY: Check task_id FIRST before reading the inquiry text.
+  Triggers (ANY of — evaluated in this order):
+  1. task_id contains 'DOOR_OPENING' → USE THIS BRANCH IMMEDIATELY
+  2. instruction contains 'open the aircraft door' or 'open the door'
+  3. inquiry asks to open the door
+  NOTE: When task_id='STEP_10_DOOR_OPENING' is present, this branch
+  MUST execute. It is never irrelevant when this task_id is present.
+  CRITICAL: Once you match BRANCH A, execute ONLY the steps below.
+  Do NOT evaluate or execute steps from any other branch.
 
-  STEP 1 — Resolve prerequisites from inquiry or sly_data
-    Call TrackerAPI with flight_number, aircraft_type, flight_status,
-    gate_id, jetbridge_connection_status.
-    Wait. Read back: flight_status, jetbridge_connection_status.
+  STEP 1 — Verify prerequisites from incoming parameters
+    Read from args (do NOT call TrackerAPI to resolve these):
+      - flight_status (must contain 'on blocks')
+      - jetbridge_connection_status or stairtruck_connection_status
+        (at least one must contain 'connected')
+    If flight_status is not 'on blocks', stop and report:
+    "Door cannot be opened — aircraft is not yet on blocks."
 
-  STEP 2 — Verify flight status
-    flight_status must contain 'on blocks' or 'block'.
-    If not, stop and report: "Aircraft is not yet on blocks.
-    Door cannot be opened."
-
-  STEP 3 — Execute door opening
-    Call /AirlineTurnaround/aircraft_door_opening with:
+  STEP 2 — Execute door opening
+    CRITICAL: Call ONLY /AirlineTurnaround/aircraft_door_opening.
+    Issue this as a single isolated tool call and wait.
+    Call /AirlineTurnaround/aircraft_door_opening with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
-      jetbridge_connection_status.
-    Wait. Extract door_opening_status from the response.
+      deplaning_equipment_type,
+      jetbridge_connection_status, stairtruck_connection_status,
+      acu_connection_status, gpu_connection_status,
+      wheelchocks_installation_status.
+    Wait for response. This is the ONLY action in this turn.
+    Extract door_opening_status from the response.
     Call TrackerAPI to store door_opening_status.
 
-  STEP 4 — RETURN SUMMARY:
+  STEP 3 — RETURN SUMMARY:
     ************************************
     * Summary of aircraft door opening *
     ************************************
-    ** flight status                **: [flight_status]
-    ** jet bridge connection status **: [jetbridge_connection_status]
-    ** door opening status          **: [door_opening_status]
+    ** task_id                       **: [task_id]
+    ** flight status                 **: [flight_status]
+    ** deplaning equipment type      **: [deplaning_equipment_type]
+    ** jetbridge connection status   **: [jetbridge_connection_status]
+    ** stairtruck connection status  **: [stairtruck_connection_status]
+    ** door opening status           **: [door_opening_status]
 
 BRANCH B — Disembark passengers
-  Triggers: inquiry asks to disembark passengers, or explicit instruction
-  "Disembark passengers from the aircraft."
+  ROUTING PRIORITY: Check task_id FIRST before reading the inquiry text.
+  Triggers (ANY of — evaluated in this order):
+  1. task_id contains 'PAX_DISEMBARKATION' → USE THIS BRANCH IMMEDIATELY
+  2. instruction contains 'disembark passengers' or 'passenger disembarkation'
+  3. inquiry asks to disembark passengers
+  NOTE: When task_id='STEP_11_PAX_DISEMBARKATION' is present, this branch
+  MUST execute. It is never irrelevant when this task_id is present.
+  CRITICAL: Once you match BRANCH B, execute ONLY the steps below.
+  Do NOT evaluate or execute steps from any other branch.
 
-  STEP 1 — Resolve prerequisites from inquiry or sly_data
-    Call TrackerAPI with flight_number, aircraft_type, flight_status,
-    gate_id, jetbridge_connection_status, door_opening_status.
-    Wait. Read back all five values.
+  STEP 1 — Verify prerequisites from incoming parameters
+    CRITICAL: Read ONLY from the incoming args. Do NOT call TrackerAPI
+    to resolve these values — TrackerAPI may hold stale data from prior
+    steps and will return null for door_opening_status, causing a false
+    prerequisite failure. The manager has already passed the correct
+    values as named parameters in this call. Trust the args, not TrackerAPI.
+    Required values to read directly from args:
+      - flight_status: must contain 'on blocks'
+      - door_opening_status: must contain 'open'
+    If flight_status from args does not contain 'on blocks', stop and report:
+    "Passenger disembarkation cannot proceed — aircraft is not yet on blocks."
+    If door_opening_status from args does not contain 'open', stop and report:
+    "Passenger disembarkation cannot proceed — door is not yet open."
+    Do NOT call any tool in this step. Read the values and verify. That is all.
 
-  STEP 2 — Verify flight status
-    flight_status must contain 'on blocks' or 'block'.
-    If not, stop and report: "Aircraft is not yet on blocks.
-    Passengers cannot be disembarked."
-
-  STEP 3 — Ensure door is open
-    If door_opening_status does not contain 'open':
-      Call /AirlineTurnaround/aircraft_door_opening with:
-        flight_number, aircraft_type, flight_status, gate_id,
-        jetbridge_connection_status.
-      Wait. Extract and store door_opening_status.
-      If door is still not open, stop and report failure.
-
-  STEP 4 — Execute passenger disembarkation
-    Call /AirlineTurnaround/aircraft_disembark with:
+  STEP 2 — Execute passenger disembarkation
+    CRITICAL: Call ONLY /AirlineTurnaround/aircraft_disembark.
+    Issue this as a single isolated tool call and wait.
+    Call /AirlineTurnaround/aircraft_disembark with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
-      jetbridge_connection_status, door_opening_status.
-    Wait. Extract passenger_disembarkation_status from the response.
+      deplaning_equipment_type,
+      jetbridge_connection_status, stairtruck_connection_status,
+      door_opening_status.
+    Wait for response. This is the ONLY action in this turn.
+    Extract passenger_disembarkation_status from the response.
     Call TrackerAPI to store passenger_disembarkation_status.
 
-  STEP 5 — RETURN SUMMARY:
+  STEP 3 — RETURN SUMMARY:
     *********************************
     * Summary of aircraft disembark *
     *********************************
+    ** task_id                          **: [task_id]
     ** flight status                    **: [flight_status]
-    ** jet bridge connection status     **: [jetbridge_connection_status]
+    ** deplaning equipment type         **: [deplaning_equipment_type]
     ** door opening status              **: [door_opening_status]
     ** passenger disembarkation status  **: [passenger_disembarkation_status]
 
@@ -297,7 +333,10 @@ BRANCH C — Crew debrief
                         "deplaning_equipment_type": true,
                         "crew_debrief_status": true,
                         "baggage_unload_status": true,
-                        "task_id": true
+                        "task_id": true,
+                        "acu_connection_status": true,
+                        "gpu_connection_status": true,
+                        "wheelchocks_installation_status": true
                     }
                 }
                 "to_downstream": {
@@ -314,7 +353,10 @@ BRANCH C — Crew debrief
                         "deplaning_equipment_type": true,
                         "crew_debrief_status": true,
                         "baggage_unload_status": true,
-                        "task_id": true
+                        "task_id": true,
+                        "acu_connection_status": true,
+                        "gpu_connection_status": true,
+                        "wheelchocks_installation_status": true
                     }
                 }
                 "from_upstream": {
@@ -331,7 +373,10 @@ BRANCH C — Crew debrief
                         "deplaning_equipment_type": true,
                         "crew_debrief_status": true,
                         "baggage_unload_status": true,
-                        "task_id": true
+                        "task_id": true,
+                        "acu_connection_status": true,
+                        "gpu_connection_status": true,
+                        "wheelchocks_installation_status": true
                     }
                 }
                 "from_downstream": {
@@ -348,7 +393,10 @@ BRANCH C — Crew debrief
                         "deplaning_equipment_type": true,
                         "crew_debrief_status": true,
                         "baggage_unload_status": true,
-                        "task_id": true
+                        "task_id": true,
+                        "acu_connection_status": true,
+                        "gpu_connection_status": true,
+                        "wheelchocks_installation_status": true
                     }
                 }
             },
@@ -423,6 +471,18 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                         "task_id": {
                             "type": "string",
                             "description": "Correlation token."
+                        },
+                        "acu_connection_status": {
+                            "type": "string",
+                            "description": "ACU connection status."
+                        },
+                        "gpu_connection_status": {
+                            "type": "string",
+                            "description": "GPU connection status."
+                        },
+                        "wheelchocks_installation_status": {
+                            "type": "string",
+                            "description": "Wheelchocks installation status."
                         },
                     }, 
                     "required": [] 
