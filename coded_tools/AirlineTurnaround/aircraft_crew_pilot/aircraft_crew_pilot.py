@@ -318,6 +318,14 @@ class TrackerAPI(CodedTool):
         falling back to args only when sly_data has no value for the field.
 
         Priority:
+          0. OVERWRITE EXCEPTION: if field_name is 'flight_status' and the
+             args value normalises to 'landed', force-write it to sly_data
+             and return immediately. This handles BRANCH D (taxi-to-gate),
+             where the orchestrator explicitly resets flight_status to
+             'landed' before calling aircraft_taxiing. Without this path,
+             any stale transitional value in sly_data (e.g. 'TAXIING_IN')
+             would block the write and aircraft_taxiing would never receive
+             the required 'landed' status, causing STEP 6 to always fail.
           1. sly_data[field_name] – authoritative running state; returned
              immediately when present. args is ignored for this field.
           2. args[field_name]     – used only when sly_data is None;
@@ -339,6 +347,26 @@ class TrackerAPI(CodedTool):
         Returns:
             Tuple of (field_value, data_source)
         """
+        # 0. OVERWRITE EXCEPTION for flight_status='landed'
+        # The sly_data-first policy normally blocks args from overwriting an
+        # existing sly_data value. However, BRANCH D (taxi-to-gate) must
+        # guarantee that aircraft_taxiing always receives flight_status='landed',
+        # regardless of whatever transitional value (e.g. 'TAXIING_IN') may
+        # have been left in sly_data by a prior step. Allowing 'landed' to
+        # overwrite is safe because 'landed' is a confirmed terminal ground
+        # state that is always correct at the moment taxiing begins.
+        if field_name == "flight_status":
+            args_val = args.get(field_name)
+            if args_val is not None:
+                normalised_args_val = self._normalise_field(field_name, args_val, sly_data)
+                if normalised_args_val == "landed":
+                    sly_data[field_name] = "landed"
+                    logger.info(
+                        f"[OVERWRITE] flight_status forced to 'landed' from args "
+                        f"(overwrote: '{sly_data.get(field_name)}')"
+                    )
+                    return "landed", DataSource.ARGS
+
         # 1. sly_data is authoritative
         value = sly_data.get(field_name)
 
