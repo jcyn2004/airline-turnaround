@@ -76,13 +76,15 @@ The entry-point agent. It checks flight status, enters a user-wait loop if the a
 
 #### Input parameters
 
-| Parameter | Type | Required | Description |
-|---|---|:---:|---|
-| `flight_number` | string | ✅ | Flight identifier |
-| `aircraft_type` | string | ✅ | Aircraft model/type |
-| `flight_status` | string | ✅ | Flight status (expected: contains `on blocks`) |
-| `gate_id` | string | ✅ | Gate where the aircraft is parked |
-| `engines_stop_status` | string | ❌ | Current or previous engine stop status |
+|-----------------------|--------|:--------:|------------------------------------------------|
+| Parameter             | Type   | Required | Description                                    |
+|-----------------------|--------|:--------:|------------------------------------------------|
+| `flight_number`       | string | ✅       | Flight identifier                              |
+| `aircraft_type`       | string | ✅       | Aircraft model/type                            |
+| `flight_status`       | string | ✅       | Flight status (expected: contains `on blocks`) |
+| `gate_id`             | string | ✅       | Gate where the aircraft is parked              |
+| `engines_stop_status` | string | ❌       | Current or previous engine stop status         |
+|-----------------------|--------|:--------:|------------------------------------------------|
 
 #### Orchestration flow
 
@@ -106,12 +108,14 @@ The instructions use numbered prose steps rather than the `CRITICAL: sequential 
 
 #### sly_data contract
 
-| Direction | Parameters |
-|---|---|
-| **To upstream** | `engines_stop_status` |
-| **To downstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `engines_stop_status`, `assigned_runway_id` |
-| **From upstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `engines_stop_status`, `assigned_runway_id` |
+|---------------------|-----------------------------------------------------------------------------------------------------------|
+| Direction           | Parameters                                                                                                |
+|---------------------|-----------------------------------------------------------------------------------------------------------|
+| **To upstream**     | `engines_stop_status`                                                                                     |
+| **To downstream**   | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `engines_stop_status`, `assigned_runway_id` |
+| **From upstream**   | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `engines_stop_status`, `assigned_runway_id` |
 | **From downstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `engines_stop_status`, `assigned_runway_id` |
+|---------------------|-----------------------------------------------------------------------------------------------------------|
 
 > Note: `assigned_runway_id` appears in all sly_data blocks (to/from upstream and downstream) but is not tracked by `TrackerAPI` and not used by the operator. It is carried for context from upstream runway networks.
 
@@ -133,12 +137,14 @@ Performs the engine stop action. It validates all required parameters, checks th
 
 #### Input parameters
 
-| Parameter | Type | Required | Source priority |
-|---|---|:---:|---|
-| `flight_number` | string | ✅ | `args` → `sly_data` |
-| `aircraft_type` | string | ✅ | `args` → `sly_data` |
-| `flight_status` | string | ✅ | `args` → `sly_data` |
-| `gate_id` | string | ✅ | `args` → `sly_data` |
+|-----------------|--------|:--------:|---------------------|
+| Parameter       | Type   | Required | Source priority     |
+|-----------------|--------|:--------:|---------------------|
+| `flight_number` | string | ✅       | `args` → `sly_data` |
+| `aircraft_type` | string | ✅       | `args` → `sly_data` |
+| `flight_status` | string | ✅       | `args` → `sly_data` |
+| `gate_id`       | string | ✅       | `args` → `sly_data` |
+|-----------------|--------|:--------:|---------------------|
 
 #### Engine stop logic
 
@@ -244,24 +250,13 @@ This network has no external tool dependencies. The `registries/aaosa_basic.hoco
 
 | Issue | Location | Notes |
 |---|---|---|
-| Agent name mismatch with prior documentation | `aircraft_engines_stop.hocon` line 89 | Agent is `engines_stop_agent`, not `aircraft_engines_stop_agent` as previously documented. |
-| `gate_id` absent from `FLIGHT_TURNAROUND_TRACKED_FIELDS` | `aircraft_engines_stop.py` line 419 | `gate_id` is required by `engines_stop_operator` but not tracked or returned by `TrackerAPI`. Must always be provided through `args`. Same gap as in `aircraft_disembark` and `aircraft_cabin_cleaning`. |
-| Log message copy-paste artifact | `aircraft_engines_stop.py` line 115 | Message reads `"...has wheels chocks installed. Its engines stop status is {engines_stop_status}."` — "wheels chocks installed" is copied from `aircraft_chocks_install`. Should read something like "has engines stopped." |
-| `engines_stop_status` initializes as `running` (not `pending`) | `aircraft_engines_stop.py` line 55 | Unlike most other operators in the system (which initialize as `pending`), this operator initializes as `running`. Semantically accurate but inconsistent with the system-wide pattern. |
 | User-wait loop in step 4b | `aircraft_engines_stop.hocon` line 133 | The instruction "wait for their responses" is unique in the system — no other network's orchestrator is designed to pause mid-workflow for user input. This may cause unexpected behavior in fully automated or upstream-called execution contexts where no human is present to respond. |
-| Redundant TrackerAPI call in step 5 | `aircraft_engines_stop.hocon` lines 135–138 | Step 5 calls TrackerAPI immediately after step 3 already confirmed on-blocks status. Adds no value on the normal execution path. Could be removed or merged with the step 7 confirmation call. |
-| `assigned_runway_id` carried through sly_data but not tracked | `aircraft_engines_stop.hocon` sly_data blocks | The field appears in all four sly_data directions but is not in `FLIGHT_TURNAROUND_TRACKED_FIELDS` and plays no role in the operator logic. It is passthrough context from runway networks. |
-| Hardcoded log path comment | `aircraft_engines_stop.py` line 53 | Commented-out absolute path remains; active path uses `Path.cwd()`. |
 
 ---
 
 ## 10. Extensibility Guidance
 
 - Replace the user-wait loop (step 4b) with a definitive abort or a timed retry when called from an automated upstream network where no user is present
-- Remove or merge the redundant step 5 TrackerAPI call with the step 7 confirmation call
-- Add `gate_id` to `FLIGHT_TURNAROUND_TRACKED_FIELDS` so TrackerAPI can persist and return it
-- Fix the log message copy-paste artifact ("wheels chocks installed" → "engines stopped")
-- Consider aligning the initial status value from `running` to `pending` for system-wide consistency, or document `running` as the intentional domain-accurate default
 - Add `engines_stop_status` to the HOCON `required` array as optional but validated (e.g. accepted values: `running`, `stopped`) to improve LLM schema guidance
 
 ---

@@ -78,17 +78,17 @@ The top-level agent. It verifies flight status, obtains ground clearance, checks
 
 #### Input parameters
 
-| Parameter | Type | Required | Description |
-|---|---|:---:|---|
-| `flight_number` | string | ✅ | Flight identifier |
-| `aircraft_type` | string | ✅ | Aircraft model/type |
-| `flight_status` | string | ✅ | Expected: contains `landed`, `taxi`, or `blocks` |
-| `gate_id` | string | ✅ | Destination gate |
-| `ground_clearance_type` | string | ❌ | e.g. `taxi in` or `taxi out` |
-| `ground_clearance_status` | string | ❌ | Expected: contains `clear` or `grant` |
-| `wheelchocks_readiness_status` | string | ❌ | From `aircraft_ground_readiness` |
-| `acu_readiness_status` | string | ❌ | From `aircraft_ground_readiness` |
-| `gpu_readiness_status` | string | ❌ | From `aircraft_ground_readiness` |
+| Parameter                      | Type   | Required | Description                                      |
+|--------------------------------|--------|:--------:|--------------------------------------------------|
+| `flight_number`                | string |    ✅     | Flight identifier                                |
+| `aircraft_type`                | string |    ✅     | Aircraft model/type                              |
+| `flight_status`                | string |    ✅     | Expected: contains `landed`, `taxi`, or `blocks` |
+| `gate_id`                      | string |    ✅     | Destination gate                                 |
+| `ground_clearance_type`        | string |    ❌     | e.g. `taxi in` or `taxi out`                     |
+| `ground_clearance_status`      | string |    ❌     | Expected: contains `clear` or `grant`            |
+| `wheels_chocks_readiness_status` | string |    ❌     | From `aircraft_ground_readiness`                 |
+| `acu_readiness_status`         | string |    ❌     | From `aircraft_ground_readiness`                 |
+| `gpu_readiness_status`         | string |    ❌     | From `aircraft_ground_readiness`                 |
 
 #### Orchestration flow (STEP pattern)
 
@@ -118,7 +118,7 @@ The instructions explain the reason in detail: the taxiing coded tool has alread
 
 All four directions carry the same 10-field set:
 
-`aircraft_type`, `flight_number`, `flight_status`, `ground_clearance_type`, `ground_clearance_status`, `gate_id`, `assigned_runway_id`, `acu_readiness_status`, `gpu_readiness_status`, `wheelchocks_readiness_status`
+`aircraft_type`, `flight_number`, `flight_status`, `ground_clearance_type`, `ground_clearance_status`, `gate_id`, `assigned_runway_id`, `acu_readiness_status`, `gpu_readiness_status`, `wheels_chocks_readiness_status`
 
 #### Down-chain tools
 
@@ -151,18 +151,18 @@ The normalised value is immediately written back to `sly_data["flight_status"]`.
 
 #### Input parameters (sly_data-first via `_from_sly_or_args`)
 
-| Parameter | Required | Notes |
-|---|:---:|---|
-| `flight_number` | ✅ | |
-| `aircraft_type` | ✅ | |
-| `flight_status` | ✅ | Normalised before use |
-| `gate_id` | ✅ | |
-| `assigned_runway_id` | ✅ | |
-| `ground_clearance_type` | ✅ | Lowercased before use |
-| `ground_clearance_status` | ✅ | Lowercased before use |
-| `gpu_readiness_status` | ✅ | Read but not used in condition |
-| `wheels_chocks_readiness_status` | ✅ | Read but not used in condition |
-| `acu_readiness_status` | ✅ | Read but not used in condition |
+| Parameter                        | Required | Notes                          |
+|----------------------------------|:--------:|--------------------------------|
+| `flight_number`                  |    ✅     |                                |
+| `aircraft_type`                  |    ✅     |                                |
+| `flight_status`                  |    ✅     | Normalised before use          |
+| `gate_id`                        |    ✅     |                                |
+| `assigned_runway_id`             |    ✅     |                                |
+| `ground_clearance_type`          |    ✅     | Lowercased before use          |
+| `ground_clearance_status`        |    ✅     | Lowercased before use          |
+| `gpu_readiness_status`           |    ✅     | Read but not used in condition |
+| `wheels_chocks_readiness_status` |    ✅     | Read but not used in condition |
+| `acu_readiness_status`           |    ✅     | Read but not used in condition |
 
 > Note: Only `flight_status` and `ground_clearance_status` influence the taxiing condition. The three readiness statuses (`gpu_readiness_status`, `wheels_chocks_readiness_status`, `acu_readiness_status`) are read and printed but play no role in whether taxiing proceeds — consistent with STEP 3 being non-blocking.
 
@@ -210,7 +210,7 @@ The docstring explains: *"the taxiing coded tool sets flight_status='on blocks' 
 
 **Return fields:** Identical to tracked fields (all 11 returned).
 
-> Note: The TrackerAPI HOCON schema uses `wheels_chocks_readiness_status` (with underscore between "wheels" and "chocks"). The `aircraft_taxi_manager` agent schema uses `wheelchocks_readiness_status` (no underscore). These are different field names — the orchestrator and TrackerAPI use different keys for the same concept.
+> Note: The TrackerAPI HOCON schema uses `wheels_chocks_readiness_status` (with underscore between "wheels" and "chocks"). The `aircraft_taxi_manager` agent schema uses `wheels_chocks_readiness_status` (no underscore). These are different field names — the orchestrator and TrackerAPI use different keys for the same concept.
 
 > Note: `aircraft_direction` is tracked and returned by TrackerAPI but is absent from the HOCON agent parameter schemas and sly_data allow blocks.
 
@@ -222,10 +222,10 @@ The docstring explains: *"the taxiing coded tool sets flight_status='on blocks' 
 
 ## 6. External Tool Dependencies
 
-| Tool path | Purpose | Step | Blocking? |
-|---|---|---|---|
-| `/AirlineTurnaround/aircraft_ground_traffic` | Request and confirm ground clearance | STEP 2 | Yes — clearance failure stops the workflow |
-| `/AirlineTurnaround/aircraft_ground_readiness` | Check ACU/GPU/chocks readiness at gate | STEP 3 | No — workflow continues regardless |
+| Tool path                                      | Purpose                                | Step   | Blocking?                                  |
+|------------------------------------------------|----------------------------------------|--------|--------------------------------------------|
+| `/AirlineTurnaround/aircraft_ground_traffic`   | Request and confirm ground clearance   | STEP 2 | Yes — clearance failure stops the workflow |
+| `/AirlineTurnaround/aircraft_ground_readiness` | Check ACU/GPU/chocks readiness at gate | STEP 3 | No — workflow continues regardless         |
 
 ---
 
@@ -233,15 +233,15 @@ The docstring explains: *"the taxiing coded tool sets flight_status='on blocks' 
 
 Three different field names for wheelchocks readiness appear across this network:
 
-| Location | Field name used |
-|---|---|
-| `aircraft_taxi_manager` agent schema | `wheelchocks_readiness_status` |
+| Location                                                                | Field name used                  |
+|-------------------------------------------------------------------------|----------------------------------|
+| `aircraft_taxi_manager` agent schema                                    | `wheels_chocks_readiness_status`   |
 | `aircraft_taxiing_agent` (`execute_aircraft_taxiing`) schema `required` | `wheels_chocks_readiness_status` |
-| TrackerAPI Python tracked/return fields | `wheels_chocks_readiness_status` |
-| TrackerAPI HOCON schema | `wheels_chocks_readiness_status` |
-| HOCON sly_data allow blocks | `wheelchocks_readiness_status` |
+| TrackerAPI Python tracked/return fields                                 | `wheels_chocks_readiness_status` |
+| TrackerAPI HOCON schema                                                 | `wheels_chocks_readiness_status` |
+| HOCON sly_data allow blocks                                             | `wheels_chocks_readiness_status`   |
 
-The manager and sly_data blocks use `wheelchocks_readiness_status`; the coded tool and TrackerAPI use `wheels_chocks_readiness_status`. Values written under one name will not be found when the other name is looked up.
+The manager and sly_data blocks use `wheels_chocks_readiness_status`; the coded tool and TrackerAPI use `wheels_chocks_readiness_status`. Values written under one name will not be found when the other name is looked up.
 
 ---
 
@@ -265,7 +265,7 @@ are ready. Please taxi the plane to gate A1."
 
 1. STEP 1: `flight_status` contains `'landed'` ✅
 2. STEP 2: `ground_clearance_status` contains `'grant'` ✅ — skip `aircraft_ground_traffic` call
-3. STEP 3: `aircraft_ground_readiness` called → `acu_readiness_status=ready`, `gpu_readiness_status=ready`, `wheelchocks_readiness_status=ready`. `TrackerAPI` stores them.
+3. STEP 3: `aircraft_ground_readiness` called → `acu_readiness_status=ready`, `gpu_readiness_status=ready`, `wheels_chocks_readiness_status=ready`. `TrackerAPI` stores them.
 4. STEP 4: `aircraft_taxiing_agent` (`execute_aircraft_taxiing`) called. Flight status normalised `'landed'` → condition met → `flight_status = 'on blocks'`. Returns `'on blocks'`.
 5. Summary returned (TrackerAPI NOT called after STEP 4)
 
@@ -291,42 +291,37 @@ are ready. Please taxi the plane to gate A1."
 
 ## 10. Known Issues and Maintenance Notes
 
-| Issue | Location | Severity | Notes |
-|---|---|:---:|---|
-| **`wheelchocks_readiness_status` vs `wheels_chocks_readiness_status` naming inconsistency** | HOCON agent schema vs. Python TrackerAPI fields | **High** | Two different sly_data keys for the same concept. Values will not be shared between manager and TrackerAPI unless one spelling is standardised across all locations. |
-| Agent name mismatch with prior documentation | `aircraft_taxiing.hocon` lines 88, 276 | Low | Entry point is `aircraft_taxi_manager`; prior doc called the orchestrator `aircraft_taxiing_agent`. That name now refers to the coded tool wrapper. |
-| Class-level `print()` in `execute_aircraft_taxiing` | `aircraft_taxiing.py` lines 38–44 | Low | Executes at import time, not per invocation. Banner prints once on module load. |
-| Class-level `print()` in `TrackerAPI` | `aircraft_taxiing.py` lines 369–375 | Low | Same issue — prints at module load. |
-| Log message typo `"taied"` | `aircraft_taxiing.py` line 289 | Low | Should be `"taxied"`. |
-| `aircraft_direction` tracked by TrackerAPI but absent from agent schema and sly_data allow blocks | `aircraft_taxiing.py` line 639 | Low | The field will be in TrackerAPI's config but no agent parameter produces it. |
-| Ground equipment readiness is non-blocking (by design) | `aircraft_taxiing.hocon` STEP 3 | Info | ACU/GPU/chocks not-ready does not prevent taxiing. This is a documented design decision. Consider whether it aligns with operational requirements. |
-| `'block'` substring in STEP 1 and normalisation | `aircraft_taxiing.hocon` line 150; `aircraft_taxiing.py` line 125 | Low | Matches `"unblocked"`, `"roadblock"`, etc. The canonical normalisation mitigates most risk by mapping first-match. |
-| STEP 4 prohibits TrackerAPI call — documented rationale | `aircraft_taxiing.hocon` lines 184–188 | Info | Documented and intentional. Do not add a TrackerAPI read after STEP 4 without understanding the stale-state risk. |
+| Issue                                                                                             | Location                                                          | Severity | Notes                                                                                                                                                                |
+|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|:--------:|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Agent name mismatch with prior documentation                                                      | `aircraft_taxiing.hocon` lines 88, 276                            |   Low    | Entry point is `aircraft_taxi_manager`; prior doc called the orchestrator `aircraft_taxiing_agent`. That name now refers to the coded tool wrapper.                  |
+| Class-level `print()` in `execute_aircraft_taxiing`                                               | `aircraft_taxiing.py` lines 38–44                                 |   Low    | Executes at import time, not per invocation. Banner prints once on module load.                                                                                      |
+| Class-level `print()` in `TrackerAPI`                                                             | `aircraft_taxiing.py` lines 369–375                               |   Low    | Same issue — prints at module load.                                                                                                                                  |
+| `aircraft_direction` tracked by TrackerAPI but absent from agent schema and sly_data allow blocks | `aircraft_taxiing.py` line 639                                    |   Low    | The field will be in TrackerAPI's config but no agent parameter produces it.                                                                                         |
+| Ground equipment readiness is non-blocking (by design)                                            | `aircraft_taxiing.hocon` STEP 3                                   |   Info   | ACU/GPU/chocks not-ready does not prevent taxiing. This is a documented design decision. Consider whether it aligns with operational requirements.                   |
+| `'block'` substring in STEP 1 and normalisation                                                   | `aircraft_taxiing.hocon` line 150; `aircraft_taxiing.py` line 125 |   Low    | Matches `"unblocked"`, `"roadblock"`, etc. The canonical normalisation mitigates most risk by mapping first-match.                                                   |
+| STEP 4 prohibits TrackerAPI call — documented rationale                                           | `aircraft_taxiing.hocon` lines 184–188                            |   Info   | Documented and intentional. Do not add a TrackerAPI read after STEP 4 without understanding the stale-state risk.                                                    |
 
 ---
 
 ## 11. Key Differences from Prior Documentation
 
-| Aspect | Old documentation | Actual implementation |
-|---|---|---|
-| Entry-point agent name | `aircraft_taxiing_agent` | `aircraft_taxi_manager` |
-| Coded tool name | `taxiing_operator` | `execute_aircraft_taxiing` |
-| Output field | `taxi_status` | `flight_status` (updated to `'on blocks'`) |
-| Conflict detection | Described | Does not exist |
-| Assigned route returned | Yes (`["RWY-27", ...]`) | Does not exist |
-| External dependencies | None described | `aircraft_ground_traffic` + `aircraft_ground_readiness` |
-| `flight_status` normalisation | Not mentioned | Core feature; documented in both operator and TrackerAPI |
-| Ground equipment readiness | Not mentioned | STEP 3 — checked non-blockingly |
-| Post-20260123 version note | Not mentioned | Line 30 comment documents the implementation date and motivation |
+| Aspect                        | Old documentation        | Actual implementation                                            |
+|-------------------------------|--------------------------|------------------------------------------------------------------|
+| Entry-point agent name        | `aircraft_taxiing_agent` | `aircraft_taxi_manager`                                          |
+| Coded tool name               | `taxiing_operator`       | `execute_aircraft_taxiing`                                       |
+| Output field                  | `taxi_status`            | `flight_status` (updated to `'on blocks'`)                       |
+| Conflict detection            | Described                | Does not exist                                                   |
+| Assigned route returned       | Yes (`["RWY-27", ...]`)  | Does not exist                                                   |
+| External dependencies         | None described           | `aircraft_ground_traffic` + `aircraft_ground_readiness`          |
+| `flight_status` normalisation | Not mentioned            | Core feature; documented in both operator and TrackerAPI         |
+| Ground equipment readiness    | Not mentioned            | STEP 3 — checked non-blockingly                                  |
+| Post-20260123 version note    | Not mentioned            | Line 30 comment documents the implementation date and motivation |
 
 ---
 
 ## 12. Extensibility Guidance
 
-- Standardise `wheelchocks_readiness_status` vs `wheels_chocks_readiness_status` across all four locations: agent schema, coded tool schema `required`, TrackerAPI Python fields, and sly_data allow blocks
-- Remove the class-level `print()` statements from both `execute_aircraft_taxiing` and `TrackerAPI` (move banners inside `invoke()` or remove entirely)
-- Fix the log message typo `"taied"` → `"taxied"`
-- Add `aircraft_direction` to the sly_data allow blocks if it needs to propagate
+- Standardise `wheels_chocks_readiness_status` vs `wheels_chocks_readiness_status` across all four locations: agent schema, coded tool schema `required`, TrackerAPI Python fields, and sly_data allow blocks
 
 ---
 

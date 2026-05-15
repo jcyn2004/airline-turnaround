@@ -15,8 +15,8 @@ from pathlib import Path
 # =========================
 
 # Allowed clearance values
-GroundClearanceType = Literal["CLEARED_FOR_TAXI","CLEARED_FOR_TAXI_IN","CLEARED_FOR_TAXIING_IN","CLEARED_FOR_TAXIING", "TAXI_IN", "TAXIING_IN", "CLEARED_FOR_TAXIING_OUT", "HOLD", "DENY"]
-GroundClearanceStatus = Literal["GRANTED", "DENIED", "PENDING"]
+GroundClearanceType = Literal["CLEARED_FOR_TAXI","CLEARED_FOR_TAXI_IN","CLEARED_FOR_TAXIING_IN","CLEARED_FOR_TAXIING", "CLEARANCE_TO_TAXI_IN", "TAXI_IN", "TAXI_IN", "TAXIING_IN", "CLEARED_FOR_TAXIING_OUT", "HOLD", "DENY"]
+GroundClearanceStatus = Literal["GRANTED", "DENIED", "PENDING"]      
 
 # Structured payload returned to other agents/tools
 class ClearanceDict(TypedDict):
@@ -47,9 +47,6 @@ def build_clearance(
 
     if not flight_number or not aircraft_type or not flight_status:
         raise ValueError("flight_number, aircraft_type, and flight_status are required")
-
-    # if ground_clearance_type not in ("CLEARED_FOR_TAXIING_IN", "CLEARED_FOR_TAXIING_OUT", "HOLD", "DENY"):
-    #     raise ValueError("ground_clearance_type must be one of CLEARED_FOR_TAXIING_IN, CLEARED_FOR_TAXIING_OUT, HOLD, DENY")
 
     print("\n")
     print("\n")
@@ -214,6 +211,10 @@ class execute_ground_clearance(CodedTool):
             ground_clearance_type = ground_clearance_type.lower()
             ground_clearance_status = ground_clearance_status.lower()
 
+            sly_data["flight_status"] = flight_status
+            sly_data["ground_clearance_type"] = ground_clearance_type
+            sly_data["ground_clearance_status"] = ground_clearance_status
+
         if "off blocks" in flight_status:
             ground_clearance_type: GroundClearanceType = "CLEARANCE_TO_TAXI_OUT"
             ground_clearance_status: GroundClearanceStatus = "GRANTED"
@@ -237,6 +238,10 @@ class execute_ground_clearance(CodedTool):
             ground_clearance_type = ground_clearance_type.lower()
             ground_clearance_status = ground_clearance_status.lower()
 
+            sly_data["flight_status"] = flight_status
+            sly_data["ground_clearance_type"] = ground_clearance_type
+            sly_data["ground_clearance_status"] = ground_clearance_status
+
         # Log and stash
         ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
         line1 = f"{ts} :flight {flight_number.upper()} request for {ground_clearance_type} is {ground_clearance_status} for runway {assigned_runway_id}"
@@ -244,7 +249,7 @@ class execute_ground_clearance(CodedTool):
         self._log(self.log_path, line1)
         self._log(self.log_path, line2) 
 
-        clearance_report = line1 + line2,
+        clearance_report = line1 + line2
 
         print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
         print("ENTRY POINT DATA")
@@ -253,19 +258,6 @@ class execute_ground_clearance(CodedTool):
         print("flight_status: ", flight_status)
         print("assigned_runway_id: ", assigned_runway_id)
         print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-
-        # sly_data.update({
-        #     "ground_clearance_type": ground_clearance_type,
-        #     "ground_clearance_status": ground_clearance_status,
-        #     "assigned_runway_id": assigned_runway_id,
-        #     "flight_status": flight_status,
-        #     "clearance_report": line1 + line2,
-        # })
-
-        # # sly_data update by classic method pending validation that update command above works fine
-        # sly_data["flight_status"] = flight_status    
-        # sly_data["ground_clearance_type"] = ground_clearance_type    
-        # sly_data["ground_clearance_status"] = ground_clearance_status    
 
         print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
         print("EXIT POINT DATA")
@@ -277,10 +269,7 @@ class execute_ground_clearance(CodedTool):
         print("ground_clearance_status: ", ground_clearance_status)
         print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
 
-        # # sly_data update by classic method pending validation that update command above works fine
-        sly_data["flight_status"] = flight_status    
-        # sly_data["ground_clearance_type"] = ground_clearance_type    
-        # sly_data["ground_clearance_status"] = ground_clearance_status    
+        sly_data["flight_status"] = flight_status     
 
         if flight_status is not None: 
             flight_status = flight_status.strip().upper()
@@ -292,8 +281,6 @@ class execute_ground_clearance(CodedTool):
             ground_clearance_type = ground_clearance_type.strip().upper()
         if ground_clearance_status is not None: 
             ground_clearance_status = ground_clearance_status.strip().upper()
-        # assigned_runway_id = assigned_runway_id
-        # clearance_report = clearance_report
 
         try:
             return build_clearance(
@@ -307,8 +294,6 @@ class execute_ground_clearance(CodedTool):
             )
         except Exception as e:
             return f"Error: failed to build clearance: {e}"
-
-        # return flight_status, ground_clearance_type, ground_clearance_status
 
     async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
         """
@@ -355,7 +340,6 @@ class TrackerConfig:
         if not self.return_fields:
             raise ValueError("return_fields cannot be empty")
         
-        # Validate that all return fields are in tracked fields
         invalid_fields = set(self.return_fields) - set(self.tracked_fields)
         if invalid_fields:
             raise ValueError(

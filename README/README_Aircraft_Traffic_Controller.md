@@ -92,16 +92,16 @@ Validates the three required inputs, reads state from TrackerAPI, delegates to `
 
 #### Input parameters
 
-| Parameter | Type | Required | Description |
-|---|---|:---:|---|
-| `flight_number` | string | ✅ | Flight identifier |
-| `aircraft_type` | string | ✅ | Aircraft model (e.g. `B747`, `A320`) |
-| `aircraft_direction` | string | ✅ | `incoming` or `departing` |
-| `flight_status` | string | ❌ | Set by `execute_air_clearance` |
-| `clearance_type` | string | ❌ | Set by `execute_air_clearance` |
-| `assigned_runway_id` | string | ❌ | Set by `execute_air_clearance` |
-| `assigned_runway_length` | string | ❌ | Set by `execute_air_clearance` |
-| `clearance_summary` | dict | ❌ | Final summary |
+| Parameter                | Type   | Required | Description                          |
+|--------------------------|--------|:--------:|--------------------------------------|
+| `flight_number`          | string |    ✅     | Flight identifier                    |
+| `aircraft_type`          | string |    ✅     | Aircraft model (e.g. `B747`, `A320`) |
+| `aircraft_direction`     | string |    ✅     | `incoming` or `departing`            |
+| `flight_status`          | string |    ❌     | Set by `execute_air_clearance`       |
+| `clearance_type`         | string |    ❌     | Set by `execute_air_clearance`       |
+| `assigned_runway_id`     | string |    ❌     | Set by `execute_air_clearance`       |
+| `assigned_runway_length` | string |    ❌     | Set by `execute_air_clearance`       |
+| `clearance_summary`      | dict   |    ❌     | Final summary                        |
 
 > Note: `clearance_summary` has type `"dict"` in the HOCON schema (line 104). JSON Schema does not have a `"dict"` type — it should be `"object"`. This may cause schema validation warnings.
 
@@ -120,11 +120,11 @@ Validates the three required inputs, reads state from TrackerAPI, delegates to `
 
 #### sly_data contract
 
-| Direction | Parameters |
-|---|---|
-| **From upstream** | `flight_number`, `aircraft_type`, `aircraft_direction` |
-| **To downstream** | `flight_number`, `aircraft_type`, `aircraft_direction`, `flight_status`, `clearance_type`, `assigned_runway_id`, `runway_length` |
-| **To upstream** | `flight_number`, `aircraft_type`, `aircraft_direction`, `flight_status`, `clearance_type`, `assigned_runway_id`, `assigned_runway_length` |
+| Direction         | Parameters                                                                                                                                |
+|-------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| **From upstream** | `flight_number`, `aircraft_type`, `aircraft_direction`                                                                                    |
+| **To downstream** | `flight_number`, `aircraft_type`, `aircraft_direction`, `flight_status`, `clearance_type`, `assigned_runway_id`, `runway_length`          |
+| **To upstream**   | `flight_number`, `aircraft_type`, `aircraft_direction`, `flight_status`, `clearance_type`, `assigned_runway_id`, `assigned_runway_length` |
 
 > Note: `to_downstream` uses `runway_length` (line 129) while `to_upstream` uses `assigned_runway_length` (line 141). These are different field names for the same value. Downstream networks should use `assigned_runway_length`.
 
@@ -159,11 +159,11 @@ The core execution tool. It reads aircraft run requirements from `aircraft_base.
 
 #### Constructor paths
 
-| Attribute | Default path |
-|---|---|
+| Attribute       | Default path                                                                                             |
+|-----------------|----------------------------------------------------------------------------------------------------------|
 | `aircraft_base` | `Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_traffic_controller" / "aircraft_base.csv"` |
-| `runway_base` | `Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_traffic_controller" / "runways_base.csv"` |
-| `log_path` | `Path.cwd() / "test_debug" / "airlineturnaround.txt"` |
+| `runway_base`   | `Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_traffic_controller" / "runways_base.csv"`  |
+| `log_path`      | `Path.cwd() / "test_debug" / "airlineturnaround.txt"`                                                    |
 
 #### Input parameters (args-first, fall back to sly_data)
 
@@ -174,23 +174,23 @@ The core execution tool. It reads aircraft run requirements from `aircraft_base.
 **aircraft_base.csv** (7 aircraft types):
 
 | Aircraft | Landing (m) | Takeoff (m) |
-|---|---|---|
-| ATR72 | 1,210 | 1,410 |
-| E175 | 1,259 | 1,261 |
-| E190 | 1,280 | 1,463 |
-| A320 | 1,500 | 2,100 |
-| A330 | 1,750 | 2,200 |
-| B737 | 1,372 | 2,300 |
-| B747 | 1,500 | 3,000 |
+|----------|-------------|-------------|
+| ATR72    | 1,210       | 1,410       |
+| E175     | 1,259       | 1,261       |
+| E190     | 1,280       | 1,463       |
+| A320     | 1,500       | 2,100       |
+| A330     | 1,750       | 2,200       |
+| B737     | 1,372       | 2,300       |
+| B747     | 1,500       | 3,000       |
 
 **runways_base.csv** (4 runways at a simulated SFO-style airport):
 
 | Runway | Length (m) | Availability |
-|---|---|---|
-| 28L | 3,500 | yes |
-| 28R | 3,650 | yes |
-| 19L | 2,650 | yes |
-| 19R | 2,350 | yes |
+|--------|------------|--------------|
+| 28L    | 3,500      | yes          |
+| 28R    | 3,650      | yes          |
+| 19L    | 2,650      | yes          |
+| 19R    | 2,350      | yes          |
 
 > Note: `availability` and `readiness` columns exist in `runways_base.csv` but are not read by `execute_air_clearance`. All four runways are considered available unconditionally.
 
@@ -234,7 +234,7 @@ On success, `execute_air_clearance`:
 }
 ```
 
-`build_clearance()` validates: `clearance_type` must be one of `CLEARED_FOR_LANDING`, `CLEARED_FOR_TAKEOFF`, `HOLD`, `GO_AROUND`, `DENY`; `assigned_runway_id` must match `^(?:[0-3]?\d|[0-2]\d|3[0-6])[LRC]?$`; `assigned_runway_length` must be a positive integer.
+`build_clearance()` validates: `clearance_type` must be one of `CLEARED_FOR_LANDING`, `CLEARED_FOR_TAKEOFF`, `HOLD`, `GO_AROUND`, `DENY`; `assigned_runway_id` must match `^(?:[0-3]?\d| [0-2]\d |3[0-6])[LRC]?$`; `assigned_runway_length` must be a positive integer.
 
 #### `clearance_report` tuple bug (line 195)
 
@@ -340,18 +340,10 @@ This network has no external tool dependencies via the registry — it is a leaf
 
 ## 9. Known Issues and Maintenance Notes
 
-| Issue | Location | Severity | Notes |
-|---|---|:---:|---|
-| **`crew_exit_status` unquoted in HOCON TrackerAPI schema** | `aircraft_traffic_controller.hocon` line 317 | **High** | `crew_exit_status: {...}` without quotes. Strict HOCON parsers will reject this. |
-| `clearance_report` tuple bug (line 195) | `aircraft_traffic_controller.py` line 195 | Low | Trailing comma creates a tuple. sly_data write on line 202 uses the correct string. No functional impact but inconsistent. |
-| `runway_length` vs `assigned_runway_length` naming inconsistency | `aircraft_traffic_controller.hocon` lines 129 vs 141 | Medium | `to_downstream` uses `runway_length`; `to_upstream` uses `assigned_runway_length`. Downstream networks should use `assigned_runway_length`. |
-| `clearance_summary` has type `"dict"` in HOCON schema | `aircraft_traffic_controller.hocon` line 104 | Low | `"dict"` is not a valid JSON Schema type. Should be `"object"`. |
-| Model mismatch with prior documentation | `aircraft_traffic_controller.hocon` line 20 | Low | Old doc stated `claude-haiku-4-5-20251001`. Actual model is `gpt-5.4-mini`. |
-| `commondefs` block absent | `aircraft_traffic_controller.hocon` | Low | `${aaosa_instructions}` references require `registries/aaosa_basic.hocon` to supply these substitutions. The HOCON does not define them locally, unlike most other networks. |
-| `tracker_aircraft_traffic_controller` class unregistered | `aircraft_traffic_controller.py` lines 218–297 | Low | Older-style TrackerAPI not in HOCON tools list. Safe to keep as dead code or remove. |
-| `availability` and `readiness` columns in `runways_base.csv` not used | `execute_air_clearance` selection logic | Low | All runways treated as available regardless of `availability` or `readiness` values. If any runway is unavailable, the selection logic would still include it. |
-| Step 4 instruction says "clearance for landing" only | `aircraft_traffic_controller.hocon` line 53 | Low | Should say "landing or takeoff" to match the network's full scope. |
-| Module-level diagnostic `print()` statements | `aircraft_traffic_controller.py` lines 13–15 | Low | `sys.path`, `__file__`, `__package__` print at import time. Same issue seen in `aircraft_ground_servicing.py`. |
+| Issue                                                                 | Location                                             | Severity | Notes                                                                                                                                                                        |
+|-----------------------------------------------------------------------|------------------------------------------------------|:--------:|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `availability` and `readiness` columns in `runways_base.csv` not used | `execute_air_clearance` selection logic              |   Low    | All runways treated as available regardless of `availability` or `readiness` values. If any runway is unavailable, the selection logic would still include it.               |
+| Module-level diagnostic `print()` statements                          | `aircraft_traffic_controller.py` lines 13–15         |   Low    | `sys.path`, `__file__`, `__package__` print at import time. Same issue seen in `aircraft_ground_servicing.py`.                                                               |
 
 ---
 
@@ -359,20 +351,20 @@ This network has no external tool dependencies via the registry — it is a leaf
 
 For all currently registered aircraft against the four available runways:
 
-| Aircraft | Direction | Min run (m) | Qualifying runways | **Selected** |
-|---|---|---|---|---|
-| ATR72 | Incoming | 1,210 | 19R (2,350), 19L (2,650), 28L (3,500), 28R (3,650) | **19R** |
-| ATR72 | Departing | 1,410 | 19R, 19L, 28L, 28R | **28R** (longest) |
-| E175 | Incoming | 1,259 | 19R, 19L, 28L, 28R | **19R** |
-| E190 | Incoming | 1,280 | 19R, 19L, 28L, 28R | **19R** |
-| A320 | Incoming | 1,500 | 19R, 19L, 28L, 28R | **19R** |
-| A320 | Departing | 2,100 | 19L (2,650), 28L (3,500), 28R (3,650) | **28R** |
-| A330 | Incoming | 1,750 | 19R, 19L, 28L, 28R | **19R** |
-| A330 | Departing | 2,200 | 19L, 28L, 28R | **28R** |
-| B737 | Incoming | 1,372 | 19R, 19L, 28L, 28R | **19R** |
-| B737 | Departing | 2,300 | 19L, 28L, 28R | **28R** |
-| **B747** | **Incoming** | **1,500** | **19R, 19L, 28L, 28R** | **19R** |
-| **B747** | **Departing** | **3,000** | **28L (3,500), 28R (3,650)** | **28R** |
+| Aircraft | Direction     | Min run (m) | Qualifying runways                                 | **Selected**      |
+|----------|---------------|-------------|----------------------------------------------------|-------------------|
+| ATR72    | Incoming      | 1,210       | 19R (2,350), 19L (2,650), 28L (3,500), 28R (3,650) | **19R**           |
+| ATR72    | Departing     | 1,410       | 19R, 19L, 28L, 28R                                 | **28R** (longest) |
+| E175     | Incoming      | 1,259       | 19R, 19L, 28L, 28R                                 | **19R**           |
+| E190     | Incoming      | 1,280       | 19R, 19L, 28L, 28R                                 | **19R**           |
+| A320     | Incoming      | 1,500       | 19R, 19L, 28L, 28R                                 | **19R**           |
+| A320     | Departing     | 2,100       | 19L (2,650), 28L (3,500), 28R (3,650)              | **28R**           |
+| A330     | Incoming      | 1,750       | 19R, 19L, 28L, 28R                                 | **19R**           |
+| A330     | Departing     | 2,200       | 19L, 28L, 28R                                      | **28R**           |
+| B737     | Incoming      | 1,372       | 19R, 19L, 28L, 28R                                 | **19R**           |
+| B737     | Departing     | 2,300       | 19L, 28L, 28R                                      | **28R**           |
+| **B747** | **Incoming**  | **1,500**   | **19R, 19L, 28L, 28R**                             | **19R**           |
+| **B747** | **Departing** | **3,000**   | **28L (3,500), 28R (3,650)**                       | **28R**           |
 
 > Note: All aircraft currently use `19R` for landing (2,350 m is sufficient for every aircraft in the CSV). For takeoffs, A320/A330/B737 can use 19L; B747 requires 28L or 28R. Aircraft with takeoff requirements above 3,650 m would return an error.
 
@@ -380,12 +372,7 @@ For all currently registered aircraft against the four available runways:
 
 ## 11. Extensibility Guidance
 
-- Fix the `crew_exit_status` unquoted HOCON key
-- Align `runway_length` / `assigned_runway_length` naming — standardise to `assigned_runway_length` in all sly_data allow blocks
 - Incorporate `availability` and `readiness` from `runways_base.csv` into runway selection to filter out unavailable runways
-- Add the `clearance_report` field to the `ClearanceDict` TypedDict and `build_clearance()` signature to make it a proper typed output
-- Remove module-level diagnostic `print()` statements
-- Remove or archive `tracker_aircraft_traffic_controller` (unregistered dead code)
 - Add more aircraft types to `aircraft_base.csv` as needed
 
 ---

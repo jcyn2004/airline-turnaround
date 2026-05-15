@@ -82,16 +82,16 @@ The entry-point agent. It reads available parameters via TrackerAPI, resolves th
 
 #### Input parameters
 
-| Parameter | Type | Required | Description |
-|---|---|:---:|---|
-| `flight_number` | string | ✅ | Flight identifier |
-| `aircraft_type` | string | ✅ | Aircraft model/type |
-| `gate_id` | string | ✅ | Gate where the aircraft is parked |
-| `passenger_disembarkation_status` | string | ✅ (schema) | Expected: `completed` |
-| `crew_exit_status` | string | ✅ (schema) | Expected: contains `completed` or `exited` |
-| `baggage_unload_status` | string | ✅ (schema) | Expected: contains `completed` or `unloaded` |
-| `flight_status` | string | ❌ | Flight status |
-| `lavatory_service_status` | string | ❌ | Current or previous service status |
+| Parameter                         | Type   |  Required  | Description                                  |
+|-----------------------------------|--------|:----------:|----------------------------------------------|
+| `flight_number`                   | string |     ✅      | Flight identifier                            |
+| `aircraft_type`                   | string |     ✅      | Aircraft model/type                          |
+| `gate_id`                         | string |     ✅      | Gate where the aircraft is parked            |
+| `passenger_disembarkation_status` | string | ✅ (schema) | Expected: `completed`                        |
+| `crew_exit_status`                | string | ✅ (schema) | Expected: contains `completed` or `exited`   |
+| `baggage_unload_status`           | string | ✅ (schema) | Expected: contains `completed` or `unloaded` |
+| `flight_status`                   | string |     ❌      | Flight status                                |
+| `lavatory_service_status`         | string |     ❌      | Current or previous service status           |
 
 > Note: `crew_exit_status` appears as an **unquoted property key** (`crew_exit_status: {...}` without quotes) in the agent, operator, and TrackerAPI HOCON schemas — the same syntax issue present in `aircraft_inspection_maintenance`. HOCON requires string keys and strict parsers may reject this.
 
@@ -117,11 +117,11 @@ The instructions use older numbered-prose style:
 
 #### sly_data contract
 
-| Direction | Parameters |
-|---|---|
-| **To upstream** | `lavatory_service_status` |
-| **To downstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status` |
-| **From upstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status` |
+| Direction           | Parameters                                                                                                                                   |
+|---------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| **To upstream**     | `lavatory_service_status`                                                                                                                    |
+| **To downstream**   | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status` |
+| **From upstream**   | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status` |
 | **From downstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status` |
 
 > Note: `lavatory_service_status` propagates upstream only. It is absent from `to_downstream`, `from_upstream`, and `from_downstream`. Downstream networks cannot receive the lavatory service result via sly_data — identical to the pattern in `aircraft_inspection_maintenance`.
@@ -150,25 +150,25 @@ The operator is functionally identical to `inspection_maintenance_operator` in `
 
 #### Input parameters
 
-| Parameter | Type | Required | Source priority |
-|---|---|:---:|---|
-| `flight_number` | string | ✅ | `args` → `sly_data` |
-| `aircraft_type` | string | ✅ | `args` → `sly_data` |
-| `flight_status` | string | ✅ | `args` → `sly_data` |
-| `gate_id` | string | ✅ | `args` → `sly_data` |
-| `passenger_disembarkation_status` | string | ✅ | `args` → `sly_data` |
-| `crew_exit_status` | string | ✅ | `args` → `sly_data` |
-| `baggage_unload_status` | string | ✅ | `args` → `sly_data` |
+| Parameter                         | Type   | Required | Source priority     |
+|-----------------------------------|--------|:--------:|---------------------|
+| `flight_number`                   | string |    ✅     | `args` → `sly_data` |
+| `aircraft_type`                   | string |    ✅     | `args` → `sly_data` |
+| `flight_status`                   | string |    ✅     | `args` → `sly_data` |
+| `gate_id`                         | string |    ✅     | `args` → `sly_data` |
+| `passenger_disembarkation_status` | string |    ✅     | `args` → `sly_data` |
+| `crew_exit_status`                | string |    ✅     | `args` → `sly_data` |
+| `baggage_unload_status`           | string |    ✅     | `args` → `sly_data` |
 
 #### Service logic
 
 `lavatory_service_status` is set to `'completed'` when **all three** conditions are true (case-insensitive):
 
-| Field | Accepted values |
-|---|---|
-| `passenger_disembarkation_status` | `completed`, `done` |
-| `crew_exit_status` | `completed`, `exited` |
-| `baggage_unload_status` | `completed`, `unloaded` |
+| Field                             | Accepted values         |
+|-----------------------------------|-------------------------|
+| `passenger_disembarkation_status` | `completed`, `done`     |
+| `crew_exit_status`                | `completed`, `exited`   |
+| `baggage_unload_status`           | `completed`, `unloaded` |
 
 If any condition fails, `lavatory_service_status` remains `'pending'` (initial value). `sly_data` is not updated on failure.
 
@@ -206,11 +206,11 @@ Standard sly_data-first implementation. Called in step 2 to read available param
 
 These tools are resolved at runtime from `registries/aaosa_basic.hocon`:
 
-| Tool path | Purpose | Condition triggering call |
-|---|---|---|
-| `/AirlineTurnaround/aircraft_disembark` | Complete passenger disembarkation | Step 4 |
-| `/AirlineTurnaround/aircraft_crew_exit` | Complete crew exit | Step 5 |
-| `/AirlineTurnaround/aircraft_baggage_unload` | Complete baggage unloading | Step 6 |
+| Tool path                                    | Purpose                           | Condition triggering call |
+|----------------------------------------------|-----------------------------------|---------------------------|
+| `/AirlineTurnaround/aircraft_disembark`      | Complete passenger disembarkation | Step 4                    |
+| `/AirlineTurnaround/aircraft_crew_exit`      | Complete crew exit                | Step 5                    |
+| `/AirlineTurnaround/aircraft_baggage_unload` | Complete baggage unloading        | Step 6                    |
 
 ---
 
@@ -274,18 +274,10 @@ The crew has exited the aircraft. Perform lavatory service to the aircraft."
 
 ## 9. Known Issues and Maintenance Notes
 
-| Issue | Location | Severity | Notes |
-|---|---|:---:|---|
-| **`crew_exit_status` unquoted as HOCON property key** | `aircraft_lavatory_service.hocon` lines 117, 256, 345 | **High** | `crew_exit_status: {...}` without quotes in agent, operator, and TrackerAPI schemas. Strict HOCON parsers will reject this. Fix: `"crew_exit_status": {...}`. Same bug as `aircraft_inspection_maintenance`. |
-| `/AirlineTurnaround/aircraft_crew_exit` duplicated in tools list | `aircraft_lavatory_service.hocon` line 224 | Medium | Listed twice. The duplicate entry is dead and should be removed. |
-| Step 6 tool name inconsistency | `aircraft_lavatory_service.hocon` line 158 | Low | Instructions say "call baggage_unload" but the registered tool is `/AirlineTurnaround/aircraft_baggage_unload`. |
-| Agent name mismatch with prior documentation | `aircraft_lavatory_service.hocon` line 89 | Low | Agent is `lavatory_service_agent`, not `aircraft_lavatory_service_agent`. |
-| Prior documentation invented fields that don't exist | Prior documentation | — | `potable_water_refill_required`, waste disposal confirmation, water refill confirmation, `service_pending`/`service_in_progress`/`service_failed` status values do not exist. Only `lavatory_service_status` (`'completed'` or `'pending'`) is present. |
-| `lavatory_service_status` absent from `to_downstream` | `aircraft_lavatory_service.hocon` sly_data | Low | Propagates upstream only. Downstream networks cannot receive the result via sly_data. |
-| Summary header missing closing banner line | `aircraft_lavatory_service.hocon` line 169–179 | Low | The `*` banner line that should follow the title is absent, so the header reads `****************************************\n* Summary of aircraft lavatory service *` with no closing `*...` line. |
-| Step 6 instruction says `flight statuys` | `aircraft_lavatory_service.hocon` line 140 | Low | Typo: "statuys" for "status". No runtime impact. |
-| Steps 4–6 loop has no fail-fast guard | `aircraft_lavatory_service.hocon` steps 4–6 | Low | No maximum retry count. Could loop indefinitely if an external network fails. |
-| Wide-schema HOCON TrackerAPI exposes non-tracked fields | `aircraft_lavatory_service.hocon` lines 309–356 | Low | Copy-paste artifact. |
+| Issue                                                            | Location                                              | Severity | Notes                                                                                                                                                                                                                                                   |
+|------------------------------------------------------------------|-------------------------------------------------------|:--------:|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Prior documentation invented fields that don't exist             | Prior documentation                                   |    —     | `potable_water_refill_required`, waste disposal confirmation, water refill confirmation, `service_pending`/`service_in_progress`/`service_failed` status values do not exist. Only `lavatory_service_status` (`'completed'` or `'pending'`) is present. |
+| Wide-schema HOCON TrackerAPI exposes non-tracked fields          | `aircraft_lavatory_service.hocon` lines 309–356       |   Low    | Copy-paste artifact.                                                                                                                                                                                                                                    |
 
 ---
 
@@ -293,24 +285,19 @@ The crew has exited the aircraft. Perform lavatory service to the aircraft."
 
 This network is the closest structural twin to `aircraft_inspection_maintenance` in the system. The differences are minimal:
 
-| Aspect | `aircraft_inspection_maintenance` | `aircraft_lavatory_service` |
-|---|---|---|
-| Output field | `inspection_maintenance_status` | `lavatory_service_status` |
-| Explicit TrackerAPI persist after operator | No (missing) | Yes (step 8) |
-| `gate_id` in TrackerAPI return fields | No | Yes |
-| TrackerAPI tracked = return | No (gate_id missing from return) | Yes (all 8 fields match) |
-| Duplicate tool in tools list | No | Yes (`aircraft_crew_exit` twice) |
-| `crew_exit_status` unquoted | Yes (3 places) | Yes (3 places) |
+| Aspect                                     | `aircraft_inspection_maintenance` | `aircraft_lavatory_service`      |
+|--------------------------------------------|-----------------------------------|----------------------------------|
+| Output field                               | `inspection_maintenance_status`   | `lavatory_service_status`        |
+| Explicit TrackerAPI persist after operator | No (missing)                      | Yes (step 8)                     |
+| `gate_id` in TrackerAPI return fields      | No                                | Yes                              |
+| TrackerAPI tracked = return                | No (gate_id missing from return)  | Yes (all 8 fields match)         |
+| Duplicate tool in tools list               | No                                | Yes (`aircraft_crew_exit` twice) |
+| `crew_exit_status` unquoted                | Yes (3 places)                    | Yes (3 places)                   |
 
 ---
 
 ## 11. Extensibility Guidance
 
-- Fix the unquoted `crew_exit_status` key in all three HOCON tool definitions
-- Remove the duplicate `/AirlineTurnaround/aircraft_crew_exit` entry from the tools list
-- Align step 6 tool name to `aircraft_baggage_unload` for consistency with the registered tool path
-- Add `lavatory_service_status` to `to_downstream` if downstream networks need to read the result
-- Add fail-fast guards to steps 4–6
 - If actual lavatory servicing logic is needed (waste tank levels, water fill levels, compliance checks), extend the operator beyond the current prerequisite-confirmation model
 
 ---

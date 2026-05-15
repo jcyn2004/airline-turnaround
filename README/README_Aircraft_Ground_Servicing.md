@@ -79,32 +79,32 @@ The entry-point agent. It reads the `instruction` field, matches it to a branch,
 
 #### Input parameters
 
-| Parameter | Type | Required | Description |
-|---|---|:---:|---|
-| `flight_number` | string | ✅ | Flight identifier |
-| `aircraft_type` | string | ✅ | Aircraft model/type |
-| `flight_status` | string | ✅ | Flight status |
-| `gate_id` | string | ❌ | Gate where the aircraft is parked |
-| `instruction` | string | ❌ | Routing key: `'baggage'`/`'unload'`, `'inspection'`/`'maintenance'`, or `'fuel'`/`'fueling'`/`'refuel'` |
-| `jetbridge_connection_status` | string | ❌ | For Branch A |
-| `stairtruck_connection_status` | string | ❌ | For Branch A |
-| `door_opening_status` | string | ❌ | For Branch A |
-| `passenger_disembarkation_status` | string | ❌ | For Branches B and C |
-| `crew_exit_status` | string | ❌ | For Branches B and C |
-| `baggage_unload_status` | string | ❌ | For Branches B and C |
-| `inspection_maintenance_status` | string | ❌ | For Branch B output |
-| `fueling_status` | string | ❌ | For Branch C output |
+| Parameter                         | Type   | Required | Description                                                                                             |
+|-----------------------------------|--------|:--------:|---------------------------------------------------------------------------------------------------------|
+| `flight_number`                   | string |    ✅     | Flight identifier                                                                                       |
+| `aircraft_type`                   | string |    ✅     | Aircraft model/type                                                                                     |
+| `flight_status`                   | string |    ✅     | Flight status                                                                                           |
+| `gate_id`                         | string |    ❌     | Gate where the aircraft is parked                                                                       |
+| `instruction`                     | string |    ❌     | Routing key: `'baggage'`/`'unload'`, `'inspection'`/`'maintenance'`, or `'fuel'`/`'fueling'`/`'refuel'` |
+| `jetbridge_connection_status`     | string |    ❌     | For Branch A                                                                                            |
+| `stairtruck_connection_status`    | string |    ❌     | For Branch A                                                                                            |
+| `door_opening_status`             | string |    ❌     | For Branch A                                                                                            |
+| `passenger_disembarkation_status` | string |    ❌     | For Branches B and C                                                                                    |
+| `crew_exit_status`                | string |    ❌     | For Branches B and C                                                                                    |
+| `baggage_unload_status`           | string |    ❌     | For Branches B and C                                                                                    |
+| `inspection_maintenance_status`   | string |    ❌     | For Branch B output                                                                                     |
+| `fueling_status`                  | string |    ❌     | For Branch C output                                                                                     |
 
 > Note: `clearance_type` appears **twice** in the HOCON agent parameter schema (lines 115 and 131). The duplicate is harmless at runtime but should be deduplicated.
 
 #### Branch routing logic
 
-| `instruction` contains | Branch | External network called |
-|---|---|---|
-| `'baggage'` or `'unload'` | **Branch A** | `/AirlineTurnaround/aircraft_baggage_unload` |
-| `'inspection'` or `'maintenance'` | **Branch B** | `/AirlineTurnaround/aircraft_inspection_maintenance` |
-| `'fuel'`, `'fueling'`, or `'refuel'` | **Branch C** | `/AirlineTurnaround/aircraft_fueling` |
-| No match | — | Agent replies not relevant and stops |
+| `instruction` contains               | Branch       | External network called                              |
+|--------------------------------------|--------------|------------------------------------------------------|
+| `'baggage'` or `'unload'`            | **Branch A** | `/AirlineTurnaround/aircraft_baggage_unload`         |
+| `'inspection'` or `'maintenance'`    | **Branch B** | `/AirlineTurnaround/aircraft_inspection_maintenance` |
+| `'fuel'`, `'fueling'`, or `'refuel'` | **Branch C** | `/AirlineTurnaround/aircraft_fueling`                |
+| No match                             | —            | Agent replies not relevant and stops                 |
 
 Branch A has highest routing priority and is checked first. If `instruction` contains `'baggage'` or `'unload'`, Branch A MUST execute regardless of other content in `instruction`.
 
@@ -134,7 +134,7 @@ Branch A has highest routing priority and is checked first. If `instruction` con
 
 All four directions carry the same 21-field set — the broadest symmetric contract in the system:
 
-`flight_number`, `aircraft_type`, `flight_status`, `ground_clearance_type`, `gate_id`, `assigned_runway_id`, `assigned_runway_length`, `wheelchocks_readiness_status`, `acu_readiness_status`, `gpu_readiness_status`, `aircraft_direction`, `clearance_type`, `engines_stop_status`, `door_opening_status`, `jetbridge_connection_status`, `stairtruck_connection_status`, `deplaning_equipment_type`, `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status`, `inspection_maintenance_status`, `fueling_status`
+`flight_number`, `aircraft_type`, `flight_status`, `ground_clearance_type`, `gate_id`, `assigned_runway_id`, `assigned_runway_length`, `wheels_chocks_readiness_status`, `acu_readiness_status`, `gpu_readiness_status`, `aircraft_direction`, `clearance_type`, `engines_stop_status`, `door_opening_status`, `jetbridge_connection_status`, `stairtruck_connection_status`, `deplaning_equipment_type`, `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status`, `inspection_maintenance_status`, `fueling_status`
 
 #### Down-chain tools
 
@@ -170,7 +170,7 @@ This is the **inverse** of the standard priority used by all other TrackerAPI im
 The default configuration for this network is the broadest TrackerAPI config in the system:
 
 **Tracked fields (20):**
-`flight_number`, `aircraft_type`, `flight_status`, `ground_clearance_type`, `gate_id`, `assigned_runway_id`, `assigned_runway_length`, `wheelchocks_readiness_status`, `acu_readiness_status`, `gpu_readiness_status`, `aircraft_direction`, `clearance_type`, `engines_stop_status`, `door_opening_status`, `jetbridge_connection_status`, `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status`, `inspection_maintenance_status`, `fueling_status`
+`flight_number`, `aircraft_type`, `flight_status`, `ground_clearance_type`, `gate_id`, `assigned_runway_id`, `assigned_runway_length`, `wheels_chocks_readiness_status`, `acu_readiness_status`, `gpu_readiness_status`, `aircraft_direction`, `clearance_type`, `engines_stop_status`, `door_opening_status`, `jetbridge_connection_status`, `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status`, `inspection_maintenance_status`, `fueling_status`
 
 **Return fields:** Identical to tracked fields (all 20 returned).
 
@@ -188,11 +188,11 @@ The default configuration for this network is the broadest TrackerAPI config in 
 
 These tools are resolved at runtime from `registries/aaosa_basic.hocon`:
 
-| Tool path | Branch | Trigger keywords |
-|---|---|---|
-| `/AirlineTurnaround/aircraft_baggage_unload` | A | `'baggage'`, `'unload'` |
-| `/AirlineTurnaround/aircraft_inspection_maintenance` | B | `'inspection'`, `'maintenance'` |
-| `/AirlineTurnaround/aircraft_fueling` | C | `'fuel'`, `'fueling'`, `'refuel'` |
+| Tool path                                            | Branch | Trigger keywords                  |
+|------------------------------------------------------|--------|-----------------------------------|
+| `/AirlineTurnaround/aircraft_baggage_unload`         | A      | `'baggage'`, `'unload'`           |
+| `/AirlineTurnaround/aircraft_inspection_maintenance` | B      | `'inspection'`, `'maintenance'`   |
+| `/AirlineTurnaround/aircraft_fueling`                | C      | `'fuel'`, `'fueling'`, `'refuel'` |
 
 ---
 
@@ -247,14 +247,9 @@ The crew has exited the aircraft. Perform the fueling of the aircraft."
 
 ## 9. Known Issues and Maintenance Notes
 
-| Issue | Location | Severity | Notes |
-|---|---|:---:|---|
-| `clearance_type` declared twice in agent parameters | `aircraft_ground_servicing.hocon` lines 115 and 131 | Low | Duplicate property definition in the agent schema. The second declaration overrides the first. Remove one. |
-| `inspection_maintenance_status` absent from HOCON TrackerAPI schema | `aircraft_ground_servicing.hocon` TrackerAPI parameters | Low | Tracked by Python but not exposed in the HOCON schema. LLM-facing descriptions for this field are missing. |
-| `stairtruck_connection_status` and `deplaning_equipment_type` in sly_data but not in Python tracked fields | HOCON allow blocks vs. `FLIGHT_TURNAROUND_TRACKED_FIELDS` | Low | Both fields propagate through sly_data allow blocks but TrackerAPI will not persist or return them. |
-| Module-level diagnostic `print()` and `sys.path` output | `aircraft_ground_servicing.py` lines 25–27 | Low | `print("Python path:", sys.path)`, `print("Current file:", __file__)`, `print("Package:", __package__)` execute at import time on every module load. Should be removed for production. |
-| HOCON TrackerAPI description references `wheels_chucks_installation_status` | `aircraft_ground_servicing.hocon` line 432 | Low | Stale copy-paste artifact. Neither field is tracked by this network. |
-| Branch A warning about TrackerAPI ordering | `aircraft_ground_servicing.hocon` Branch A instructions | Info | The `CRITICAL: Do NOT call TrackerAPI before executing` instruction is unique to Branch A and absent from Branches B and C, which do not make the same stipulation. This is likely intentional given Branch A depends on sly_data state that should come from args, not be overwritten by a prior TrackerAPI read. |
+| Issue       | Location    | Severity | Notes    |
+|-------------|-------------|:--------:|----------|
+|             |             |          |          |
 
 ---
 
@@ -262,11 +257,11 @@ The crew has exited the aircraft. Perform the fueling of the aircraft."
 
 `aircraft_ground_servicing` acts as a single-call interface for three networks that could otherwise be called independently:
 
-| Direct call | Via `aircraft_ground_servicing` |
-|---|---|
-| Call `aircraft_baggage_unload` directly | Pass `instruction='baggage'` |
+| Direct call                                     | Via `aircraft_ground_servicing` |
+|-------------------------------------------------|---------------------------------|
+| Call `aircraft_baggage_unload` directly         | Pass `instruction='baggage'`    |
 | Call `aircraft_inspection_maintenance` directly | Pass `instruction='inspection'` |
-| Call `aircraft_fueling` directly | Pass `instruction='fuel'` |
+| Call `aircraft_fueling` directly                | Pass `instruction='fuel'`       |
 
 The primary value-add is the shared TrackerAPI with 20-field coverage, the instruction-routing dispatch, and the standardized validation + summary templates for all three services. Upstream orchestrators that need to trigger multiple services in sequence can call this network multiple times with different `instruction` values.
 
@@ -274,24 +269,20 @@ The primary value-add is the shared TrackerAPI with 20-field coverage, the instr
 
 ## 11. Key Architectural Differences from Other Networks
 
-| Aspect | `aircraft_ground_servicing` | Typical network |
-|---|---|---|
-| TrackerAPI field resolution | `args`-first (write always wins) | `sly_data`-first (accumulated state wins) |
-| Number of external services | 3 (routed by `instruction`) | 1 |
-| TrackerAPI called | After service execution | Before and after |
-| Branch A: TrackerAPI timing | Explicitly deferred to after service | Called at step 1 |
-| Tracked field count | 20 (broadest non-master set) | 3–8 |
-| TrackerAPI tracked = return | Yes | Varies |
+| Aspect                      | `aircraft_ground_servicing`          | Typical network                           |
+|-----------------------------|--------------------------------------|-------------------------------------------|
+| TrackerAPI field resolution | `args`-first (write always wins)     | `sly_data`-first (accumulated state wins) |
+| Number of external services | 3 (routed by `instruction`)          | 1                                         |
+| TrackerAPI called           | After service execution              | Before and after                          |
+| Branch A: TrackerAPI timing | Explicitly deferred to after service | Called at step 1                          |
+| Tracked field count         | 20 (broadest non-master set)         | 3–8                                       |
+| TrackerAPI tracked = return | Yes                                  | Varies                                    |
 
 ---
 
 ## 12. Extensibility Guidance
 
 - Add Branch D, E, etc. for additional services (cabin cleaning, catering loading, crew exit) by following the same BRANCH → STEP → VALIDATION → RETURN SUMMARY pattern
-- Fix the `clearance_type` duplicate in the agent schema
-- Add `inspection_maintenance_status` to the HOCON TrackerAPI parameters schema
-- Add `stairtruck_connection_status` and `deplaning_equipment_type` to `FLIGHT_TURNAROUND_TRACKED_FIELDS` if they need to be persisted and returned
-- Remove the module-level diagnostic `print()` and `sys.path` statements before production deployment
 
 ---
 

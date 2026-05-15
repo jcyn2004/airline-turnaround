@@ -4,12 +4,7 @@ import json
 from neuro_san.interfaces.coded_tool import CodedTool
 from datetime import datetime
 import time
-import random
-import os
-import platform
-import fcntl
 from typing import Dict, Any, Union, Optional, Tuple, List, Literal, TypedDict
-import asyncio
 import re
 from enum import Enum
 from dataclasses import dataclass
@@ -58,27 +53,27 @@ class execute_aircraft_landing(CodedTool):
         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 
         if flight_status is None: 
-            flight_status: str = sly_data.get(flight_status, None)
+            flight_status: str = sly_data.get("flight_status", None)
         if flight_status: 
             flight_status = flight_status.lower().replace("_", " ").strip() 
 
         if aircraft_type is None: 
-            aircraft_type: str = sly_data.get(aircraft_type, None)
+            aircraft_type: str = sly_data.get("aircraft_type", None)
 
         if flight_number is None: 
-            flight_number: str = sly_data.get(flight_number, None)
+            flight_number: str = sly_data.get("flight_number", None)
 
         if aircraft_direction is None: 
-            aircraft_direction: str = sly_data.get(aircraft_direction, None)
+            aircraft_direction: str = sly_data.get("aircraft_direction", None)
 
         if clearance_type is None: 
-            clearance_type: str = sly_data.get(clearance_type, None)
+            clearance_type: str = sly_data.get("clearance_type", None)
  
         if assigned_runway_id is None: 
-            assigned_runway_id: str = sly_data.get(assigned_runway_id, None)
+            assigned_runway_id: str = sly_data.get("assigned_runway_id", None)
 
         if assigned_runway_length is None: 
-            assigned_runway_length: str = sly_data.get(assigned_runway_length, None)
+            assigned_runway_length: str = sly_data.get("assigned_runway_length", None)
 
         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ aircraft landing agent by sly_data fall back $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
         print("clearance_type: ", clearance_type)
@@ -95,7 +90,6 @@ class execute_aircraft_landing(CodedTool):
             flight_status = flight_status.lower().strip().replace("_", " ")
 
             if ((('clear' in clearance_type) | ('land' in clearance_type)) & ((flight_status is None) | ('approach' in flight_status ))):    
-                # time.sleep(0.5) 
                 flight_status = 'landed'
 
                 timenow = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
@@ -395,6 +389,7 @@ class TrackerAPI(CodedTool):
 # Define tracked fields for flight turnaround operations
 FLIGHT_TURNAROUND_TRACKED_FIELDS = [
     "aircraft_type", 
+    "aircraft_direction", 
     "assigned_runway_id", 
     "assigned_runway_length", 
     "clearance_type",
@@ -405,6 +400,7 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
 # Define which fields should be returned from the API
 FLIGHT_TURNAROUND_RETURN_FIELDS = [
     "aircraft_type", 
+    "aircraft_direction", 
     "assigned_runway_id", 
     "assigned_runway_length", 
     "clearance_type",

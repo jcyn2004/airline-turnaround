@@ -90,7 +90,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
             "name": "gate_crew_agent",
             "function": {
                 "description": """
- I am responsibke for gate assignment and jetbridge connection during the aircraft turnaround. 
+ I am responsible for gate assignment and jetbridge connection during the aircraft turnaround. 
                 """
                 "parameters": {
                     "type": "object", 
@@ -143,7 +143,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "This is the ground_power_unit connection status."
                         },   
-                        "wheelchocks_installation_status": {
+                        "wheels_chocks_installation_status": {
                             "type": "string", 
                             "description": "This is the wheelchocks installation status."
                         },   
@@ -151,6 +151,14 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "This is the status of stairtruck connection."
                         },
+                        "deplaning_equipment_readiness_time": {
+                            "type": "string", 
+                            "description": "This is the time that it takes to ready deplaning equipment. "
+                        },    
+                        "deplaning_equipment_score": {
+                            "type": "string", 
+                            "description": "This is the score of deplaning equipment computed by a deterministic tool. "
+                        },    
                     }, 
                     "required": ["aircraft_type","flight_number"] 
                 }
@@ -206,13 +214,13 @@ BRANCH B — Jetbridge or stairtruck connection
       Go to STEP 2A.
     If deplaning_equipment_type contains 'stairtruck' or 'stair':
       Go to STEP 2B.
-    If deplaning_equipment_type is not available, default to STEP 2A.
+    If deplaning_equipment_type is not available, reply that the information is unavailable.
 
   STEP 2A — Connect jetbridge (jetway gate)
     Call /AirlineTurnaround/aircraft_jetbridge_connect with:
       flight_number, aircraft_type, flight_status, gate_id,
       acu_connection_status, gpu_connection_status,
-      wheelchocks_installation_status.
+      wheels_chocks_installation_status.
     Wait. Extract: jetbridge_connection_status.
     Call TrackerAPI to store jetbridge_connection_status.
     Go to RETURN SUMMARY A.
@@ -221,7 +229,7 @@ BRANCH B — Jetbridge or stairtruck connection
     Call /AirlineTurnaround/aircraft_stairtruck_connect with:
       flight_number, aircraft_type, flight_status, gate_id,
       acu_connection_status, gpu_connection_status,
-      wheelchocks_installation_status.
+      wheels_chocks_installation_status.
     Wait. Extract: stairtruck_connection_status.
     Call TrackerAPI to store stairtruck_connection_status.
     Go to RETURN SUMMARY B.
@@ -233,7 +241,7 @@ BRANCH B — Jetbridge or stairtruck connection
     ** flight_status                  **: [flight_status]
     ** acu_connection_status          **: [acu_connection_status]
     ** gpu_connection_status          **: [gpu_connection_status]
-    ** wheelchocks installation status**: [wheelchocks_installation_status]
+    ** wheelchocks installation status**: [wheels_chocks_installation_status]
     ** jetbridge_connection_status    **: [jetbridge_connection_status]
 
   RETURN SUMMARY B (stairtruck):
@@ -243,7 +251,7 @@ BRANCH B — Jetbridge or stairtruck connection
     ** flight_status                  **: [flight_status]
     ** acu_connection_status          **: [acu_connection_status]
     ** gpu_connection_status          **: [gpu_connection_status]
-    ** wheelchocks installation status**: [wheelchocks_installation_status]
+    ** wheelchocks installation status**: [wheels_chocks_installation_status]
     ** stairtruck_connection_status   **: [stairtruck_connection_status]
             """,
 
@@ -262,12 +270,14 @@ BRANCH B — Jetbridge or stairtruck connection
                         "stairtruck_connection_status": true,
                         "deplaning_equipment_type": true, 
                         "deplaning_equipment_id": true, 
+                        "deplaning_equipment_readiness_time": true, 
+                        "deplaning_equipment_score": true, 
                         "gpu_connection_status": true, 
                         "gpu_readiness_status": true,
                         "acu_connection_status": true, 
                         "acu_readiness_status": true, 
-                        "wheelchocks_readiness_status": true,
-                        "wheelchocks_installation_status": true,
+                        "wheels_chocks_readiness_status": true,
+                        "wheels_chocks_installation_status": true,
                     }
                 }
                 "to_downstream": {
@@ -283,12 +293,14 @@ BRANCH B — Jetbridge or stairtruck connection
                         "stairtruck_connection_status": true,
                         "deplaning_equipment_type": true, 
                         "deplaning_equipment_id": true, 
+                        "deplaning_equipment_readiness_time": true, 
+                        "deplaning_equipment_score": true, 
                         "gpu_connection_status": true, 
                         "gpu_readiness_status": true,
                         "acu_connection_status": true, 
                         "acu_readiness_status": true, 
-                        "wheelchocks_readiness_status": true,
-                        "wheelchocks_installation_status": true,
+                        "wheels_chocks_readiness_status": true,
+                        "wheels_chocks_installation_status": true,
                     }
                 }
                 "from_upstream": {
@@ -304,12 +316,14 @@ BRANCH B — Jetbridge or stairtruck connection
                         "stairtruck_connection_status": true,
                         "deplaning_equipment_type": true, 
                         "deplaning_equipment_id": true, 
+                        "deplaning_equipment_readiness_time": true, 
+                        "deplaning_equipment_score": true, 
                         "gpu_connection_status": true, 
                         "gpu_readiness_status": true,
                         "acu_connection_status": true, 
                         "acu_readiness_status": true, 
-                        "wheelchocks_readiness_status": true,
-                        "wheelchocks_installation_status": true,
+                        "wheels_chocks_readiness_status": true,
+                        "wheels_chocks_installation_status": true,
                     }
                 }
                 "from_downstream": {
@@ -325,12 +339,15 @@ BRANCH B — Jetbridge or stairtruck connection
                         "stairtruck_connection_status": true,
                         "deplaning_equipment_type": true, 
                         "deplaning_equipment_id": true, 
+                        "deplaning_equipment_type": true, 
+                        "deplaning_equipment_readiness_time": true, 
+                        "deplaning_equipment_score": true, 
                         "gpu_connection_status": true, 
                         "gpu_readiness_status": true,
                         "acu_connection_status": true, 
                         "acu_readiness_status": true, 
-                        "wheelchocks_readiness_status": true,
-                        "wheelchocks_installation_status": true,
+                        "wheels_chocks_readiness_status": true,
+                        "wheels_chocks_installation_status": true,
                     }
                 }
             },
@@ -348,7 +365,7 @@ BRANCH B — Jetbridge or stairtruck connection
                 "description": """
 I am the flight tracker in charge of logging parameters during aircraft turnaround. 
 I check engines stop status as engines_stop_status. 
-I check wheels chucks installation status as wheels_chucks_installation_status. 
+I check wheels chucks installation status as wheels_chocks_installation_status. 
                 """
 
                 "parameters": {
@@ -394,6 +411,14 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                             "type": "string", 
                             "description": "This is the deplaning equipment type at the assigned gate. "
                         },      
+                        "deplaning_equipment_readiness_time": {
+                            "type": "string", 
+                            "description": "This is the time that it takes to ready deplaning equipment. "
+                        },    
+                        "deplaning_equipment_score": {
+                            "type": "string", 
+                            "description": "This is the score of deplaning equipment computed by a deterministic tool. "
+                        },    
                         "acu_connection_status": {
                             "type": "string", 
                             "description": "This is the air_conditioning_unit connection status."
@@ -402,7 +427,7 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                             "type": "string", 
                             "description": "This is the ground_power_unit connection status."
                         },   
-                        "wheelchocks_installation_status": {
+                        "wheels_chocks_installation_status": {
                             "type": "string", 
                             "description": "This is the wheelchocks installation status."
                         },   

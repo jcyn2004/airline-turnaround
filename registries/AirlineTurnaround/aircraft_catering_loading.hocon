@@ -86,7 +86,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
     "tools": [
 
         {
-            "name": "Catering_loading_agent",
+            "name": "catering_loading_agent",
             "function": {
                 "description": """
  I am in charge of catering loading for the aircraft at the gate. 
@@ -128,46 +128,68 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
             },
 
             "instructions": """
+
 You are the agent in charge of catering loading to the aircraft. 
+Only use your tools to fulfill cabin cleaning tasks.
+Do not make things up.
 When user submits inquiry, proceed as follows: 
-1. Determine if the followings are provided by the user: 
-    a. passenger disembarkation status as passenger_disembarkation_status with valuesuch as'completed'
-    b. crew exit status as crew_exit_status with value such as 'completed' or 'exited' 
-    c. baggage unload status as baggage_unload_status with value such as 'completed' or 'unloaded'
-    d. gate id as gate_id
-    e. flight status as flight_status with value such as 'on blocks' or 'at gate'
-    f. flight number as flight_number
-    g. aircraft type as aircraft_type
-2. Call TrackerAPI and get the latest value of parameters
-    a. wait for its response 
-    b. store all the available parameters.
-3. If passenger_disembarkation_status contains 'completed' and crew_exit_status includes 'completed' and baggage_unload_status includes 'completed' then go to step 6.
-4. If passenger_disembarkation_status is not 'completed', or crew_exit_status does not includes 'completed' or 'exited' or baggage_unload_status does not includes 'completed' or 'unloaded'
-    a. call your tools to make sure that passenger_disembarkation_status is completed and crew_exit_status is 'completed or 'exited' and baggage_unload_status is 'completed' or 'unloaded'
-    b. wait for their responses 
-5. Call TrackerAPI
-    a. wait for its response 
-    b. store passenger disembarkation status as passenger_disembarkation_status, store crew exit status as crew_exit_status, and store baggage unload status as baggage_unload_status. 
-    c. If passenger_disembarkation_status is not 'completed', or crew_exit_status does not includes 'completed' or 'exited' or baggage_unload_status does not includes 'completed' or 'unloaded', then go back to step 3.
-6. If passenger_disembarkation_status = 'completed' and crew_exit_status includes 'completed' and baggage_unload_status includes 'completed'
-    a. call catering_loading_operator to load catering on aircraft
-    b. Wait for its response and save it as catering_loading_status
-    c. Report catering_loading_status
-7. Call TrackerAPI and get the latest value of parameters 
-    a. wait for its response 
-    b. store all the available parameters.
-8. Provide the lavatory service status report summary as: 
-    ****************************************
-    * Summary of aircraft catering loading *
-    ****************************************
-    ** flight number **: [flight_number]
-    ** aircraft type **: [aircraft_type]
-    ** flight status **: [flight_status]
-    ** gate id **: [gate_id]
-    ** crew exit status **: [crew_exit_status]
-    ** passenger disembarkation status **: [passenger_disembarkation_status]
-    ** baggage unload status **: [baggage_unload_status]
-    ** catering loading service summary **: [catering_loading_status]
+
+CRITICAL: You are a sequential executor. Execute every numbered step
+in order. Do NOT return until you reach RETURN SUMMARY.
+
+STEP 1 — Collect parameters
+  Read the following from the inquiry or from sly_data via TrackerAPI:
+    flight_number, aircraft_type, flight_status, gate_id,
+    passenger_disembarkation_status, crew_exit_status,
+    baggage_unload_status.
+  Call TrackerAPI to store all available values and read back any
+  that were not provided in the inquiry.
+  Wait for TrackerAPI response.
+
+STEP 2 — Verify flight status
+  flight_status must contain 'on blocks' or 'block'.
+  If not, report that the aircraft is not yet on blocks and stop.
+
+STEP 3 — Verify passenger disembarkation
+  If passenger_disembarkation_status does not contain 'completed':
+    Call /AirlineTurnaround/aircraft_disembark with
+    flight_number, aircraft_type, flight_status, gate_id.
+    Wait. Store passenger_disembarkation_status.
+
+STEP 4 — Verify crew exit
+  If crew_exit_status does not contain 'completed' or 'exited':
+    Call /AirlineTurnaround/aircraft_crew_exit with
+    flight_number, aircraft_type, flight_status, gate_id.
+    Wait. Store crew_exit_status.
+
+STEP 5 — Verify baggage unload
+  If baggage_unload_status does not contain 'completed' or 'unloaded':
+    Call /AirlineTurnaround/aircraft_baggage_unload with
+    flight_number, aircraft_type, flight_status, gate_id.
+    Wait. Store baggage_unload_status.
+
+STEP 6 — Execute cateriung loading
+  All prerequisites are now confirmed.
+  Call catering_loading_operator with ALL of:
+    flight_number, aircraft_type, flight_status, gate_id,
+    passenger_disembarkation_status, crew_exit_status,
+    baggage_unload_status.
+  Wait. Store catering_loading_status from the response.
+  Call TrackerAPI to store catering_loading_status.
+
+RETURN SUMMARY:
+  **************************************
+  * Summary of aircraft catering loading *
+  **************************************
+  ** catering loading summary **:
+  ** flight number **: [flight_number]
+  ** aircraft type **: [aircraft_type]
+  ** gate id **: [gate_id]
+  ** flight status **: [flight_status]
+  ** passenger disembarkation status **: [passenger_disembarkation_status]
+  ** crew exit status **: [crew_exit_status]
+  ** baggage unload status **: [baggage_unload_status]
+  ** catering loading status **: [catering_loading_status]
             """ ${aaosa_instructions},
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
@@ -185,7 +207,8 @@ When user submits inquiry, proceed as follows:
                         "gate_id": true 
                         "passenger_disembarkation_status": true
                         "crew_exit_status": true
-                        "baggage_unload_status": true
+                        "baggage_unload_status": true, 
+                        "catering_loading_status": true
                     }
                 }
                 "from_downstream": {
@@ -196,7 +219,8 @@ When user submits inquiry, proceed as follows:
                         "gate_id": true 
                         "passenger_disembarkation_status": true
                         "crew_exit_status": true
-                        "baggage_unload_status": true
+                        "baggage_unload_status": true, 
+                        "catering_loading_status": true
                     }
                 }
                 "to_downstream": {
@@ -207,7 +231,8 @@ When user submits inquiry, proceed as follows:
                         "gate_id": true 
                         "passenger_disembarkation_status": true
                         "crew_exit_status": true
-                        "baggage_unload_status": true
+                        "baggage_unload_status": true, 
+                        "catering_loading_status": true
                     }
                 }
             },

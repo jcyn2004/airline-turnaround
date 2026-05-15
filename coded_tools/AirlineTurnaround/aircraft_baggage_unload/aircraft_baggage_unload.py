@@ -46,7 +46,6 @@ class baggage_unload_operator(CodedTool):
         :return: None in write mode or any of the parameters in read mode
         """
 
-        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
 
         baggage_unload_status = 'pending'
@@ -147,7 +146,7 @@ class baggage_unload_operator(CodedTool):
 
         if (equipment_connected and door_opening_status and 'open' in door_opening_status):
             baggage_unload_status = 'completed'
-            message = f"Flight {flight_number} with airplane type {aircraft_type} {flight_status} at gate {gate_id} has jetbridge {jetbridge_connection_status} and aircraft door {door_opening_status}.  installed. Its baggage unload status is status is {baggage_unload_status}."
+            message = f"Flight {flight_number} with airplane type {aircraft_type} {flight_status} at gate {gate_id} has jetbridge {jetbridge_connection_status} and aircraft door {door_opening_status}.  installed. Its baggage unload status is {baggage_unload_status}."
             print(message)
             print("\n")
             print("\n")

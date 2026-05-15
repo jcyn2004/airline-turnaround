@@ -82,19 +82,21 @@ The entry-point agent. It resolves prerequisites sequentially, enforces the on-b
 
 #### Input parameters
 
-| Parameter | Type | Required | Description |
-|---|---|:---:|---|
-| `flight_number` | string | ✅ | Flight identifier |
-| `aircraft_type` | string | ✅ | Aircraft model/type |
-| `gate_id` | string | ✅ | Gate where the aircraft is parked |
-| `flight_status` | string | ✅ | Flight status (expected: contains `on blocks` or `block`) |
-| `jetbridge_connection_status` | string | ❌ | Jetbridge state — null on stairtruck gates |
-| `stairtruck_connection_status` | string | ❌ | Stairtruck state — null on jetway gates |
-| `deplaning_equipment_type` | string | ❌ | Equipment type: `jetway`/`jetbridge` or `stairtruck`/`stair` |
-| `door_opening_status` | string | ❌ | Current door state |
-| `acu_connection_status` | string | ❌ | Required when calling stairtruck connect internally |
-| `gpu_connection_status` | string | ❌ | Required when calling stairtruck connect internally |
-| `wheelchocks_installation_status` | string | ❌ | Passed to stairtruck connect (note: typo — missing underscore vs `wheels_chocks_installation_status`) |
+|-----------------------------------|--------|:--------:|-------------------------------------------------------------------------------------------------------|
+| Parameter                         | Type   | Required | Description                                                                                           |
+|-----------------------------------|--------|:--------:|-------------------------------------------------------------------------------------------------------|
+| `flight_number`                   | string | ✅       | Flight identifier                                                                                     |
+| `aircraft_type`                   | string | ✅       | Aircraft model/type                                                                                   |
+| `gate_id`                         | string | ✅       | Gate where the aircraft is parked                                                                     |
+| `flight_status`                   | string | ✅       | Flight status (expected: contains `on blocks` or `block`)                                             |
+| `jetbridge_connection_status`     | string | ❌       | Jetbridge state — null on stairtruck gates                                                            |
+| `stairtruck_connection_status`    | string | ❌       | Stairtruck state — null on jetway gates                                                               |
+| `deplaning_equipment_type`        | string | ❌       | Equipment type: `jetway`/`jetbridge` or `stairtruck`/`stair`                                          |
+| `door_opening_status`             | string | ❌       | Current door state                                                                                    |
+| `acu_connection_status`           | string | ❌       | Required when calling stairtruck connect internally                                                   |
+| `gpu_connection_status`           | string | ❌       | Required when calling stairtruck connect internally                                                   |
+| `wheels_chocks_installation_status` | string | ❌       | Passed to stairtruck connect (note: typo — missing underscore vs `wheels_chocks_installation_status`) |
+|-----------------------------------|--------|:--------:|-------------------------------------------------------------------------------------------------------|
 
 #### Orchestration flow
 
@@ -102,7 +104,7 @@ The entry-point agent. It resolves prerequisites sequentially, enforces the on-b
 2. **STEP 2 — Verify flight status:** `flight_status` must contain `on blocks` or `block`. If not → stop and report `"Aircraft is not yet on blocks. Door cannot be opened."`
 3. **STEP 3 — Ensure deplaning equipment is connected (ONE call if needed):**
    - `jetway`/`jetbridge` → require `jetbridge_connection_status` contains `connected`. If not → call `/AirlineTurnaround/aircraft_jetbridge_connect` once. Store result via `TrackerAPI`. If still not connected → stop.
-   - `stairtruck`/`stair` → require `stairtruck_connection_status` contains `connected`. If not → call `/AirlineTurnaround/aircraft_stairtruck_connect` with `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `acu_connection_status`, `gpu_connection_status`, `wheelchocks_installation_status`. **CRITICAL: `acu_connection_status` and `gpu_connection_status` must both be `connected`.** Store result via `TrackerAPI`. If still not connected → stop.
+   - `stairtruck`/`stair` → require `stairtruck_connection_status` contains `connected`. If not → call `/AirlineTurnaround/aircraft_stairtruck_connect` with `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `acu_connection_status`, `gpu_connection_status`, `wheels_chocks_installation_status`. **CRITICAL: `acu_connection_status` and `gpu_connection_status` must both be `connected`.** Store result via `TrackerAPI`. If still not connected → stop.
    - Unknown type → accept either connection status. If neither connected → call `/AirlineTurnaround/aircraft_jetbridge_connect` as default. Store result via `TrackerAPI`.
 4. **STEP 4 — Open the door:**
    - Confirm correct equipment connection status is `connected` before proceeding.
@@ -118,7 +120,7 @@ The entry-point agent. It resolves prerequisites sequentially, enforces the on-b
 |---|---|
 | **To upstream** | `door_opening_status`, `jetbridge_connection_status` |
 | **To downstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `jetbridge_connection_status`, `door_opening_status` |
-| **From upstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `acu_connection_status`, `gpu_connection_status`, `wheelchocks_installation_status`, `jetbridge_connection_status`, `stairtruck_connection_status`, `deplaning_equipment_type` |
+| **From upstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `acu_connection_status`, `gpu_connection_status`, `wheels_chocks_installation_status`, `jetbridge_connection_status`, `stairtruck_connection_status`, `deplaning_equipment_type` |
 | **From downstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `acu_connection_status`, `gpu_connection_status`, `jetbridge_connection_status`, `stairtruck_connection_status`, `deplaning_equipment_type`, `door_opening_status` |
 
 > Note: `to_downstream` carries only 6 fields and is missing `stairtruck_connection_status` and `deplaning_equipment_type`. Downstream networks receiving this network's output via sly_data will not have those fields propagated to them through `to_downstream`.
@@ -281,20 +283,12 @@ The jetbridge is connected to the plane. Open the aircraft door."
 
 | Issue | Location | Notes |
 |---|---|---|
-| Agent name mismatch with prior documentation | `aircraft_door_opening.hocon` line 90 | Agent is `door_opening_agent`, not `aircraft_door_opening_agent` as previously documented. |
-| `door_operator` docstring lists parameters it does not use | `aircraft_door_opening.py` lines 40–48 | Docstring lists `acu_connection_status`, `gpu_connection_status`, and `wheels_chocks_installation status` as sly_data keys. None are read by the operator logic. Copy from an earlier template. |
-| `wheelchocks_installation_status` parameter name typo | `aircraft_door_opening.hocon` line 138 | Parameter is named `wheelchocks_installation_status` (missing underscore). Python `FLIGHT_TURNAROUND_TRACKED_FIELDS` and other networks use `wheels_chocks_installation_status`. The field is not tracked by this network's TrackerAPI so no sly_data mismatch occurs, but the HOCON parameter schema is inconsistent. |
-| `to_downstream` missing `stairtruck_connection_status` and `deplaning_equipment_type` | `aircraft_door_opening.hocon` lines 227–235 | Only 6 fields propagate downstream. Networks receiving door opening results downstream will not have `stairtruck_connection_status` or `deplaning_equipment_type` from this network's `to_downstream`. |
 | `door_operator` does not check if door is already open | `aircraft_door_opening.py` line 147 | The operator always sets `door_opening_status = open` if equipment is connected, with no check for whether it was already open. This is safe but means calling the operator on an already-open door produces the same result as on a closed one. |
-| `door_opening_status` initial value is `closed` (not `pending`) | `aircraft_door_opening.py` line 54 | Unlike other operators in the system which initialize status as `pending`, this operator initializes as `closed`. Consistent with the domain, but different from the system-wide pattern. |
-| Hardcoded log path comment | `aircraft_door_opening.py` line 52 | Commented-out absolute path remains; active path uses `Path.cwd()`. |
 
 ---
 
 ## 10. Extensibility Guidance
 
-- Add `stairtruck_connection_status` and `deplaning_equipment_type` to `to_downstream` for complete context propagation to networks receiving door opening results
-- Align `wheelchocks_installation_status` parameter name to `wheels_chocks_installation_status` for consistency with the rest of the system
 - Add an idempotency check in `door_operator`: if `door_opening_status` is already `open` in `sly_data`, skip the operation and return immediately
 - Clean up `door_operator` docstring to accurately reflect the parameters it actually reads
 - Consider adding `door_opening_status` as an input check (skip to Step 4 return if already `open`), reducing unnecessary `door_operator` calls when called from downstream networks that already confirmed the door open

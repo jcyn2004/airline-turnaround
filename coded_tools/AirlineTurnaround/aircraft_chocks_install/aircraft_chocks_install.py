@@ -45,7 +45,6 @@ class wheels_chocks_operator(CodedTool):
         :return: None in write mode or any of the parameters in read mode
         """
         
-        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
         wheels_chocks_installation_status = 'pending'
 
@@ -138,7 +137,6 @@ class wheels_chocks_operator(CodedTool):
 
             sly_data["wheels_chocks_installation_status"] = wheels_chocks_installation_status
 
-        # return message
         return wheels_chocks_installation_status
 
     async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:

@@ -127,8 +127,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "Inspection and maintenance status."                            
                         }, 
-                    }, 
-                    // "required": ["flight_number", "aircraft_type","gate_id","passenger_disembarkation_status","crew_exit_status","baggage_unload_status"]        
+                    },     
                     "required": ["flight_number", "aircraft_type","gate_id"]    
                 }
             },

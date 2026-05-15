@@ -6,7 +6,7 @@
         "description": "Simple agent network using a single LLM-based agent",
         "tags": ["example"],
         "sample_queries": [
-            "The B747 aircraft of flight AF84 is on blocks at gate A1. The engines are stopped and wheelchocks are ready. Install the wheelchocks.", 
+            "The B747 aircraft of flight AF84 is on blocks at gate A1. The engines are stopped and wheels chocks are ready. Install the wheels chocks.", 
         ]
     },
 
@@ -86,10 +86,10 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
     "tools": [
 
         {
-            "name": "wheelchocks_agent",
+            "name": "wheels_chocks_agent",
             "function": {
                 "description": """
- I am in charge of installing wheelchocks to the aircraft at the gate.
+ I am in charge of installing wheels chocks to the aircraft at the gate.
                 """
                 "parameters": {
                     "type": "object", 
@@ -98,6 +98,10 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "This is the type of the incoming aircraft."
                         },         
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
                         "flight_status": {
                             "type": "string", 
                             "description": "This is the flight status."
@@ -110,13 +114,13 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "This is the status of engines stop."
                         },     
-                        "wheelchocks_installation_status": {
+                        "wheels_chocks_installation_status": {
                             "type": "string", 
                             "description": "This is the status of wheels chocks installation."
                         },               
-                        "wheelchocks_readiness_status": {
+                        "wheels_chocks_readiness_status": {
                             "type": "string", 
-                            "description": "This is the wheelchocks readiness status."
+                            "description": "This is the wheels chocks readiness status."
                         },   
                     }, 
                     "required": ["aircraft_type","gate_id"] 
@@ -124,47 +128,47 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
             },
 
             "instructions": """
-You are the agent in charge of installing wheelchocks to the aircraft at the gate.  
-When user submit inquiry to install wheelchocks, proceed as follows: 
-1. Read the inquiry and determine if it is about wheelchocks installation. 
+You are the agent in charge of installing wheels chocks to the aircraft at the gate.  
+When user submit inquiry to install wheels chocks, proceed as follows: 
+1. Read the inquiry and determine if it is about wheels chocks installation. 
     a. If not, reply that you are not relevant to this inquiry and stop process here. 
-    b. If it is about wheelchocks installation, continue to step 2.
-2. Call "/AirlineTurnaround/aircraft_ground_wheelchocks_setup" to verify wheelchocks readiness status as wheelchocks_readiness_status with aircraft_type and gate_id 
-    a. wait for its response and store wheelchocks_readiness_status from the response
-    b. If wheelchocks_readiness_status is not explicitly confirmed as 'ready' or 'yes', return to user that wheelchocks is not ready and can not be installed, and stop process here.
-3. If wheelchocks_readiness_status is 'ready' or 'yes', find the following parameters from the inquiry: 
+    b. If it is about wheels chocks installation, continue to step 2.
+2. Call "/AirlineTurnaround/aircraft_ground_wheels_chocks_setup" to verify wheels chocks readiness status as wheels_chocks_readiness_status with aircraft_type and gate_id 
+    a. wait for its response and store wheels_chocks_readiness_status from the response
+    b. If wheels_chocks_readiness_status is not explicitly confirmed as 'ready' or 'yes', return to user that wheels chocks is not ready and can not be installed, and stop process here.
+3. If wheels_chocks_readiness_status is 'ready' or 'yes', find the following parameters from the inquiry: 
     a. flight status as flight_status with value such as 'on blocks', 
     b. engines stop status as engines_stop_status with value such as 'stopped' or 'running',
 4. If flight_status is not 'on blocks' or engines_stop_status is not 'stopped', 
     a. call TrackerAPI
     a. wait for its response 
     b. store engines_stop_status and flight_status from the response 
-5. If flight_status is not 'on blocks' or engines_stop_status is not 'stopped' or wheelchocks_readiness_status is not 'ready' or 'yes'
-    a. return to user that wheelchocks can not be installed unless flight_status is 'on blocks' and engines_stop_status is 'stopped' and wheelchocks_readiness_status is 'ready' or 'yes', and report the current status of these parameters.
+5. If flight_status is not 'on blocks' or engines_stop_status is not 'stopped' or wheels_chocks_readiness_status is not 'ready' or 'yes'
+    a. return to user that wheels chocks can not be installed unless flight_status is 'on blocks' and engines_stop_status is 'stopped' and wheels_chocks_readiness_status is 'ready' or 'yes', and report the current status of these parameters.
     b. stop process here.
-6. If flight_status is 'on blocks' and engines_stop_status is 'stopped' and wheelchocks_readiness_status is 'ready' or 'yes'
-    a. call your tools to install wheelchocks to aircraft
-    b. Wait for response on wheelchocks installation status and save it as wheelchocks_installation_status
-    c. Report wheelchocks_installation_status back to user.
+6. If flight_status is 'on blocks' and engines_stop_status is 'stopped' and wheels_chocks_readiness_status is 'ready' or 'yes'
+    a. call your tools to install wheels chocks to aircraft
+    b. Wait for response on wheels chocks installation status and save it as wheels_chocks_installation_status
+    c. Report wheels_chocks_installation_status back to user.
 7. Call TrackerAPI
     a. wait for its response 
-    b. store engines stop status as engines_stop_status, store wheels chucks installation status as wheels_chucks_installation_status, store wheelchocks readiness status as wheelchocks_readiness_status, store wheelchocks installation status as wheelchocks_installation_status
-8. Provide the wheelchocks installation status report summary as:
-    *******************************************
-    * Summary of aircraft wheelchocks install *
-    *******************************************
+    b. store engines stop status as engines_stop_status, store wheels chocks installation status as wheels_chocks_installation_status, store wheels chocks readiness status as wheels_chocks_readiness_status, store wheels chocks installation status as wheels_chocks_installation_status
+8. Provide the wheels chocks installation status report summary as:
+    *********************************************
+    * Summary of aircraft wheels chocks install *
+    *********************************************
     ** flight status **: [flight_status]
     ** engines stop status **: [engines_stop_status]
     ** wheels chocks installation status **: [wheels_chocks_installation_status]
-    ** wheelchocks readiness status **: [wheelchocks_readiness_status]
+    ** wheels chocks readiness status **: [wheels_chocks_readiness_status]
             """ ${aaosa_instructions},    
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {
                 "to_upstream": {
                     "sly_data": {
-                        "wheelchocks_installation_status": true
-                        "wheelchocks_readiness_status": true
+                        "wheels_chocks_installation_status": true
+                        "wheels_chocks_readiness_status": true
                     }
                 }
                 "to_downstream": {
@@ -174,8 +178,8 @@ When user submit inquiry to install wheelchocks, proceed as follows:
                         "flight_status": true
                         "gate_id": true 
                         "engines_stop_status": true
-                        "wheelchocks_installation_status": true
-                        "wheelchocks_readiness_status": true
+                        "wheels_chocks_installation_status": true
+                        "wheels_chocks_readiness_status": true
                     }
                 }
                 "from_upstream": {
@@ -185,8 +189,8 @@ When user submit inquiry to install wheelchocks, proceed as follows:
                         "flight_status": true
                         "gate_id": true 
                         "engines_stop_status": true
-                        "wheelchocks_installation_status": true
-                        "wheelchocks_readiness_status": true
+                        "wheels_chocks_installation_status": true
+                        "wheels_chocks_readiness_status": true
                     }
                 }
                 "from_downstream": {
@@ -196,24 +200,22 @@ When user submit inquiry to install wheelchocks, proceed as follows:
                         "flight_status": true
                         "gate_id": true 
                         "engines_stop_status": true
-                        "wheelchocks_installation_status": true
-                        "wheelchocks_readiness_status": true
+                        "wheels_chocks_installation_status": true
+                        "wheels_chocks_readiness_status": true
                     }
                 }
             },
 
-            "tools":    ["wheelchocks_operator",
-                        "/AirlineTurnaround/aircraft_ground_wheelchocks_setup",
+            "tools":    ["wheels_chocks_operator",
+                        "/AirlineTurnaround/aircraft_ground_wheels_chocks_setup",
                         "TrackerAPI"]
         },
 
-# "/AirlineTurnaround/aircraft_engines_stop","/AirlineTurnaround/aircraft_chocks_install",
-
         {
-            "name": "wheelchocks_operator",
+            "name": "wheels_chocks_operator",
             "function": {
                 "description": """
-This agent installs wheelchocks to the aircraft upon arrival at the gate. 
+This agent installs wheels chocks to the aircraft upon arrival at the gate. 
                 """,
                 "parameters": {
                     "type": "object", 
@@ -222,6 +224,10 @@ This agent installs wheelchocks to the aircraft upon arrival at the gate.
                             "type": "string", 
                             "description": "This is the type of the incoming aircraft."
                         },         
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
                         "flight_status": {
                             "type": "string", 
                             "description": "This is the flight status."
@@ -230,19 +236,19 @@ This agent installs wheelchocks to the aircraft upon arrival at the gate.
                             "type": "string", 
                             "description": "This is the gate where the aircraft is parked."
                         },    
-                        "wheelchocks_installation_status": {
+                        "wheels_chocks_installation_status": {
                             "type": "string", 
-                            "description": "This is the wheelchocks installation status."
+                            "description": "This is the wheels chocks installation status."
                         },         
-                        "wheelchocks_readiness_status": {
+                        "wheels_chocks_readiness_status": {
                             "type": "string", 
-                            "description": "This is the wheelchocks readiness status."
+                            "description": "This is the wheels chocks readiness status."
                         }
                     }, 
                     "required": ["aircraft_type","gate_id"] 
                 }
             },
-            "class": "AirlineTurnaround.aircraft_ground_wheelchocks_install.aircraft_ground_wheelchocks_install.wheelchocks_operator" 
+            "class": "AirlineTurnaround.aircraft_ground_wheels_chocks_install.aircraft_ground_wheels_chocks_install.wheels_chocks_operator" 
         }, 
 
         {
@@ -252,7 +258,7 @@ This agent installs wheelchocks to the aircraft upon arrival at the gate.
                 "description": """
 I am the flight tracker in charge of logging parameters during aircraft turnaround. 
 I check engines stop status as engines_stop_status. 
-I check wheels chucks installation status as wheels_chucks_installation_status. 
+I check wheels chocks installation status as wheels_chocks_installation_status. 
                 """
 
                 "parameters": {
@@ -274,11 +280,11 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                             "type": "string", 
                             "description": "This is the gate assigned to the aircraft parking."
                         },          
-                        "wheelchocks_readiness_status": {
+                        "wheels_chocks_readiness_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks readiness status."
                         },   
-                        "wheelchocks_installation_status": {
+                        "wheels_chocks_installation_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks installation status."
                         },      
@@ -298,7 +304,7 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                     "required": [] 
                 }
             },
-            "class": "AirlineTurnaround.aircraft_ground_wheelchocks_install.aircraft_ground_wheelchocks_install.TrackerAPI" 
+            "class": "AirlineTurnaround.aircraft_ground_wheels_chocks_install.aircraft_ground_wheels_chocks_install.TrackerAPI" 
         }, 
     ],
 }

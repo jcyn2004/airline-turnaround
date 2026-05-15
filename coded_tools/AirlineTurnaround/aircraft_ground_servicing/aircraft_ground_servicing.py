@@ -1,20 +1,5 @@
 
 
-# import json 
-
-
-
-# import random
-# import os
-# import platform
-# import fcntl
-
-# import asyncio
-
-
-
-
-
 from datetime import datetime
 import time
 from neuro_san.interfaces.coded_tool import CodedTool
@@ -27,9 +12,6 @@ import pandas as pd
 from pathlib import Path
 
 import sys
-print("Python path:", sys.path)
-print("Current file:", __file__)
-print("Package:", __package__)
 
 def _from_args_or_sly(args: Dict[str, Any], sly: Dict[str, Any], key: str) -> Any:
     """Prefer args[key]; fallback to sly_data[key]."""
@@ -333,7 +315,7 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
     "gate_id",
     "assigned_runway_id",
     "assigned_runway_length",
-    "wheelchocks_readiness_status",
+    "wheels_chocks_readiness_status",
     "acu_readiness_status",
     "gpu_readiness_status",
     "aircraft_direction",
@@ -346,6 +328,8 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
     "baggage_unload_status",
     "inspection_maintenance_status",
     "fueling_status",
+    "stairtruck_connection_status",
+    "deplaning_equipment_type"
 ]
 
 # Define which fields should be returned from the API
@@ -357,7 +341,7 @@ FLIGHT_TURNAROUND_RETURN_FIELDS = [
     "gate_id",
     "assigned_runway_id",
     "assigned_runway_length",
-    "wheelchocks_readiness_status",
+    "wheels_chocks_readiness_status",
     "acu_readiness_status",
     "gpu_readiness_status",
     "aircraft_direction",
@@ -370,6 +354,8 @@ FLIGHT_TURNAROUND_RETURN_FIELDS = [
     "baggage_unload_status",
     "inspection_maintenance_status",
     "fueling_status",
+    "stairtruck_connection_status",
+    "deplaning_equipment_type"
 ]
 
 # =============================================================================

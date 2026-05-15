@@ -160,10 +160,32 @@ Make sure that user provides flight status such as on blocks or landed.
                         "wheels_chocks_installation_status": true
                     }
                 }
+                "to_downstream": {
+                    "sly_data": {
+                        "flight_number": true
+                        "aircraft_type": true
+                        "flight_status": true
+                        "gate_id": true
+                        "wheels_chocks_installation_status": true
+                    }
+                }
+                "from_downstream": {
+                    "sly_data": {
+                        "flight_number": true
+                        "aircraft_type": true
+                        "flight_status": true
+                        "gate_id": true
+                        "wheels_chocks_installation_status": true
+                    }
+                }                
             },
 
             "tools":    ["TrackerAPI","wheels_chocks_operator"]
         },
+
+
+wheels_chocks_installation_status
+
 
         {
             "name": "wheels_chocks_operator",
@@ -234,11 +256,11 @@ I check the flight status.
                             "type": "string", 
                             "description": "This is the type of the inquiry received for grand services."
                         },         
-                        "wheelchocks_readiness_status": {
+                        "wheels_chocks_readiness_status": {
                             "type": "string", 
                             "description": "This is the wheelchocks readiness status."
                         },   
-                        "wheelchocks_installation_status": {
+                        "wheels_chocks_installation_status": {
                             "type": "string", 
                             "description": "This is the wheelchocks installation status."
                         },   
@@ -262,7 +284,6 @@ I check the flight status.
                             "type": "string", 
                             "description": "This is the jetbridge connection status."
                         },    
-
                         "door_opening_status": {
                             "type": "string", 
                             "description": "This is the door opening status."

@@ -83,27 +83,27 @@ The single entry-point agent. Its defining design principle, stated explicitly i
 |-----------------------------------|--------|:--------:|--------------------------------------------|
 | Parameter                         | Type   | Required | Description                                |
 |-----------------------------------|--------|:--------:|--------------------------------------------|
-| `aircraft_type`                   | string | ✅       | Aircraft model/type                        |
-| `flight_number`                   | string | ❌       | Flight identifier                          |
-| `flight_status`                   | string | ❌       | Current flight status                      |
-| `gate_id`                         | string | ❌       | Gate identifier                            |
-| `engines_stop_status`             | string | ❌       | Required for BRANCH B                      |
-| `wheelchocks_readiness_status`    | string | ❌       | Required for BRANCH B                      |
-| `acu_readiness_status`            | string | ❌       | Required for BRANCH B                      |
-| `gpu_readiness_status`            | string | ❌       | Required for BRANCH B                      |
-| `wheelchocks_installation_status` | string | ❌       | Output of BRANCH B                         |
-| `acu_connection_status`           | string | ❌       | Output of BRANCH B                         |
-| `gpu_connection_status`           | string | ❌       | Output of BRANCH B                         |
-| `jetbridge_connection_status`     | string | ❌       | Required for BRANCH C                      |
-| `stairtruck_connection_status`    | string | ❌       | Required for BRANCH C                      |
-| `deplaning_equipment_type`        | string | ❌       | Required for BRANCH C                      |
-| `door_opening_status`             | string | ❌       | Required for BRANCH C                      |
-| `passenger_disembarkation_status` | string | ❌       | Required for BRANCH C                      |
-| `crew_exit_status`                | string | ❌       | Required for BRANCH C                      |
-| `baggage_unload_status`           | string | ❌       | Output of BRANCH C (baggage path)          |
-| `inspection_maintenance_status`   | string | ❌       | Output of BRANCH C (inspection path)       |
-| `fueling_status`                  | string | ❌       | Output of BRANCH C (fueling path)          |
-| `instruction`                     | string | ❌       | **Routing discriminant** — see table below |
+| `aircraft_type`                   | string |    ✅     | Aircraft model/type                        |
+| `flight_number`                   | string |    ❌     | Flight identifier                          |
+| `flight_status`                   | string |    ❌     | Current flight status                      |
+| `gate_id`                         | string |    ❌     | Gate identifier                            |
+| `engines_stop_status`             | string |    ❌     | Required for BRANCH B                      |
+| `wheels_chocks_readiness_status`    | string |    ❌     | Required for BRANCH B                      |
+| `acu_readiness_status`            | string |    ❌     | Required for BRANCH B                      |
+| `gpu_readiness_status`            | string |    ❌     | Required for BRANCH B                      |
+| `wheels_chocks_installation_status` | string |    ❌     | Output of BRANCH B                         |
+| `acu_connection_status`           | string |    ❌     | Output of BRANCH B                         |
+| `gpu_connection_status`           | string |    ❌     | Output of BRANCH B                         |
+| `jetbridge_connection_status`     | string |    ❌     | Required for BRANCH C                      |
+| `stairtruck_connection_status`    | string |    ❌     | Required for BRANCH C                      |
+| `deplaning_equipment_type`        | string |    ❌     | Required for BRANCH C                      |
+| `door_opening_status`             | string |    ❌     | Required for BRANCH C                      |
+| `passenger_disembarkation_status` | string |    ❌     | Required for BRANCH C                      |
+| `crew_exit_status`                | string |    ❌     | Required for BRANCH C                      |
+| `baggage_unload_status`           | string |    ❌     | Output of BRANCH C (baggage path)          |
+| `inspection_maintenance_status`   | string |    ❌     | Output of BRANCH C (inspection path)       |
+| `fueling_status`                  | string |    ❌     | Output of BRANCH C (fueling path)          |
+| `instruction`                     | string |    ❌     | **Routing discriminant** — see table below |
 |-----------------------------------|--------|:--------:|--------------------------------------------|
 
 #### Instruction routing table
@@ -136,13 +136,13 @@ The single entry-point agent. Its defining design principle, stated explicitly i
 
 #### BRANCH A — Ground readiness check (STEP 4)
 
-**STEP 1:** Call `/AirlineTurnaround/aircraft_ground_readiness` with `aircraft_type`, `gate_id`. Wait. Extract `acu_readiness_status`, `gpu_readiness_status`, `wheelchocks_readiness_status`. **Return sub-agent response verbatim.**
+**STEP 1:** Call `/AirlineTurnaround/aircraft_ground_readiness` with `aircraft_type`, `gate_id`. Wait. Extract `acu_readiness_status`, `gpu_readiness_status`, `wheels_chocks_readiness_status`. **Return sub-agent response verbatim.**
 
 ---
 
 #### BRANCH B — Ground ramp services (STEP 8)
 
-**STEP 1:** Call `/AirlineTurnaround/aircraft_ground_rampservices` with `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `engines_stop_status`, `wheelchocks_readiness_status`, `acu_readiness_status`, `gpu_readiness_status`. Wait. Extract `wheelchocks_installation_status`, `acu_connection_status`, `gpu_connection_status`. **Return sub-agent response verbatim.**
+**STEP 1:** Call `/AirlineTurnaround/aircraft_ground_rampservices` with `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `engines_stop_status`, `wheels_chocks_readiness_status`, `acu_readiness_status`, `gpu_readiness_status`. Wait. Extract `wheels_chocks_installation_status`, `acu_connection_status`, `gpu_connection_status`. **Return sub-agent response verbatim.**
 
 > Note: `aircraft_ground_rampservices` is a sub-network not individually documented in the README series so far. It handles wheelchocks installation, ACU connection, and GPU connection as a single consolidated ramp service operation.
 
@@ -160,7 +160,7 @@ The single entry-point agent. Its defining design principle, stated explicitly i
 
 All four directions carry the same 20-field set:
 
-`flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `engines_stop_status`, `wheelchocks_readiness_status`, `acu_readiness_status`, `gpu_readiness_status`, `wheelchocks_installation_status`, `acu_connection_status`, `gpu_connection_status`, `jetbridge_connection_status`, `stairtruck_connection_status`, `deplaning_equipment_type`, `door_opening_status`, `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status`, `inspection_maintenance_status`, `fueling_status`
+`flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `engines_stop_status`, `wheels_chocks_readiness_status`, `acu_readiness_status`, `gpu_readiness_status`, `wheels_chocks_installation_status`, `acu_connection_status`, `gpu_connection_status`, `jetbridge_connection_status`, `stairtruck_connection_status`, `deplaning_equipment_type`, `door_opening_status`, `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status`, `inspection_maintenance_status`, `fueling_status`
 
 > Note: `instruction` is in the agent parameter schema but **absent from all four sly_data allow blocks**. It must always be passed as an explicit named parameter by the caller — it will not flow through sly_data automatically. This is correct by design for an instruction-routing network.
 
@@ -191,7 +191,7 @@ This is unique among all aggregation networks: `aircraft_cabin_services` calls T
 
 #### HOCON schema fields (inferred tracked fields)
 
-`flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `engines_stop_status`, `wheelchocks_readiness_status`, `acu_readiness_status`, `gpu_readiness_status`, `wheelchocks_installation_status`, `acu_connection_status`, `gpu_connection_status`, `door_opening_status`, `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status`, `inspection_maintenance_status`, `fueling_status`
+`flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `engines_stop_status`, `wheels_chocks_readiness_status`, `acu_readiness_status`, `gpu_readiness_status`, `wheels_chocks_installation_status`, `acu_connection_status`, `gpu_connection_status`, `door_opening_status`, `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status`, `inspection_maintenance_status`, `fueling_status`
 
 > Note: The HOCON TrackerAPI schema correctly includes `"required": []`.
 
@@ -204,8 +204,8 @@ This is unique among all aggregation networks: `aircraft_cabin_services` calls T
 |---------------------------------------------------|----------|------------------|-------------------------------------------------------------------------------------|
 | Sub-network path                                  | Branch   | Turnaround steps | Output fields                                                                       |
 |---------------------------------------------------|----------|------------------|-------------------------------------------------------------------------------------|
-| `/AirlineTurnaround/aircraft_ground_readiness`    | BRANCH A | STEP 4           | `acu_readiness_status`, `gpu_readiness_status`, `wheelchocks_readiness_status`      |
-| `/AirlineTurnaround/aircraft_ground_rampservices` | BRANCH B | STEP 8           | `wheelchocks_installation_status`, `acu_connection_status`, `gpu_connection_status` |
+| `/AirlineTurnaround/aircraft_ground_readiness`    | BRANCH A | STEP 4           | `acu_readiness_status`, `gpu_readiness_status`, `wheels_chocks_readiness_status`      |
+| `/AirlineTurnaround/aircraft_ground_rampservices` | BRANCH B | STEP 8           | `wheels_chocks_installation_status`, `acu_connection_status`, `gpu_connection_status` |
 | `/AirlineTurnaround/aircraft_ground_servicing`    | BRANCH C | STEPs 12, 18, 19 | `baggage_unload_status` / `inspection_maintenance_status` / `fueling_status`        |
 |---------------------------------------------------|----------|------------------|-------------------------------------------------------------------------------------|
 
@@ -244,14 +244,12 @@ This is unique among all aggregation networks: `aircraft_cabin_services` calls T
 
 ## 8. Known Issues and Maintenance Notes
 
-| Issue | Location | Severity | Notes |
-|---|---|:---:|---|
-| TrackerAPI registered but never called by instructions | `aircraft_ground_operation.hocon` line 373 | Medium | All three branches return sub-agent response verbatim without calling TrackerAPI. State persistence is delegated to downstream sub-networks. This is intentional by design but means the local TrackerAPI never runs. Consider removing it from the tools list to avoid confusion, or document the delegation intent more explicitly. |
-| `instruction` absent from all sly_data allow blocks | `aircraft_ground_operation.hocon` lines 273–369 | Medium | Callers must always pass `instruction` as an explicit named parameter. It will not flow through sly_data from a prior call. This is correct for a routing network but differs from patterns in `aircraft_cabin_services` and `aircraft_gate_services`. |
-| Python implementation file not uploaded | — | Info | TrackerAPI class path is known; tracked fields inferred from HOCON schema only. |
-| `'check'` keyword in BRANCH A is overly broad | `aircraft_ground_operation.hocon` line 212 | Low | Matches any instruction containing `'check'`, not just ground readiness checks. Could misroute `'check connection status'` or similar. |
-| `aircraft_ground_rampservices` sub-network not individually documented | — | Info | This is the only sub-network in the turnaround system without a README in this series so far. |
-| No verbatim-return enforcement for TrackerAPI | `aircraft_ground_operation.hocon` instructions | Low | The instructions say to return sub-agent responses verbatim, but don't explicitly forbid spontaneous TrackerAPI calls. An LLM may occasionally call TrackerAPI between the sub-agent call and the return. |
+| Issue                                                                  | Location                                        | Severity | Notes                                                                                                                                                                                                                                                                                                                                 |
+|------------------------------------------------------------------------|-------------------------------------------------|:--------:|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `instruction` absent from all sly_data allow blocks                    | `aircraft_ground_operation.hocon` lines 273–369 |  Medium  | Callers must always pass `instruction` as an explicit named parameter. It will not flow through sly_data from a prior call. This is correct for a routing network but differs from patterns in `aircraft_cabin_services` and `aircraft_gate_services`.                                                                                |
+| Python implementation file not uploaded                                | —                                               |   Info   | TrackerAPI class path is known; tracked fields inferred from HOCON schema only.                                                                                                                                                                                                                                                       |
+| `'check'` keyword in BRANCH A is overly broad                          | `aircraft_ground_operation.hocon` line 212      |   Low    | Matches any instruction containing `'check'`, not just ground readiness checks. Could misroute `'check connection status'` or similar.                                                                                                                                                                                                |
+| No verbatim-return enforcement for TrackerAPI                          | `aircraft_ground_operation.hocon` instructions  |   Low    | The instructions say to return sub-agent responses verbatim, but don't explicitly forbid spontaneous TrackerAPI calls. An LLM may occasionally call TrackerAPI between the sub-agent call and the return.                                                                                                                             |
 
 ---
 
@@ -296,11 +294,8 @@ The `instruction` string must contain keywords that satisfy both routing layers.
 
 ## 11. Extensibility Guidance
 
-- If TrackerAPI is intended to be called (e.g. to persist state at the aggregation level), add explicit TrackerAPI call steps to each branch's instructions
-- If TrackerAPI is never intended to be called here, consider removing it from the tools list to prevent unintended spontaneous calls by the LLM
 - Add `instruction` to the sly_data allow blocks if it should persist across calls (currently requires explicit passing every time)
 - Fix the `'check'` keyword match to require `'readiness'` specifically, or use `'check readiness'` as the compound trigger
-- `aircraft_ground_rampservices` should be documented as part of this README series
 
 ---
 

@@ -79,11 +79,11 @@ The entry-point agent. It determines whether the inquiry is about ACU readiness 
 
 #### Input parameters
 
-| Parameter | Type | Required | Description |
-|---|---|:---:|---|
-| `aircraft_type` | string | ✅ | Aircraft model/type |
-| `gate_id` | string | ✅ | Gate where the aircraft is assigned |
-| `acu_readiness_status` | string | ❌ | Current readiness status if already known |
+| Parameter              | Type   | Required | Description                               |
+|------------------------|--------|:--------:|-------------------------------------------|
+| `aircraft_type`        | string |    ✅     | Aircraft model/type                       |
+| `gate_id`              | string |    ✅     | Gate where the aircraft is assigned       |
+| `acu_readiness_status` | string |    ❌     | Current readiness status if already known |
 
 #### Orchestration flow
 
@@ -101,11 +101,11 @@ The instructions describe two distinct inquiry types handled by a single numbere
 
 #### sly_data contract
 
-| Direction | Parameters |
-|---|---|
-| **To upstream** | `aircraft_type`, `gate_id`, `acu_readiness_status` |
-| **To downstream** | `aircraft_type`, `gate_id`, `acu_readiness_status` |
-| **From upstream** | `aircraft_type`, `gate_id`, `acu_readiness_status` |
+| Direction           | Parameters                                         |
+|---------------------|----------------------------------------------------|
+| **To upstream**     | `aircraft_type`, `gate_id`, `acu_readiness_status` |
+| **To downstream**   | `aircraft_type`, `gate_id`, `acu_readiness_status` |
+| **From upstream**   | `aircraft_type`, `gate_id`, `acu_readiness_status` |
 | **From downstream** | `aircraft_type`, `gate_id`, `acu_readiness_status` |
 
 > Note: All four sly_data directions carry the same three fields. This is the most symmetric sly_data contract in the system. `flight_number` and `flight_status` are absent — this network operates on gate identity only.
@@ -126,10 +126,10 @@ Reads ACU readiness from `gate_equipments_base.csv`. It filters by `gate_id`, re
 
 #### Input parameters
 
-| Parameter | Type | Required | Source priority |
-|---|---|:---:|---|
-| `aircraft_type` | string | ✅ | `args` → `sly_data` |
-| `gate_id` | string | ✅ | `args` → `sly_data` |
+| Parameter       | Type   | Required | Source priority     |
+|-----------------|--------|:--------:|---------------------|
+| `aircraft_type` | string |    ✅     | `args` → `sly_data` |
+| `gate_id`       | string |    ✅     | `args` → `sly_data` |
 
 #### Readiness lookup logic
 
@@ -281,17 +281,11 @@ This network has no external tool dependencies. The `registries/aaosa_basic.hoco
 
 ## 10. Known Issues and Maintenance Notes
 
-| Issue | Location | Severity | Notes |
-|---|---|:---:|---|
-| `acu_operator` present in Python but not in HOCON tools | `aircraft_ground_acu_setup.py` lines 125–223 / HOCON tools list | High | The operator is unreachable at runtime. If the agent receives an ACU connection inquiry, it has no tool to fulfill it. Either register `acu_operator` in the HOCON tools array or remove the class from the Python file. |
-| **`NameError` in `acu_operator`** | `aircraft_ground_acu_setup.py` line 217 | **Critical** (if activated) | `acu_connection_status` only assigned in the `if` block; `return acu_connection_status` will raise `NameError` on failure. Line 142 shows the fix (`# acu_connection_status = 'pending'`) was intentionally commented out. |
-| `acu_setup` does not filter by `aircraft_type` | `aircraft_ground_acu_setup.py` line 98 | Medium | The DataFrame is filtered only by `gate_id`. If the same gate can serve multiple aircraft types with different ACU readiness values, this could return the wrong row. |
-| `IndexError` if `gate_id` not in CSV | `aircraft_ground_acu_setup.py` line 105 | Medium | `acu_readiness_status.values[0]` will raise `IndexError` if no rows match `gate_id`. No guard is in place. |
-| `file_path_log` defined but never used | `aircraft_ground_acu_setup.py` line 48 | Low | Unlike all other operators, `acu_setup` does not write a log entry. The path variable is dead code. |
-| CSV path hardcoded to `aircraft_gate_selection` directory | `aircraft_ground_acu_setup.py` line 47 | Low | Path crosses module boundaries. If `aircraft_gate_selection` is moved or renamed, `acu_setup` will fail with `FileNotFoundError`. Consider making the path configurable or using a shared constant. |
-| HOCON TrackerAPI description references `wheels_chucks_installation_status` | `aircraft_ground_acu_setup.hocon` line 206 | Low | Stale copy-paste artifact. Field is not tracked by this network. |
-| Instructions describe ACU connection handling but no connection tool is registered | `aircraft_ground_acu_setup.hocon` line 118 / tools list | Low | Orchestrator instructions mention handling connection inquiries (step 1) but `acu_operator` is not in the tools array. |
-| Step 3c says "stop process here" but steps 4–5 follow in the same flow | `aircraft_ground_acu_setup.hocon` lines 123–133 | Low | Steps 4 and 5 are only reachable if the LLM does not strictly follow the "stop process here" instruction. The flow logic is ambiguous — TrackerAPI and summary steps may or may not execute depending on LLM behavior. |
+| Issue      | Location |           Severity          | Notes      |
+|------------|----------|:---------------------------:|------------|
+|            |          |            Medium           |            |
+|            |          |            Medium           |            |
+|            |          |             Low             |            |
 
 ---
 
@@ -309,11 +303,7 @@ aircraft_ground_acu_connect     ─── calls  → aircraft_ground_acu_setup (
 
 ## 12. Extensibility Guidance
 
-- Register `acu_operator` in the HOCON tools array (if ACU connection from this network is desired), and fix the `NameError` by uncommenting `acu_connection_status = 'pending'` on line 142
-- Add `aircraft_type` as a filter condition in the CSV lookup (`df[(df['gate_id'] == gate_id) & (df['aircraft_type'] == aircraft_type)]`) for correctness when multiple aircraft types share a gate
-- Add `IndexError` guard around `acu_readiness_status.values[0]` — return an error string if no matching gate is found
-- Add a log write call to `acu_setup` (consistent with other operators in the system)
-- Make the CSV path configurable via a constructor parameter or shared constant rather than hardcoded cross-module reference
+- 
 
 ---
 

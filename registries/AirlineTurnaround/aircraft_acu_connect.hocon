@@ -275,11 +275,11 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                             "type": "string", 
                             "description": "This is the type of the inquiry received for grand services."
                         },         
-                        "wheelchocks_readiness_status": {
+                        "wheels_chocks_readiness_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks readiness status."
                         },   
-                        "wheelchocks_installation_status": {
+                        "wheels_chocks_installation_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks installation status."
                         },   
@@ -290,11 +290,7 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                         "acu_connection_status": {
                             "type": "string", 
                             "description": "This is the acu connection status."
-                        },     
-                        "acu_connection_status": {
-                            "type": "string", 
-                            "description": "This is the acu connection status."
-                        },     
+                        },       
                         "engines_stop_status": {
                             "type": "string", 
                             "description": "This is the engines stop status."

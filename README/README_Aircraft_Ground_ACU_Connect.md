@@ -51,7 +51,7 @@ acu_agent  (LLM Orchestrator)
 ### Design principles
 
 - **ACU readiness gate — first:** Before any safety-state check, the orchestrator calls `aircraft_ground_acu_setup` to confirm `acu_readiness_status = 'ready'` or `'yes'`. If not confirmed, the workflow stops immediately.
-- **Four-prerequisite enforcement:** Only after ACU readiness is confirmed does the orchestrator check: `flight_status = on blocks`, `engines_stop_status = stopped`, `wheelchocks_installation_status = installed`. All four must be satisfied before `acu_operator` is called.
+- **Four-prerequisite enforcement:** Only after ACU readiness is confirmed does the orchestrator check: `flight_status = on blocks`, `engines_stop_status = stopped`, `wheels_chocks_installation_status = installed`. All four must be satisfied before `acu_operator` is called.
 - **Operator checks readiness only:** Unlike `aircraft_acu_connect`, `acu_operator` here does not re-check engines or chocks — it only validates `acu_readiness_status`. The safety prerequisites are enforced exclusively by the orchestrator.
 - **sly_data-first for readiness:** `acu_operator` reads `acu_readiness_status` from `sly_data` first, then falls back to `args`.
 - **Structured output:** The agent returns a formatted summary including all four prerequisite statuses.
@@ -80,15 +80,15 @@ The entry-point agent. It first verifies ACU readiness via an external network, 
 
 #### Input parameters
 
-| Parameter | Type | Required | Description |
-|---|---|:---:|---|
-| `aircraft_type` | string | ✅ | Aircraft model/type |
-| `gate_id` | string | ✅ | Gate where the aircraft is parked |
-| `flight_status` | string | ❌ | Expected: `on blocks` |
-| `engines_stop_status` | string | ❌ | Expected: `stopped` |
-| `wheelchocks_installation_status` | string | ❌ | Expected: `installed` (note: no underscore between "wheel" and "chocks") |
-| `acu_connection_status` | string | ❌ | Current or previous ACU connection status |
-| `acu_readiness_status` | string | ❌ | ACU readiness from setup network |
+| Parameter                         | Type   | Required | Description                                                              |
+|-----------------------------------|--------|:--------:|--------------------------------------------------------------------------|
+| `aircraft_type`                   | string |    ✅     | Aircraft model/type                                                      |
+| `gate_id`                         | string |    ✅     | Gate where the aircraft is parked                                        |
+| `flight_status`                   | string |    ❌     | Expected: `on blocks`                                                    |
+| `engines_stop_status`             | string |    ❌     | Expected: `stopped`                                                      |
+| `wheels_chocks_installation_status` | string |    ❌     | Expected: `installed` (note: no underscore between "wheel" and "chocks") |
+| `acu_connection_status`           | string |    ❌     | Current or previous ACU connection status                                |
+| `acu_readiness_status`            | string |    ❌     | ACU readiness from setup network                                         |
 
 > Note: `flight_number` is absent from the HOCON agent parameter schema (it is not in the `properties` object or `required` array), though it flows through sly_data and is tracked by `TrackerAPI`.
 
@@ -98,7 +98,7 @@ The instructions use older numbered-prose style (not `CRITICAL: sequential execu
 
 1. Read the inquiry — confirm it is about ACU connection. If not → stop.
 2. Call `/AirlineTurnaround/aircraft_ground_acu_setup` with `aircraft_type` and `gate_id`. Wait. Store `acu_readiness_status`. If not explicitly `ready` or `yes` → **stop and report ACU not ready.**
-3. With ACU readiness confirmed, read from the inquiry: `flight_status`, `engines_stop_status`, `wheelchocks_installation_status`.
+3. With ACU readiness confirmed, read from the inquiry: `flight_status`, `engines_stop_status`, `wheels_chocks_installation_status`.
 4. If any of the three safety prerequisites are unmet → call `TrackerAPI`. Wait. Store `engines_stop_status`, `wheels_chucks_installation_status` (typo — see Known Issues), `flight_status`.
 5. If still any prerequisite unmet OR `acu_readiness_status` not `ready`/`yes` → stop and report current statuses.
 6. All four prerequisites confirmed → call `acu_operator`. Wait. Save result as `acu_connection_status`. Report.
@@ -111,14 +111,14 @@ The instructions use older numbered-prose style (not `CRITICAL: sequential execu
 
 #### sly_data contract
 
-| Direction | Parameters |
-|---|---|
-| **To upstream** | `acu_connection_status`, `acu_readiness_status` |
-| **To downstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `engines_stop_status`, `wheelchocks_installation_status`, `acu_connection_status`, `acu_readiness_status` |
-| **From upstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `engines_stop_status`, `wheelchocks_installation_status`, `acu_connection_status`, `acu_readiness_status` |
-| **From downstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `engines_stop_status`, `wheelchocks_installation_status`, `acu_connection_status`, `acu_readiness_status` |
+| Direction           | Parameters                                                                                                                                                              |
+|---------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **To upstream**     | `acu_connection_status`, `acu_readiness_status`                                                                                                                         |
+| **To downstream**   | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `engines_stop_status`, `wheels_chocks_installation_status`, `acu_connection_status`, `acu_readiness_status` |
+| **From upstream**   | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `engines_stop_status`, `wheels_chocks_installation_status`, `acu_connection_status`, `acu_readiness_status` |
+| **From downstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `engines_stop_status`, `wheels_chocks_installation_status`, `acu_connection_status`, `acu_readiness_status` |
 
-> Note: The sly_data blocks use `wheelchocks_installation_status` (no underscore between "wheel" and "chocks"). The Python `FLIGHT_TURNAROUND_TRACKED_FIELDS` uses `wheels_chocks_installation_status` (with underscore). These are different field names. Values stored under one name will not be found when the other name is looked up.
+> Note: The sly_data blocks use `wheels_chocks_installation_status` (no underscore between "wheel" and "chocks"). The Python `FLIGHT_TURNAROUND_TRACKED_FIELDS` uses `wheels_chocks_installation_status` (with underscore). These are different field names. Values stored under one name will not be found when the other name is looked up.
 
 > Note: `to_upstream` propagates both `acu_connection_status` and `acu_readiness_status` — broader than most other networks that propagate only the primary output status.
 
@@ -138,11 +138,11 @@ Connects the ACU. It validates `aircraft_type` and `gate_id`, then checks `acu_r
 
 #### Input parameters
 
-| Parameter | Type | Required | Source priority |
-|---|---|:---:|---|
-| `aircraft_type` | string | ✅ | `args` → `sly_data` |
-| `gate_id` | string | ✅ | `args` → `sly_data` |
-| `acu_readiness_status` | string | ✅ | **`sly_data` → `args`** (sly_data-first) |
+| Parameter              | Type   | Required | Source priority                          |
+|------------------------|--------|:--------:|------------------------------------------|
+| `aircraft_type`        | string |    ✅     | `args` → `sly_data`                      |
+| `gate_id`              | string |    ✅     | `args` → `sly_data`                      |
+| `acu_readiness_status` | string |    ✅     | **`sly_data` → `args`** (sly_data-first) |
 
 Unlike all other operators in the system, `acu_operator` does **not** check `engines_stop_status`, `wheels_chocks_installation_status`, or `flight_status`. Safety prerequisites are enforced by the orchestrator. The operator only validates ACU readiness.
 
@@ -204,7 +204,7 @@ The default configuration for this network is:
 **Return fields:**
 `acu_connection_status`, `acu_readiness_status`, `engines_stop_status`, `flight_status`, `wheels_chocks_installation_status`
 
-> Note: The Python `TrackerAPI` tracked/return fields use `wheels_chocks_installation_status` (with underscore). The HOCON sly_data blocks and TrackerAPI schema use `wheelchocks_installation_status` (no underscore). These are different field names and will not resolve to the same sly_data key. Values written by the orchestrator under `wheelchocks_installation_status` will not be found by `TrackerAPI` when it looks for `wheels_chocks_installation_status`.
+> Note: The Python `TrackerAPI` tracked/return fields use `wheels_chocks_installation_status` (with underscore). The HOCON sly_data blocks and TrackerAPI schema use `wheels_chocks_installation_status` (no underscore). These are different field names and will not resolve to the same sly_data key. Values written by the orchestrator under `wheels_chocks_installation_status` will not be found by `TrackerAPI` when it looks for `wheels_chocks_installation_status`.
 
 > Note: The HOCON `TrackerAPI` description references `"wheels_chucks_installation_status"` (double typo: missing underscore AND "chucks"). The Python uses the correct `wheels_chocks_installation_status`.
 
@@ -214,8 +214,8 @@ The default configuration for this network is:
 
 ## 6. External Tool Dependencies
 
-| Tool path | Purpose | When called |
-|---|---|---|
+| Tool path                                      | Purpose                                    | When called                                                   |
+|------------------------------------------------|--------------------------------------------|---------------------------------------------------------------|
 | `/AirlineTurnaround/aircraft_ground_acu_setup` | Verify ACU readiness at the specified gate | Step 2 — before any safety-state check; call is unconditional |
 
 ---
@@ -246,7 +246,7 @@ Connect the ACU."
 
 1. `/AirlineTurnaround/aircraft_ground_acu_setup` called (step 2) — returns `acu_readiness_status=ready`
 2. ACU readiness confirmed ✅
-3. Prerequisites read from inquiry: `flight_status=on blocks`, `engines_stop_status=stopped`, `wheelchocks_installation_status=installed`
+3. Prerequisites read from inquiry: `flight_status=on blocks`, `engines_stop_status=stopped`, `wheels_chocks_installation_status=installed`
 4. All four prerequisites met ✅ (step 5 check passes)
 5. `acu_operator` called — returns `acu_connection_status=connected`
 6. `TrackerAPI` called (step 7) — persists all status fields
@@ -273,7 +273,7 @@ Connect the ACU."
   "flight_status": "on blocks",
   "gate_id": "A1",
   "engines_stop_status": "stopped",
-  "wheelchocks_installation_status": "installed",
+  "wheels_chocks_installation_status": "installed",
   "acu_readiness_status": "ready",
   "acu_connection_status": "connected"
 }
@@ -283,18 +283,10 @@ Connect the ACU."
 
 ## 10. Known Issues and Maintenance Notes
 
-| Issue | Location | Severity | Notes |
-|---|---|:---:|---|
-| **`NameError` on failed readiness check** | `aircraft_ground_acu_connect.py` line 215 | **Critical** | `acu_connection_status` is only assigned inside the `if` block. `return acu_connection_status` raises `NameError` if readiness check fails. Fix: add `acu_connection_status = 'pending'` before the `if` block. |
-| **`wheelchocks_installation_status` vs `wheels_chocks_installation_status` mismatch** | HOCON sly_data blocks + TrackerAPI schema vs. Python `FLIGHT_TURNAROUND_TRACKED_FIELDS` | **High** | The HOCON uses `wheelchocks_installation_status` (no underscore). Python uses `wheels_chocks_installation_status` (with underscore). These are different sly_data keys — values will not be shared between the orchestrator and TrackerAPI. |
-| `acu_readiness_status` condition accepts `"not available"` | `aircraft_ground_acu_connect.py` line 196 | Medium | `'available' in "not available"` is `True`. The OR branch accepts "not available" as a valid readiness confirmation. Use exact matching: `acu_readiness_status in ('ready', 'yes', 'available')`. |
-| `'no' not in` guard has false positive risk | `aircraft_ground_acu_connect.py` line 196 | Medium | Any string containing `"no"` (e.g. `"unknown"`) would fail the guard even if valid. Use exact matching instead. |
-| `flight_number` absent from HOCON agent parameter schema | `aircraft_ground_acu_connect.hocon` line 94 | Low | `flight_number` is not in the agent's `properties` or `required` array, but it flows through sly_data and is tracked by `TrackerAPI`. |
-| Step 4 stores `wheels_chucks_installation_status` (double typo) | `aircraft_ground_acu_connect.hocon` lines 146, 156 | Low | "chucks" (not "chocks") and no underscore. Instructions consistently use this wrong field name. |
-| Step 6 does not name `acu_operator` explicitly | `aircraft_ground_acu_connect.hocon` line 151 | Low | "call your tools to connect ACU" — relies on the LLM selecting the right tool. More explicit instructions would reduce ambiguity. |
-| Commented-out `acu_setup` class (~90 lines) | `aircraft_ground_acu_connect.py` lines 30–121 | Low | Dead code from the original inline readiness implementation. Safe to remove now that `aircraft_ground_acu_setup` handles readiness. |
-| HOCON TrackerAPI description references `wheels_chucks_installation_status` | `aircraft_ground_acu_connect.hocon` line 262 | Low | Triple inconsistency with correct Python field name. |
-| Model selection history in comment | `aircraft_ground_acu_connect.hocon` line 14 | Info | Comment shows previously tested models (`gpt-4o`, `claude-haiku-4-5-20251001`, `claude-sonnet-4-6`). Informative but should be cleaned up for production. |
+| Issue   | Location          |   Severity   | Notes |
+|---------|-------------------|:------------:|-------|
+|         |                   | **Critical** |       |
+
 
 ---
 
@@ -302,22 +294,19 @@ Connect the ACU."
 
 This network extends `aircraft_acu_connect` with one additional prerequisite and a different operator design:
 
-| Aspect | `aircraft_acu_connect` | `aircraft_ground_acu_connect` |
-|---|---|---|
-| Prerequisites | on blocks, engines stopped, chocks installed | + ACU readiness (via external network) |
-| Readiness check | None | `/AirlineTurnaround/aircraft_ground_acu_setup` called first |
-| Operator checks | engines stopped + chocks installed | ACU readiness only |
-| Safety gate | Operator enforces engines + chocks | Orchestrator enforces all four; operator is readiness-only |
-| `flight_number` required | Yes | No (absent from schema; flows via sly_data) |
+| Aspect                   | `aircraft_acu_connect`                       | `aircraft_ground_acu_connect`                               |
+|--------------------------|----------------------------------------------|-------------------------------------------------------------|
+| Prerequisites            | on blocks, engines stopped, chocks installed | + ACU readiness (via external network)                      |
+| Readiness check          | None                                         | `/AirlineTurnaround/aircraft_ground_acu_setup` called first |
+| Operator checks          | engines stopped + chocks installed           | ACU readiness only                                          |
+| Safety gate              | Operator enforces engines + chocks           | Orchestrator enforces all four; operator is readiness-only  |
+| `flight_number` required | Yes                                          | No (absent from schema; flows via sly_data)                 |
 
 ---
 
 ## 12. Extensibility Guidance
 
-- Fix the `NameError` immediately: `acu_connection_status = 'pending'` before the `if` block on line 196
-- Align all `wheelchocks_installation_status` references in the HOCON to `wheels_chocks_installation_status` to match the Python TrackerAPI tracked fields
 - Replace the compound readiness condition with exact-value matching: `acu_readiness_status.strip().lower() in ('ready', 'yes', 'available')`
-- Remove the commented-out `acu_setup` class (~90 lines of dead code)
 - Upgrade to the `CRITICAL: sequential executor` / `STEP` pattern for more reliable LLM execution
 
 ---

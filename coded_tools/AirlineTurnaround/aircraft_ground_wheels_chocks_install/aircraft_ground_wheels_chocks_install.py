@@ -27,99 +27,7 @@ def _norm(s: Union[str, None]) -> str:
 
 # ---------- tool ----------
 
-# class wheelchocks_setup(CodedTool):
-#     """
-#     Read and return sly data in read mode, or write and update sly data in write. 
-#     """
-
-#     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
-#         """
-#         :param args: an empty dictionary (not used).
-
-#         :param sly_data: a dictionary with the following keys:
-#             - aircraft_type
-#             - gate_id 
-#             - wheelchocks_readiness_status
-
-#         :return: None in write mode or any of the parameters in read mode
-#         """
-
-#         equipments_csv_path = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_gate_selection" / "gate_equipments_base.csv" 
-#         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
-
-#         print("\n")
-#         print("\n")
-#         print(" #################### WHEELCHOCKS READINESS - PARAMETERS #################### ")
-#         print("\n")
-#         print("\n")
-
-#         # aircraft type is required to fulfill the request.
-#         aircraft_type: str = args.get("aircraft_type", None)
-#         if not aircraft_type:
-#             print("No aircraft type provided. Trying to get it from sly_data")
-#             aircraft_type = sly_data.get("aircraft_type")
-#         if not aircraft_type:
-#             error = "Error: Please provide an aircraft type for the request."
-#             print(error)
-#             return error  
-        
-#         print("\n")
-#         print("\n")
-#         print("aircraft_type: ", aircraft_type)
-#         print("\n")
-#         print("\n")
-         
-#         # gate id is required to fulfill the request.
-#         gate_id: str = args.get("gate_id", None)
-#         if not gate_id:
-#             print("No gate id provided. Trying to get it from sly_data")
-#             gate_id = sly_data.get("gate_id")
-#         if not gate_id:
-#             error = "Error: Please provide a gate id for the request."
-#             print(error)
-#             return error  
-        
-#         print("\n")
-#         print("\n")
-#         print("gate_id: ", gate_id)
-#         print("\n")
-#         print("\n")
-
-#         wheelchocks_readiness_status = "pending" 
-
-#         print("equipments_csv_path: ", equipments_csv_path)
-
-#         if ((gate_id is not None) & (aircraft_type is not None)):
-#             print("equipments_csv_path: ", equipments_csv_path)
-
-#             df = pd.read_csv(equipments_csv_path)
-#             print(df)
-
-#             wheelchocks_readiness_status = df.loc[df['gate_id'] == gate_id, 'wheelchocks_readiness']
-
-#             print("\n")
-#             print("\n")
-#             print("============================ WHEELCHOCKS READINESS STATUS CHECK =======================")
-#             print("ACU READINESS STATUS 1", wheelchocks_readiness_status)
-#             print("============================ WHEELCHOCKS READINESS STATUS CHECK =======================") 
-#             wheelchocks_readiness_status = wheelchocks_readiness_status.values[0] 
-#             print("ACU READINESS STATUS 2", wheelchocks_readiness_status)
-#             print("============================ WHEELCHOCKS READINESS STATUS CHECK =======================") 
-#             print("\n")
-#             print("\n")
-
-#             if wheelchocks_readiness_status == 'yes':
-#                 wheelchocks_readiness_status = "ready"
-
-#         return wheelchocks_readiness_status
-
-#     async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
-#         """
-#         Delegates to the synchronous invoke method because it's quick, non-blocking.
-#         """
-#         return self.invoke(args, sly_data)
-
-class wheelchocks_operator(CodedTool):
+class wheels_chocks_operator(CodedTool):
     """
     Read and return sly data in read mode, or write and update sly data in write. 
     """
@@ -131,16 +39,33 @@ class wheelchocks_operator(CodedTool):
         :param sly_data: a dictionary with the following keys:
             - aircraft_type
             - gate_id 
-            - wheelchocks_readiness_status
+            - wheels_chocks_readiness_status
 
         :return: None in write mode or any of the parameters in read mode
         """
         
         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
+        wheels_chocks_installation_status = 'pending'
 
         print("\n")
         print("\n")
         print(" #################### WHEELCHOCKS INSTALL OPERATOR - PARAMETERS #################### ")
+        print("\n")
+        print("\n")
+
+        # flight number is required to fulfill the request.
+        flight_number: str = args.get("flight_number", None)
+        if not flight_number:
+            print("No flight number provided. Trying to get it from sly_data")
+            flight_number = sly_data.get("flight_number")
+        if not flight_number:
+            error = "Error: Please provide a flight number for the request."
+            print(error)
+            return error  
+        
+        print("\n")
+        print("\n")
+        print("flight_number: ", flight_number)
         print("\n")
         print("\n")
 
@@ -176,41 +101,30 @@ class wheelchocks_operator(CodedTool):
         print("\n")
         print("\n")
 
-        # # wheelchocks readiness status is required to fulfill the request.
-        # wheelchocks_readiness_status: str = args.get("wheelchocks_readiness_status", None)
-        # if not wheelchocks_readiness_status:
-        #     print("No wheelchocks readiness status provided. Trying to get it from sly_data")
-        #     wheelchocks_readiness_status = sly_data.get("wheelchocks_readiness_status")
-        # if not wheelchocks_readiness_status:
-        #     error = "Error: Please provide a wheelchocks readiness status for the request."
-        #     print(error)
-        #     return error  
-        
-        # wheelchocks readiness status is required to fulfill the request.
-
-        wheelchocks_readiness_status: str = sly_data.get("wheelchocks_readiness_status", None)
-        if not wheelchocks_readiness_status:
-            print("No wheelchocks readiness status provided in sly_data. Trying to get it from args")
-            wheelchocks_readiness_status = args.get("wheelchocks_readiness_status")
-        if not wheelchocks_readiness_status:
-            error = "Error: Please provide a wheelchocks readiness status for the request."
+        wheels_chocks_readiness_status: str = sly_data.get("wheels_chocks_readiness_status", None)
+        if not wheels_chocks_readiness_status:
+            print("No wheels chocks readiness status provided in sly_data. Trying to get it from args")
+            wheels_chocks_readiness_status = args.get("wheels_chocks_readiness_status")
+        if not wheels_chocks_readiness_status:
+            error = "Error: Please provide a wheels chocks readiness status for the request."
             print(error)
             return error  
 
         print("\n")
         print("\n")
-        print("wheelchocks_readiness_status: ", wheelchocks_readiness_status)
+        print("wheels_chocks_readiness_status: ", wheels_chocks_readiness_status)
         print("\n")
         print("\n")
 
-        if  ((('ready' in wheelchocks_readiness_status) & ('not' not in wheelchocks_readiness_status)) | ('available' in wheelchocks_readiness_status)): 
-            wheelchocks_installation_status = 'installed'
+        if  ((('ready' in wheels_chocks_readiness_status) & ('not' not in wheels_chocks_readiness_status)) | ('available' in wheels_chocks_readiness_status)): 
+            wheels_chocks_installation_status = 'installed'
 
-            message = f"Wheelchocks are installed on the airplane type {aircraft_type} on blocks at gate {gate_id}. Its wheelchocks installation status is {wheelchocks_installation_status}."
+            flight_label = flight_number if flight_number else "UNKNOWN"
+            message = f"Wheels chocks are installed on the flight number {flight_label}, aircraft type {aircraft_type} on blocks at gate {gate_id}. Its wheels chocks installation status is {wheels_chocks_installation_status}."
             print(message)
             print("\n")
             print("\n")
-            print('wheelchocks_installation_status is: ', wheelchocks_installation_status)
+            print('wheels_chocks_installation_status is: ', wheels_chocks_installation_status)
             print("\n")
             print("\n")
             print(">>>>>>>>>>>>>>>>>>> DONE !!! >>>>>>>>>>>>>>>>>>")
@@ -220,8 +134,8 @@ class wheelchocks_operator(CodedTool):
             with open(file_path_log, mode="a", encoding="utf-8") as f:  
                 f.write(line + "\n")   
 
-            sly_data["wheelchocks_installation_status"] = wheelchocks_installation_status
-        return wheelchocks_installation_status
+            sly_data["wheels_chocks_installation_status"] = wheels_chocks_installation_status
+        return wheels_chocks_installation_status
 
     async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
         """
@@ -515,14 +429,16 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
 "flight_number", 
 "flight_status",
 "gate_id", 
-"wheelchocks_installation_status", 
+"wheels_chocks_readiness_status", 
+"wheels_chocks_installation_status", 
 ] 
 
 # Define which fields should be returned from the API
 FLIGHT_TURNAROUND_RETURN_FIELDS = [
 "engines_stop_status",
 "flight_status",
-"wheelchocks_installation_status", 
+"wheels_chocks_readiness_status", 
+"wheels_chocks_installation_status", 
 ]
 
 # =============================================================================

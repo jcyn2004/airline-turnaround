@@ -46,7 +46,6 @@ class crew_debrief_operator(CodedTool):
         :return: None in write mode or any of the parameters in read mode
         """
 
-        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
         crew_debrief_status = 'pending'
 
@@ -146,7 +145,7 @@ class crew_debrief_operator(CodedTool):
 
         if equipment_connected and door_opening_status and 'open' in door_opening_status:
             crew_debrief_status = 'completed'
-            message = f"Flight {flight_number} with airplane type {aircraft_type} {flight_status} at gate {gate_id} has jetbridge {jetbridge_connection_status} and aircraft door {door_opening_status}.  installed. Its crew debrief status is status is {crew_debrief_status}."
+            message = f"Flight {flight_number} with airplane type {aircraft_type} {flight_status} at gate {gate_id} has jetbridge {jetbridge_connection_status} and aircraft door {door_opening_status}. Its crew debrief status is status is {crew_debrief_status}."
             print(message)
             print("\n")
             print("\n")
@@ -456,46 +455,7 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
     "flight_status", 
     "gate_id", 
     "jetbridge_connection_status",
-    "passenger_disembarkation_status",
     "stairtruck_connection_status"] 
-
-#     "acu_connection_status", 
-#     "acu_readiness_status",
-#     "aircraft_direction",
-#     "aircraft_landing_report",
-#     "aircraft_type",
-#     "assigned_runway_id",
-#     "assigned_runway_length",
-#     "baggage_unload_status", 
-#     "catering_loading_status", 
-#     "cleaning_cabin_status", 
-#     "clearance_landing_valid",
-#     "clearance_takeoff_valid", 
-#     "clearance_type",
-#     "crew_debrief_status", 
-#     "crew_exit_status", 
-#     "deplaning_equipment_type",
-#     "door_opening_status", 
-#     "engines_stop_status", 
-#     "flight_number",
-#     "flight_status",
-#     "fueling_status", 
-#     "gate_id",
-#     "gpu_connection_status", 
-#     "gpu_readiness_status",
-#     "ground_clearance_status",
-#     "ground_clearance_type",
-#     "ground_services_inquiry_type", 
-#     "ground_services_request_type",
-#     "inspection_maintenance_status", 
-#     "jetbridge_connection_status", 
-#     "jetbridge_status", 
-#     "lavatory_service_status", 
-#     "passenger_disembarkation_status", 
-#     "runway_length",
-#     "wheels_chocks_installation_status", 
-#     "wheels_chocks_readiness_status",
-# ]
 
 # Define which fields should be returned from the API
 FLIGHT_TURNAROUND_RETURN_FIELDS = [
@@ -504,7 +464,6 @@ FLIGHT_TURNAROUND_RETURN_FIELDS = [
     "door_opening_status", 
     "flight_status",
     "jetbridge_connection_status",
-    "passenger_disembarkation_status",
     "stairtruck_connection_status",
 ]
 

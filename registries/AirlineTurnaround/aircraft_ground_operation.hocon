@@ -92,11 +92,18 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
             "name": "ground_operation_agent",
             "function": {
                 "description": """
-I am the orchestrator for all ground operations during aircraft turnaround.
-I handle:
-  - Ground services readiness (ACU, GPU, wheelchocks) → routes to aircraft_ground_readiness
-  - Ground ramp services (wheelchocks install, ACU connect, GPU connect) → routes to aircraft_ground_rampservices
-  - Ground servicing (baggage unload, inspection/maintenance, fueling) → routes to aircraft_ground_servicing
+I am the orchestrator for ALL ground operations during aircraft turnaround.
+I handle every ground-related request without exception, including:
+  - Any readiness check, status check, or confirmation of ground services
+    (ACU readiness, GPU readiness, wheelchocks readiness, or any combination).
+    I am ALWAYS relevant when asked to check or verify ground services readiness.
+  - Ground ramp services: ANY instruction that says "Execute ground ramp services",
+    "Perform ground ramp services", "Run ground ramp services", or any variation.
+    I am ALWAYS relevant when asked to execute, perform, or run ramp services.
+    I am ALWAYS relevant for wheelchocks installation, ACU connection, GPU connection.
+  - Ground servicing (baggage unload, inspection/maintenance, fueling).
+I route each request to the correct sub-agent. I never refuse any ground
+operation request. I am relevant for ANY ground operation instruction.
                 """,
                 "parameters": {
                     "type": "object",
@@ -108,7 +115,11 @@ I handle:
                         "aircraft_type": {
                             "type": "string",
                             "description": "Type of the incoming aircraft."
-                        },
+                        }, 
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
                         "flight_status": {
                             "type": "string",
                             "description": "Current flight status."
@@ -121,7 +132,7 @@ I handle:
                             "type": "string",
                             "description": "Engines stop status."
                         },
-                        "wheelchocks_readiness_status": {
+                        "wheels_chocks_readiness_status": {
                             "type": "string",
                             "description": "Wheelchocks readiness status."
                         },
@@ -133,7 +144,7 @@ I handle:
                             "type": "string",
                             "description": "GPU readiness status."
                         },
-                        "wheelchocks_installation_status": {
+                        "wheels_chocks_installation_status": {
                             "type": "string",
                             "description": "Wheelchocks installation status."
                         },
@@ -208,62 +219,87 @@ wait for the response, and return it verbatim to the caller.
 Do NOT transform, summarise, or re-interpret the sub-agent response.
 Do NOT call more than one sub-agent per invocation.
 
-TOOL ROUTING CHEATSHEET — check instruction field before every call:
+═══════════════════════════════════════════════════════════════
+ROUTING DECISION — READ THIS FIRST, BEFORE ANYTHING ELSE
+═══════════════════════════════════════════════════════════════
+Step 1: Read the instruction field value.
+Step 2: Match it to exactly one branch using the table below.
+Step 3: Execute ONLY that branch. Stop. Do not read other branches.
+
   instruction contains 'readiness' or 'check'
-      → /AirlineTurnaround/aircraft_ground_readiness
-  instruction contains 'ramp' or 'wheelchocks' or 'install'
+      → BRANCH A. STOP. Do not read BRANCH B or C.
+
+  instruction contains 'ramp' or 'install'
   or 'connect acu' or 'connect gpu' or 'ramp services'
-      → /AirlineTurnaround/aircraft_ground_rampservices
+  or 'execute ground ramp' or 'perform ground ramp'
+      → BRANCH B. STOP. Do not read BRANCH A or C.
+
   instruction contains 'unload' or 'baggage'
   or 'inspection' or 'maintenance'
   or 'fuel' or 'fueling' or 'refuel'
-      → /AirlineTurnaround/aircraft_ground_servicing
+      → BRANCH C. STOP. Do not read BRANCH A or B.
+
+NEVER refuse a call because status fields are null or missing.
+Null status fields are NORMAL and EXPECTED — they are inputs to be
+filled by the sub-agent, not prerequisites for routing.
+You are ALWAYS relevant when an instruction field is present.
 
 ─────────────────────────────────────────────────────────────
 BRANCH A — Ground readiness check
 ─────────────────────────────────────────────────────────────
-  ROUTING PRIORITY: instruction contains 'readiness' or 'check' → USE THIS BRANCH.
-  CRITICAL: Once matched, execute ONLY the steps below.
+  TRIGGER: instruction contains 'readiness' or 'check'.
 
-  STEP 1 — Call /AirlineTurnaround/aircraft_ground_readiness with named parameters:
-      aircraft_type, gate_id.
+  PREREQUISITES FOR THIS BRANCH: aircraft_type and gate_id only.
+  All other fields (engines_stop_status, acu_readiness_status,
+  gpu_readiness_status, wheels_chocks_readiness_status, etc.) will
+  be null at the time this branch is called. This is correct and
+  expected. Do NOT treat null status fields as a reason to refuse
+  or to route elsewhere. They are the OUTPUT of this branch.
+
+  STEP 1 — Call /AirlineTurnaround/aircraft_ground_readiness with
+      named parameters: flight_number, aircraft_type, gate_id.
   Wait for response. This is the ONLY action in this turn.
   Extract and pass back: acu_readiness_status, gpu_readiness_status,
-  wheelchocks_readiness_status.
+  wheels_chocks_readiness_status.
   RETURN the sub-agent response verbatim.
 
 ─────────────────────────────────────────────────────────────
 BRANCH B — Ground ramp services
 ─────────────────────────────────────────────────────────────
-  ROUTING PRIORITY: instruction contains 'ramp' or 'wheelchocks'
-  or 'install' or 'connect acu' or 'connect gpu' → USE THIS BRANCH.
-  CRITICAL: Once matched, execute ONLY the steps below.
+  TRIGGER: instruction contains 'ramp' or 'install'
+  or 'connect acu' or 'connect gpu' or 'ramp services'
+  or 'execute ground ramp' or 'perform ground ramp'.
 
-  STEP 1 — Call /AirlineTurnaround/aircraft_ground_rampservices with named parameters:
-      flight_number, aircraft_type, flight_status, gate_id,
-      engines_stop_status, wheelchocks_readiness_status,
+  NOTE: The prerequisites below apply ONLY to this branch.
+  They have NO bearing on BRANCH A routing decisions.
+
+  STEP 1 — Call /AirlineTurnaround/aircraft_ground_rampservices with
+      named parameters: flight_number, aircraft_type, flight_status,
+      gate_id, engines_stop_status, wheels_chocks_readiness_status,
       acu_readiness_status, gpu_readiness_status.
   Wait for response. This is the ONLY action in this turn.
-  Extract and pass back: wheelchocks_installation_status,
+  Extract and pass back: wheels_chocks_installation_status,
   acu_connection_status, gpu_connection_status.
   RETURN the sub-agent response verbatim.
 
 ─────────────────────────────────────────────────────────────
 BRANCH C — Ground servicing (baggage, inspection, fueling)
 ─────────────────────────────────────────────────────────────
-  ROUTING PRIORITY: instruction contains 'unload' or 'baggage'
+  TRIGGER: instruction contains 'unload' or 'baggage'
   or 'inspection' or 'maintenance' or 'fuel' or 'fueling'
-  or 'refuel' → USE THIS BRANCH.
-  CRITICAL: Once matched, execute ONLY the steps below.
-  Pass the instruction field through unchanged so aircraft_ground_servicing
-  can route to the correct internal branch (A/B/C).
+  or 'refuel'.
 
-  STEP 1 — Call /AirlineTurnaround/aircraft_ground_servicing with named parameters:
-      flight_number, aircraft_type, flight_status, gate_id,
-      jetbridge_connection_status, stairtruck_connection_status,
+  NOTE: The prerequisites below apply ONLY to this branch.
+  They have NO bearing on BRANCH A or B routing decisions.
+
+  STEP 1 — Call /AirlineTurnaround/aircraft_ground_servicing with
+      named parameters: flight_number, aircraft_type, flight_status,
+      gate_id, jetbridge_connection_status, stairtruck_connection_status,
       deplaning_equipment_type, door_opening_status,
       passenger_disembarkation_status, crew_exit_status,
       baggage_unload_status, instruction.
+  Pass the instruction field through unchanged so aircraft_ground_servicing
+  can route to the correct internal branch.
   Wait for response. This is the ONLY action in this turn.
   Extract and pass back: baggage_unload_status OR
   inspection_maintenance_status OR fueling_status (whichever applies).
@@ -278,10 +314,10 @@ BRANCH C — Ground servicing (baggage, inspection, fueling)
                         "flight_status": true,
                         "gate_id": true,
                         "engines_stop_status": true,
-                        "wheelchocks_readiness_status": true,
+                        "wheels_chocks_readiness_status": true,
                         "acu_readiness_status": true,
                         "gpu_readiness_status": true,
-                        "wheelchocks_installation_status": true,
+                        "wheels_chocks_installation_status": true,
                         "acu_connection_status": true,
                         "gpu_connection_status": true,
                         "jetbridge_connection_status": true,
@@ -302,10 +338,10 @@ BRANCH C — Ground servicing (baggage, inspection, fueling)
                         "flight_status": true,
                         "gate_id": true,
                         "engines_stop_status": true,
-                        "wheelchocks_readiness_status": true,
+                        "wheels_chocks_readiness_status": true,
                         "acu_readiness_status": true,
                         "gpu_readiness_status": true,
-                        "wheelchocks_installation_status": true,
+                        "wheels_chocks_installation_status": true,
                         "acu_connection_status": true,
                         "gpu_connection_status": true,
                         "jetbridge_connection_status": true,
@@ -326,10 +362,10 @@ BRANCH C — Ground servicing (baggage, inspection, fueling)
                         "flight_status": true,
                         "gate_id": true,
                         "engines_stop_status": true,
-                        "wheelchocks_readiness_status": true,
+                        "wheels_chocks_readiness_status": true,
                         "acu_readiness_status": true,
                         "gpu_readiness_status": true,
-                        "wheelchocks_installation_status": true,
+                        "wheels_chocks_installation_status": true,
                         "acu_connection_status": true,
                         "gpu_connection_status": true,
                         "jetbridge_connection_status": true,
@@ -350,10 +386,10 @@ BRANCH C — Ground servicing (baggage, inspection, fueling)
                         "flight_status": true,
                         "gate_id": true,
                         "engines_stop_status": true,
-                        "wheelchocks_readiness_status": true,
+                        "wheels_chocks_readiness_status": true,
                         "acu_readiness_status": true,
                         "gpu_readiness_status": true,
-                        "wheelchocks_installation_status": true,
+                        "wheels_chocks_installation_status": true,
                         "acu_connection_status": true,
                         "gpu_connection_status": true,
                         "jetbridge_connection_status": true,
@@ -370,44 +406,10 @@ BRANCH C — Ground servicing (baggage, inspection, fueling)
             },
 
             "tools": [
-                "TrackerAPI",
                 "/AirlineTurnaround/aircraft_ground_readiness",    # BRANCH A — readiness check
                 "/AirlineTurnaround/aircraft_ground_rampservices", # BRANCH B — wheelchocks, ACU, GPU
                 "/AirlineTurnaround/aircraft_ground_servicing",    # BRANCH C — baggage, inspection, fueling
             ]
-        },
-
-        {
-            "name": "TrackerAPI",
-            "function": {
-                "description": """
-I am the flight tracker in charge of logging parameters during aircraft turnaround.
-                """,
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "flight_number": {"type": "string", "description": "Flight number."},
-                        "aircraft_type": {"type": "string", "description": "Aircraft type."},
-                        "flight_status": {"type": "string", "description": "Flight status."},
-                        "gate_id": {"type": "string", "description": "Gate id."},
-                        "engines_stop_status": {"type": "string", "description": "Engines stop status."},
-                        "wheelchocks_readiness_status": {"type": "string", "description": "Wheelchocks readiness status."},
-                        "acu_readiness_status": {"type": "string", "description": "ACU readiness status."},
-                        "gpu_readiness_status": {"type": "string", "description": "GPU readiness status."},
-                        "wheelchocks_installation_status": {"type": "string", "description": "Wheelchocks installation status."},
-                        "acu_connection_status": {"type": "string", "description": "ACU connection status."},
-                        "gpu_connection_status": {"type": "string", "description": "GPU connection status."},
-                        "door_opening_status": {"type": "string", "description": "Door opening status."},
-                        "passenger_disembarkation_status": {"type": "string", "description": "Passenger disembarkation status."},
-                        "crew_exit_status": {"type": "string", "description": "Crew exit status."},
-                        "baggage_unload_status": {"type": "string", "description": "Baggage unload status."},
-                        "inspection_maintenance_status": {"type": "string", "description": "Inspection and maintenance status."},
-                        "fueling_status": {"type": "string", "description": "Fueling status."},
-                    },
-                    "required": []
-                }
-            },
-            "class": "AirlineTurnaround.aircraft_ground_operation.aircraft_ground_operation.TrackerAPI"
         },
     ],
 }

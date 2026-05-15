@@ -1,4 +1,4 @@
-{
+ {
     include "registries/aaosa_basic.hocon" 
 
     # Optional metadata describing this agent network
@@ -91,14 +91,18 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                 "description": """
  I am in charge of acu at the gate. 
  I set up ACU and verify ACU readiness status.
-                """
+                """, 
                 "parameters": {
                     "type": "object", 
                     "properties": {
                         "aircraft_type": {
                             "type": "string", 
                             "description": "This is the type of the incoming aircraft."
-                        },               
+                        },        
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },             
                         "gate_id": {
                             "type": "string", 
                             "description": "This is the gate where the aircraft is parked."
@@ -120,7 +124,7 @@ When user submit inquiry about ACU, proceed as follows:
 3. If the inquiry is about ACU readiness status, 
     a. call your tool to inquire about ACU readiness status as acu_readiness_status,
     b. store the returned acu_readiness_status 
-    c. report its value back to user and stop process here. 
+    c. report its value back to user. 
 4. Call TrackerAPI and log all the available parameters. 
     a. wait for its response 
     b. store all the available parameters.
@@ -138,6 +142,7 @@ When user submit inquiry about ACU, proceed as follows:
                 "to_upstream": {
                     "sly_data": {
                         "aircraft_type": true
+                        "flight_number": true
                         "gate_id": true 
                         "acu_readiness_status": true
                     }
@@ -145,6 +150,7 @@ When user submit inquiry about ACU, proceed as follows:
                 "to_downstream": {
                     "sly_data": {
                         "aircraft_type": true
+                        "flight_number": true
                         "gate_id": true 
                         "acu_readiness_status": true
                     }
@@ -152,6 +158,7 @@ When user submit inquiry about ACU, proceed as follows:
                 "from_upstream": {
                     "sly_data": {
                         "aircraft_type": true
+                        "flight_number": true
                         "gate_id": true 
                         "acu_readiness_status": true
                     }
@@ -180,6 +187,10 @@ This agent report the status of acu readiness at the gate.
                         "aircraft_type": {
                             "type": "string", 
                             "description": "This is the type of the incoming aircraft."
+                        },      
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
                         },              
                         "gate_id": {
                             "type": "string", 
@@ -203,7 +214,7 @@ This agent report the status of acu readiness at the gate.
                 "description": """
 I am the flight tracker in charge of logging parameters during aircraft turnaround. 
 I check engines stop status as engines_stop_status. 
-I check wheels chucks installation status as wheels_chucks_installation_status. 
+I check wheels chocks installation status as wheels_chocks_installation_status. 
                 """
 
                 "parameters": {
@@ -212,7 +223,11 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                         "aircraft_type": {
                             "type": "string", 
                             "description": "This is the type of the incoming aircraft."
-                        },            
+                        },    
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },              
                         "gate_id": {
                             "type": "string", 
                             "description": "This is the gate assigned to the aircraft parking."

@@ -86,13 +86,13 @@ The entry-point agent. It validates inputs, calls each setup network in order, p
 
 #### Input parameters
 
-| Parameter | Type | Required | Description |
-|---|---|:---:|---|
-| `aircraft_type` | string | ✅ | Aircraft model/type |
-| `gate_id` | string | ✅ | Gate assigned to the aircraft |
-| `acu_readiness_status` | string | ❌ | ACU readiness (output) |
-| `gpu_readiness_status` | string | ❌ | GPU readiness (output) |
-| `wheelchocks_readiness_status` | string | ❌ | Wheel chocks readiness (output) |
+| Parameter                      | Type   | Required | Description                     |
+|--------------------------------|--------|:--------:|---------------------------------|
+| `aircraft_type`                | string |    ✅     | Aircraft model/type             |
+| `gate_id`                      | string |    ✅     | Gate assigned to the aircraft   |
+| `acu_readiness_status`         | string |    ❌     | ACU readiness (output)          |
+| `gpu_readiness_status`         | string |    ❌     | GPU readiness (output)          |
+| `wheels_chocks_readiness_status` | string |    ❌     | Wheel chocks readiness (output) |
 
 #### Orchestration flow
 
@@ -101,7 +101,7 @@ The instructions use explicit `STEP` labels:
 1. **STEP 1 — Validate inputs:** Confirm `aircraft_type` and `gate_id` are available. If missing → call `TrackerAPI` to retrieve. If still missing → ask user and wait.
 2. **STEP 2 — Check ACU readiness:** Call `/AirlineTurnaround/aircraft_ground_acu_setup` with `aircraft_type`, `gate_id`. Wait. Store `acu_readiness_status`. Call `TrackerAPI` to log it.
 3. **STEP 3 — Check GPU readiness:** Call `/AirlineTurnaround/aircraft_ground_gpu_setup` with `aircraft_type`, `gate_id`. Wait. Store `gpu_readiness_status`. Call `TrackerAPI` to log it.
-4. **STEP 4 — Check wheelchocks readiness:** Call `/AirlineTurnaround/aircraft_ground_wheelchocks_setup` with `aircraft_type`, `gate_id`. Wait. Store `wheelchocks_readiness_status`. Call `TrackerAPI` to log it.
+4. **STEP 4 — Check wheelchocks readiness:** Call `/AirlineTurnaround/aircraft_ground_wheelchocks_setup` with `aircraft_type`, `gate_id`. Wait. Store `wheels_chocks_readiness_status`. Call `TrackerAPI` to log it.
 5. **STEP 5 — Return combined readiness report.**
 
 > **NOTE in instructions:** "Always return ALL THREE statuses even if one or more is 'not ready'. Do not stop early if one status is 'not ready' — complete all three checks and report all results."
@@ -118,12 +118,12 @@ This is one of the few places in the system where design rationale is explicitly
 
 All four directions carry the same 5-field set — the most focused symmetric contract after the setup networks:
 
-| Direction | Parameters |
-|---|---|
-| **To upstream** | `aircraft_type`, `gate_id`, `gpu_readiness_status`, `acu_readiness_status`, `wheelchocks_readiness_status` |
-| **To downstream** | same 5 fields |
-| **From upstream** | same 5 fields |
-| **From downstream** | same 5 fields |
+| Direction           | Parameters                                                                                                 |
+|---------------------|------------------------------------------------------------------------------------------------------------|
+| **To upstream**     | `aircraft_type`, `gate_id`, `gpu_readiness_status`, `acu_readiness_status`, `wheels_chocks_readiness_status` |
+| **To downstream**   | same 5 fields                                                                                              |
+| **From upstream**   | same 5 fields                                                                                              |
+| **From downstream** | same 5 fields                                                                                              |
 
 #### Down-chain tools
 
@@ -151,7 +151,7 @@ Standard `sly_data`-first implementation. Called three times during the workflow
 #### Configuration
 
 **Tracked fields:**
-`acu_readiness_status`, `aircraft_type`, `gate_id`, `acu_readiness_status` *(duplicate)*, `gpu_readiness_status`, `wheelchocks_readiness_status`
+`acu_readiness_status`, `aircraft_type`, `gate_id`, `acu_readiness_status` *(duplicate)*, `gpu_readiness_status`, `wheels_chocks_readiness_status`
 
 **Return fields:** Identical to tracked fields (including the duplicate).
 
@@ -169,13 +169,13 @@ Lines 349–686 contain a fully commented-out duplicate of the entire active cod
 
 These tools are resolved at runtime from `registries/aaosa_basic.hocon`:
 
-| Tool path | Purpose | Step |
-|---|---|---|
-| `/AirlineTurnaround/aircraft_ground_acu_setup` | Check ACU readiness via CSV | Step 2 |
-| `/AirlineTurnaround/aircraft_ground_gpu_setup` | Check GPU readiness via CSV | Step 3 |
+| Tool path                                              | Purpose                     | Step   |
+|--------------------------------------------------------|-----------------------------|--------|
+| `/AirlineTurnaround/aircraft_ground_acu_setup`         | Check ACU readiness via CSV | Step 2 |
+| `/AirlineTurnaround/aircraft_ground_gpu_setup`         | Check GPU readiness via CSV | Step 3 |
 | `/AirlineTurnaround/aircraft_ground_wheelchocks_setup` | Check wheelchocks readiness | Step 4 |
 
-> Note: `aircraft_ground_wheelchocks_setup` has not appeared in any other network file reviewed so far. Verify its existence and implementation before deploying this network. If it does not exist, Step 4 will fail and `wheelchocks_readiness_status` will not be set.
+> Note: `aircraft_ground_wheelchocks_setup` has not appeared in any other network file reviewed so far. Verify its existence and implementation before deploying this network. If it does not exist, Step 4 will fail and `wheels_chocks_readiness_status` will not be set.
 
 ---
 
@@ -197,7 +197,7 @@ These tools are resolved at runtime from `registries/aaosa_basic.hocon`:
 1. Inputs validated: `aircraft_type=B747`, `gate_id=A1` ✅ (Step 1)
 2. `/AirlineTurnaround/aircraft_ground_acu_setup` called → `acu_readiness_status=ready`. `TrackerAPI` called (Step 2)
 3. `/AirlineTurnaround/aircraft_ground_gpu_setup` called → `gpu_readiness_status=ready`. `TrackerAPI` called (Step 3)
-4. `/AirlineTurnaround/aircraft_ground_wheelchocks_setup` called → `wheelchocks_readiness_status=ready`. `TrackerAPI` called (Step 4)
+4. `/AirlineTurnaround/aircraft_ground_wheelchocks_setup` called → `wheels_chocks_readiness_status=ready`. `TrackerAPI` called (Step 4)
 5. Summary returned (Step 5)
 
 **Output:**
@@ -221,7 +221,7 @@ These tools are resolved at runtime from `registries/aaosa_basic.hocon`:
   "gate_id": "A1",
   "acu_readiness_status": "ready",
   "gpu_readiness_status": "ready",
-  "wheelchocks_readiness_status": "ready"
+  "wheels_chocks_readiness_status": "ready"
 }
 ```
 
@@ -229,13 +229,9 @@ These tools are resolved at runtime from `registries/aaosa_basic.hocon`:
 
 ## 9. Known Issues and Maintenance Notes
 
-| Issue | Location | Severity | Notes |
-|---|---|:---:|---|
-| `aircraft_ground_wheelchocks_setup` dependency not yet confirmed | `aircraft_ground_readiness.hocon` line 223 | **High** | This external network is referenced in Step 4 but has not appeared in any other reviewed file. If it does not exist, Step 4 will fail. Verify existence before deployment. |
-| `acu_readiness_status` duplicated in tracked/return fields | `aircraft_ground_readiness.py` lines 292–293, 302–303 | Low | Listed twice in both `FLIGHT_TURNAROUND_TRACKED_FIELDS` and `FLIGHT_TURNAROUND_RETURN_FIELDS`. No runtime impact but results in the field being returned twice in the tuple. Deduplicate. |
-| Commented-out duplicate `TrackerAPI` (~338 lines) | `aircraft_ground_readiness.py` lines 349–686 | Low | Entire alternative implementation preserved from refactoring. Safe to remove. |
-| `max_iterations=3000` and `max_execution_seconds=300` | `aircraft_ground_readiness.hocon` lines 15–16 | Info | Tightest bounds in the system — by design for this network's narrow scope. If additional steps are added to the workflow, these values must be increased. |
-| Interactive user-wait in Step 1 | `aircraft_ground_readiness.hocon` Step 1 instructions | Low | "If still missing, ask the user and wait" — same automated-context risk as `aircraft_engines_stop`. |
+| Issue                                                            | Location                                              | Severity | Notes                                                                                                                                                                                     |
+|------------------------------------------------------------------|-------------------------------------------------------|:--------:|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Interactive user-wait in Step 1                                  | `aircraft_ground_readiness.hocon` Step 1 instructions |   Low    | "If still missing, ask the user and wait" — same automated-context risk as `aircraft_engines_stop`.                                                                                       |
 
 ---
 
@@ -253,23 +249,20 @@ aircraft_ground_wheelchocks_setup ← reads chocks readiness ──┘
          └── aircraft_ground_readiness  ─── aggregates all three, single call interface
 ```
 
-| Network | Role |
-|---|---|
-| `aircraft_ground_acu_setup` | Leaf — reads `air_conditioning_unit_readiness` from CSV |
-| `aircraft_ground_gpu_setup` | Leaf — reads `ground_power_unit_readiness` from CSV |
-| `aircraft_ground_wheelchocks_setup` | Leaf — reads `wheelchocks_readiness` from CSV (unconfirmed) |
-| `aircraft_ground_readiness` | Aggregator — calls all three, returns combined result |
-| `aircraft_ground_acu_connect` | Consumer — calls `aircraft_ground_acu_setup` directly (not via this aggregator) |
-| `aircraft_ground_gpu_connect` | Consumer — calls `aircraft_ground_gpu_setup` directly (not via this aggregator) |
+| Network                             | Role                                                                            |
+|-------------------------------------|---------------------------------------------------------------------------------|
+| `aircraft_ground_acu_setup`         | Leaf — reads `air_conditioning_unit_readiness` from CSV                         |
+| `aircraft_ground_gpu_setup`         | Leaf — reads `ground_power_unit_readiness` from CSV                             |
+| `aircraft_ground_wheelchocks_setup` | Leaf — reads `wheelchocks_readiness` from CSV (unconfirmed)                     |
+| `aircraft_ground_readiness`         | Aggregator — calls all three, returns combined result                           |
+| `aircraft_ground_acu_connect`       | Consumer — calls `aircraft_ground_acu_setup` directly (not via this aggregator) |
+| `aircraft_ground_gpu_connect`       | Consumer — calls `aircraft_ground_gpu_setup` directly (not via this aggregator) |
 
 ---
 
 ## 11. Extensibility Guidance
 
 - Verify and implement `aircraft_ground_wheelchocks_setup` (the `wheelchocks_readiness` column in `gate_equipments_base.csv` exists and contains `'yes'`/`'no'` values — the setup network simply needs to be built following the same pattern as `aircraft_ground_acu_setup`)
-- Deduplicate `acu_readiness_status` in `FLIGHT_TURNAROUND_TRACKED_FIELDS` and `RETURN_FIELDS`
-- Remove the commented-out duplicate `TrackerAPI` implementation (~338 lines)
-- If extending this network with additional equipment types, increase `max_iterations` and `max_execution_seconds` proportionally (roughly 3000/300 per equipment check pair based on the current values)
 
 ---
 

@@ -27,99 +27,6 @@ def _norm(s: Union[str, None]) -> str:
 
 # ---------- tool ----------
 
-# class gpu_setup(CodedTool):
-#     """
-#     Read and return sly data in read mode, or write and update sly data in write. 
-#     """
-
-#     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
-#         """
-#         :param args: an empty dictionary (not used).
-
-#         :param sly_data: a dictionary with the following keys:
-#             - aircraft_type
-#             - gate_id 
-#             - acu_readiness_status
-
-#         :return: None in write mode or any of the parameters in read mode
-#         """
-
-#         equipments_csv_path = Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_gate_selection" / "gate_equipments_base.csv" 
-#         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
-
-#         print("\n")
-#         print("\n")
-#         print(" #################### GPU READINESS - PARAMETERS #################### ")
-#         print("\n")
-#         print("\n")
-
-#         # aircraft type is required to fulfill the request.
-#         aircraft_type: str = args.get("aircraft_type", None)
-#         if not aircraft_type:
-#             print("No aircraft type provided. Trying to get it from sly_data")
-#             aircraft_type = sly_data.get("aircraft_type")
-#         if not aircraft_type:
-#             error = "Error: Please provide an aircraft type for the request."
-#             print(error)
-#             return error  
-        
-#         print("\n")
-#         print("\n")
-#         print("aircraft_type: ", aircraft_type)
-#         print("\n")
-#         print("\n")
-         
-#         # gate id is required to fulfill the request.
-#         gate_id: str = args.get("gate_id", None)
-#         if not gate_id:
-#             print("No gate id provided. Trying to get it from sly_data")
-#             gate_id = sly_data.get("gate_id")
-#         if not gate_id:
-#             error = "Error: Please provide a gate id for the request."
-#             print(error)
-#             return error  
-        
-#         print("\n")
-#         print("\n")
-#         print("gate_id: ", gate_id)
-#         print("\n")
-#         print("\n")
-
-#         gpu_readiness_status = "pending" 
-
-#         print("equipments_csv_path: ", equipments_csv_path)
-
-#         if ((gate_id is not None) & (aircraft_type is not None)):
-#             print("equipments_csv_path: ", equipments_csv_path)
-
-#             df = pd.read_csv(equipments_csv_path)
-#             print(df)
-
-#             gpu_readiness_status = df.loc[df['gate_id'] == gate_id, 'ground_power_unit_readiness']
-
-#             print("\n")
-#             print("\n")
-#             print("============================ GPU READINESS STATUS CHECK =======================")
-#             print("GPU READINESS STATUS 1", gpu_readiness_status)
-#             print("============================ GPU READINESS STATUS CHECK =======================") 
-#             gpu_readiness_status = gpu_readiness_status.values[0] 
-#             print("GPU READINESS STATUS 2", gpu_readiness_status)
-#             print("============================ GPU READINESS STATUS CHECK =======================") 
-#             print("\n")
-#             print("\n")
-
-#             if gpu_readiness_status == 'yes':
-#                 gpu_readiness_status = "ready"
-
-#         sly_data["gpu_readiness_status"] = gpu_readiness_status
-#         return gpu_readiness_status
-
-#     async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
-#         """
-#         Delegates to the synchronous invoke method because it's quick, non-blocking.
-#         """
-#         return self.invoke(args, sly_data)
-
 class gpu_operator(CodedTool):
     """
     Read and return sly data in read mode, or write and update sly data in write. 
@@ -138,11 +45,28 @@ class gpu_operator(CodedTool):
         """
         
         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
-        # acu_connection_status = 'pending'
+        gpu_connection_status = 'pending'
+
 
         print("\n")
         print("\n")
         print(" #################### GPU CONNECT OPERATOR - PARAMETERS #################### ")
+        print("\n")
+        print("\n")
+
+        # flight number is required to fulfill the request.
+        flight_number: str = args.get("flight_number", None)
+        if not flight_number:
+            print("No flight number provided. Trying to get it from sly_data")
+            flight_number = sly_data.get("flight_number")
+        if not flight_number:
+            error = "Error: Please provide a flight number for the request."
+            print(error)
+            return error  
+        
+        print("\n")
+        print("\n")
+        print("flight_number: ", flight_number)
         print("\n")
         print("\n")
 
@@ -194,10 +118,11 @@ class gpu_operator(CodedTool):
         print("\n")
         print("\n")
 
-        if  ((('ready' in gpu_readiness_status) & ('no' not in gpu_readiness_status)) | ('available' in gpu_readiness_status)): 
+        if  ((('ready' in gpu_readiness_status) & ('not' not in gpu_readiness_status)) | (('available' in gpu_readiness_status) & ('not' not in gpu_readiness_status))): 
             gpu_connection_status = 'connected'
 
-            message = f"Airplane type {aircraft_type} on blocks at gate {gate_id} is connected to gpu. Its gpu connection status is {gpu_connection_status}."
+            flight_label = flight_number if flight_number else "UNKNOWN"
+            message = f"Flight number {flight_label}, aircraft type {aircraft_type} on blocks at gate {gate_id} is connected to gpu. Its gpu connection status is {gpu_connection_status}."
             print(message)
             print("\n")
             print("\n")

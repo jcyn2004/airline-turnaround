@@ -127,11 +127,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                         "aircraft_direction": {
                             "type": "string", 
                             "description": "This is the direction of the aircraft: incoming or departing."
-                        },               
-                        "clearance_type": {
-                            "type": "string", 
-                            "description": "This is the type of clearance given to the aircrfat."
-                        },           
+                        },                   
                         "assigned_runway_id": {
                             "type": "string", 
                             "description": "This is the runway assigned to the aircraft movement autorized by the clearance."
@@ -140,7 +136,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "This is the length of assigned runway."
                         },     
-                        "wheelchocks_readiness_status": {
+                        "wheels_chocks_readiness_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks readiness status."
                         },   
@@ -319,7 +315,7 @@ BRANCH C — Fueling
                         "gate_id": true, 
                         "assigned_runway_id": true, 
                         "assigned_runway_length": true, 
-                        "wheelchocks_readiness_status": true, 
+                        "wheels_chocks_readiness_status": true, 
                         "acu_readiness_status": true, 
                         "gpu_readiness_status": true,
                         "aircraft_direction": true,
@@ -345,7 +341,7 @@ BRANCH C — Fueling
                         "gate_id": true, 
                         "assigned_runway_id": true, 
                         "assigned_runway_length": true, 
-                        "wheelchocks_readiness_status": true, 
+                        "wheels_chocks_readiness_status": true, 
                         "acu_readiness_status": true, 
                         "gpu_readiness_status": true,
                         "aircraft_direction": true,
@@ -371,7 +367,7 @@ BRANCH C — Fueling
                         "gate_id": true, 
                         "assigned_runway_id": true, 
                         "assigned_runway_length": true, 
-                        "wheelchocks_readiness_status": true, 
+                        "wheels_chocks_readiness_status": true, 
                         "acu_readiness_status": true, 
                         "gpu_readiness_status": true,
                         "aircraft_direction": true,
@@ -397,7 +393,7 @@ BRANCH C — Fueling
                         "gate_id": true, 
                         "assigned_runway_id": true, 
                         "assigned_runway_length": true, 
-                        "wheelchocks_readiness_status": true, 
+                        "wheels_chocks_readiness_status": true, 
                         "acu_readiness_status": true, 
                         "gpu_readiness_status": true,
                         "aircraft_direction": true,
@@ -429,7 +425,7 @@ BRANCH C — Fueling
                 "description": """
 I am the flight tracker in charge of logging parameters during aircraft turnaround. 
 I check engines stop status as engines_stop_status. 
-I check wheels chucks installation status as wheels_chucks_installation_status. 
+I check wheels chocks installation status as wheels_chocks_installation_status. 
                 """
 
                 "parameters": {
@@ -479,7 +475,7 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                             "type": "string", 
                             "description": "This is the length of assigned runway."
                         },   
-                        "wheelchocks_readiness_status": {
+                        "wheels_chocks_readiness_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks readiness status."
                         },   
@@ -495,6 +491,22 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                             "type": "string", 
                             "description": "This is the fueling status."
                         },
+                        "jetbridge_connection_status": {
+                            "type": "string", 
+                            "description": "This is the jetbridge connection status."
+                        },
+                        "stairtruck_connection_status": {
+                            "type": "string",
+                            "description": "This is the stairtruck connection status."
+                        },
+                        "deplaning_equipment_type": {
+                            "type": "string",
+                            "description": "This is the deplaning equipment type (jetway or stairtruck)."
+                        },
+                        "inspection_maintenance_status": {
+                            "type": "string", 
+                            "description": "Inspection and maintenance status."                            
+                        }, 
                     }, 
                     "required": [] 
                 }

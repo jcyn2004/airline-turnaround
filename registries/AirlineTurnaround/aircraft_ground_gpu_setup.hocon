@@ -11,7 +11,7 @@
     },
 
     "llm_config": {
-        "model_name": "gpt-5.4-mini", #"gpt-4o", # "claude-haiku-4-5-20251001", #"claude-sonnet-4-6", #
+        "model_name": "gpt-5.4-mini", 
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -90,15 +90,19 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
             "function": {
                 "description": """
  I am in charge of gpu at the gate. 
- I set uo GOU and report GPU readiness status when user inquires.
-                """
+ I set up GPU and report GPU readiness status when user inquires.
+                """,
                 "parameters": {
                     "type": "object", 
                     "properties": {
                         "aircraft_type": {
                             "type": "string", 
                             "description": "This is the type of the incoming aircraft."
-                        },              
+                        },          
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aircraft."
+                        },       
                         "gate_id": {
                             "type": "string", 
                             "description": "This is the gate where the aircraft is parked."
@@ -120,8 +124,11 @@ When user submit inquiry about GPU, proceed as follows:
 3. If the inquiry is about GPU readiness status, 
     a. call your tool to inquire about GPU readiness status as gpu_readiness_status,
     b. store the returned gpu_readiness_status 
-    c. report its value back to user and stop process here. 
-4. Provide the gpu connection status report summary as: 
+    c. report its value back to user. 
+4. Call TrackerAPI and log all the available parameters. 
+    a. wait for its response 
+    b. store all the available parameters.
+5. Provide the gpu connection status report summary as: 
     *************************************
     * Summary of aircraft gpu readiness *
     *************************************
@@ -137,11 +144,14 @@ When user submit inquiry about GPU, proceed as follows:
                         "aircraft_type": true
                         "gate_id": true 
                         "gpu_readiness_status": true
+                        "flight_number": true
+                        "flight_status": true
                     }
                 }
                 "to_downstream": {
                     "sly_data": {
                         "aircraft_type": true
+                        "flight_number": true
                         "gate_id": true 
                         "gpu_readiness_status": true
                     }
@@ -149,13 +159,16 @@ When user submit inquiry about GPU, proceed as follows:
                 "from_upstream": {
                     "sly_data": {
                         "aircraft_type": true
+                        "flight_number": true
+                        "flight_status": true
                         "gate_id": true 
                         "gpu_readiness_status": true
                     }
                 }
                 "from_downstream": {
                     "sly_data": {
-                        "aircraft_type": true
+                        "aircraft_type": true 
+                        "flight_number": true
                         "gate_id": true 
                         "gpu_readiness_status": true
                     }
@@ -177,7 +190,11 @@ This agent report the status of gpu readiness at the gate.
                         "aircraft_type": {
                             "type": "string", 
                             "description": "This is the type of the incoming aircraft."
-                        },              
+                        },             
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aircraft."
+                        },    
                         "gate_id": {
                             "type": "string", 
                             "description": "This is the gate where the aircraft is parked."
@@ -226,11 +243,11 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                             "type": "string", 
                             "description": "This is the type of the inquiry received for grand services."
                         },         
-                        "wheelchocks_readiness_status": {
+                        "wheels_chocks_readiness_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks readiness status."
                         },   
-                        "wheelchocks_installation_status": {
+                        "wheels_chocks_installation_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks installation status."
                         },   
@@ -256,7 +273,7 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                         },    
                     }, 
                     "required": [] 
-                }
+                },
             },
             "class": "AirlineTurnaround.aircraft_ground_gpu_setup.aircraft_ground_gpu_setup.TrackerAPI" 
         }, 

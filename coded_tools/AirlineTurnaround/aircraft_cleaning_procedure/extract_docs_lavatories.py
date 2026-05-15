@@ -23,7 +23,6 @@ class ExtractDocs(CodedTool):
     """
 
     def __init__(self):
-        # self.default_path = ["coded_tools/aircraft_cleaning/knowdocs/Help Center.txt"]
         self.default_path = ["coded_tools/aircraft_cleaning/knowdocs/cabin"]
 
         self.docs_path = {

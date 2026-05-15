@@ -1,6 +1,6 @@
 {
 
-    include "registries/aaosa_basic_debug.hocon"
+    include "registries/aaosa_basic.hocon"
 
     # Optional metadata describing this agent network
     "metadata": {
@@ -154,7 +154,8 @@ RETURN SUMMARY:
                         "aircraft_type": true, 
                         "deplaning_equipment_type": true, 
                         "deplaning_equipment_id": true, 
-                        "deplaning_equipment_score": true
+                        "deplaning_equipment_score": true, 
+                        "deplaning_equipment_readiness_time": true
                     }
                 }
                 "from_upstream": {
@@ -164,7 +165,8 @@ RETURN SUMMARY:
                         "aircraft_type": true, 
                         "deplaning_equipment_type": true, 
                         "deplaning_equipment_id": true, 
-                        "deplaning_equipment_score": true
+                        "deplaning_equipment_score": true, 
+                        "deplaning_equipment_readiness_time": true
                     }
                 }
             },
@@ -202,7 +204,6 @@ RETURN SUMMARY:
                             "type": "string", 
                             "description": "This is the deplaning equipment type at the assigned gate. "
                         },     
-
                         "deplaning_equipment_readiness_time": {
                             "type": "string", 
                             "description": "This is the time that it takes to ready deplaning equipment. "
@@ -216,209 +217,8 @@ RETURN SUMMARY:
                 },
             },
 
-            "class": "coded_tools.AirlineTurnaround.aircraft_gate_selection.aircraft_gate_selection.deplaning_path_selector"
+            "class": "AirlineTurnaround.aircraft_gate_selection.aircraft_gate_selection.deplaning_path_selector"
         },
-
-//         {
-//             "name": "jetway_agent",
-//             "function": {
-
-//                 "description": """
-//                 This agent selects jetway equipment available for incoming aircraft deplaning. 
-//                 It updates deplaning equipment status after selection of jetway. 
-//                 """
-//                 "parameters": {
-//                     "type": "object", 
-//                     "properties": {
-//                         "flight_number": {
-//                             "type": "string", 
-//                             "description": "This is the flight number of the incoming aicraft."
-//                         },   
-//                         "aircraft_type": {
-//                             "type": "string", 
-//                             "description": "This is the type of the incoming aircraft."
-//                         },     
-//                         "gate_id": {
-//                             "type": "string", 
-//                             "description": "This is the gate assigned to the aircraft parking."
-//                         },     
-//                         "deplaning_equipment_id": {
-//                             "type": "string", 
-//                             "description": "This is the deplaning equipment id at the assigned gate. "
-//                         },    
-//                         "deplaning_equipment_type": {
-//                             "type": "string", 
-//                             "description": "This is the deplaning equipment type at the assigned gate. "
-//                         },                                    
-//                         "execution_mode": {
-//                             "type": "string", 
-//                             "description": "This is the mode that agent should operate in."
-//                         },                 
-//                     }, 
-//                     "required": ["execution_mode","flight_number","aircraft_type"], 
-//                 },
-//             },
-
-//             "instructions": """
-// You are the agent responsible for proposing a deplaning equipment of jetway type. 
-// When handling a user request proceed in the following order:
-
-// 1. If execution_mode is 'read', 
-//     a. Call jetway_park_agent to request equipment availability 
-//     b. Wait for its response 
-//         - report equipment type as equipment_type 
-//         - report jetway id as jetway_id 
-//         - report jetway availability as jetway_availability 
-//         - report jetway readiness time as jetway_readiness_time 
-//         - report jetway score as jetway_score
-// 2. If execution_mode is 'write'
-//     a. Call jetway_park_agent to update equipment park 
-//     b. Wait for it to complete its task 
-//             """ ${aaosa_instructions},
-
-//             "tools":["jetway_park_agent"]
-//         },
-
-//         {
-//             "name": "stairtruck_agent",
-//             "function": {
-//                 "description": """
-//                 This agent selects stairtruck equipment available for incoming aircraft deplaning. 
-//                 It updates deplaning equipment status after selection of stairtruck. 
-//                 """
-//                 "parameters": {
-//                     "type": "object", 
-//                     "properties": {
-//                         "flight_number": {
-//                             "type": "string", 
-//                             "description": "This is the flight number of the incoming aicraft."
-//                         },   
-//                         "aircraft_type": {
-//                             "type": "string", 
-//                             "description": "This is the type of the incoming aircraft."
-//                         },    
-//                         "gate_id": {
-//                             "type": "string", 
-//                             "description": "This is the gate assigned to the aircraft parking."
-//                         },     
-//                         "deplaning_equipment_id": {
-//                             "type": "string", 
-//                             "description": "This is the deplaning equipment id at the assigned gate. "
-//                         },    
-//                         "deplaning_equipment_type": {
-//                             "type": "string", 
-//                             "description": "This is the deplaning equipment type at the assigned gate. "
-//                         },            
-//                         "execution_mode": {
-//                             "type": "string", 
-//                             "description": "This is the mode that agent should operate in."
-//                         },                      
-//                     }, 
-//                     "required": ["execution_mode","flight_number","aircraft_type"], 
-//                 },
-//             },
-
-//             "instructions": """
-// You are the agent responsible for proposing a deplaning equipment of stairtruck type. 
-// When handling a user request proceed in the following order:
-
-// 1. If execution_mode is 'read', 
-//     a. Call stairtruck_park_agent to request equipment availability 
-//     b. Wait for its response 
-//         - report equipment type as equipment_type 
-//         - report stairtruck id as jetway_id 
-//         - report stairtruck availability as jetway_availability 
-//         - report stairtruck readiness time as jetway_readiness_time 
-//         - report stairtruck score as jetway_score
-// 2. If execution_mode is 'write'
-//     a. Call stairtruck_park_agent to update equipment park 
-//     b. Wait for it to complete its task 
-//             """ ${aaosa_instructions},
-
-//             "tools":["stairtruck_park_agent"]
-//         },
-
-//         {
-//             "name": "jetway_park_agent",
-//             "function": {
-//                 "description": """
-// This agent provides the inventory of jetway park, return the fastest available unit. 
-// It also updates the status of selected jetway unit. 
-//                 """, 
-//                 "parameters": {
-//                     "type": "object", 
-//                     "properties": {
-//                         "flight_number": {
-//                             "type": "string", 
-//                             "description": "This is the flight number of the incoming aicraft."
-//                         },   
-//                         "aircraft_type": {
-//                             "type": "string", 
-//                             "description": "This is the type of the incoming aircraft."
-//                         },                         
-//                         "execution_mode": {
-//                             "type": "string", 
-//                             "description": "This is the mode that agent should operate in."
-//                         },      
-//                         "gate_id": {
-//                             "type": "string", 
-//                             "description": "This is the gate assigned to the aircraft parking."
-//                         },     
-//                         "deplaning_equipment_id": {
-//                             "type": "string", 
-//                             "description": "This is the deplaning equipment id at the assigned gate. "
-//                         },    
-//                         "deplaning_equipment_type": {
-//                             "type": "string", 
-//                             "description": "This is the deplaning equipment type at the assigned gate. "
-//                         },                          
-//                     }, 
-//                     "required": ["flight_number","aircraft_type","execution_mode"], 
-//                 }
-//             }, 
-//             "class": "AirlineTurnaround.aircraft_gate_selection.aircraft_gate_selection.jetway_park_inquiry"
-//         }, 
-
-//         {
-//             "name": "stairtruck_park_agent",
-//             "function": {
-//                 "description": """
-// This agent provides the inventory of stairtruck park, return the fastest available unit. 
-// It also updates the status of selected stairtruck unit. 
-//                 """, 
-//                 "parameters": {
-//                     "type": "object", 
-//                     "properties": {
-//                         "flight_number": {
-//                             "type": "string", 
-//                             "description": "This is the flight number of the incoming aicraft."
-//                         },   
-//                         "aircraft_type": {
-//                             "type": "string", 
-//                             "description": "This is the type of the incoming aircraft."
-//                         },                         
-//                         "execution_mode": {
-//                             "type": "string", 
-//                             "description": "This is the mode that agent should operate in."
-//                         },                  
-//                         "gate_id": {
-//                             "type": "string", 
-//                             "description": "This is the gate assigned to the aircraft parking."
-//                         },     
-//                         "deplaning_equipment_id": {
-//                             "type": "string", 
-//                             "description": "This is the deplaning equipment id at the assigned gate. "
-//                         },    
-//                         "deplaning_equipment_type": {
-//                             "type": "string", 
-//                             "description": "This is the deplaning equipment type at the assigned gate. "
-//                         },                 
-//                     }, 
-//                     "required": ["flight_number","aircraft_type","execution_mode"], 
-//                 }
-//             }, 
-//             "class": "AirlineTurnaround.aircraft_gate_selection.aircraft_gate_selection.stairtruck_park_inquiry"
-//         }, 
 
         {
             "name": "TrackerAPI",
@@ -426,7 +226,7 @@ RETURN SUMMARY:
 
                 "description": """
 I am the flight tracker in charge of logging parameters during aircraft turnaround. 
-I check engines stop status as statusengines_stop_status. 
+I check engines stop status as engines_stop_status. 
 I check wheels chucks installation status as wheels_chucks_installation_status. 
                 """
 
@@ -461,7 +261,7 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                     "required": [] 
                 },
             },
-            "class": "coded_tools.AirlineTurnaround.aircraft_gate_selection.aircraft_gate_selection.TrackerAPI" 
+            "class": "AirlineTurnaround.aircraft_gate_selection.aircraft_gate_selection.TrackerAPI" 
         }, 
     ],
 }

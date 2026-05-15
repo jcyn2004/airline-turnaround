@@ -193,7 +193,7 @@ The default configuration for this network is the most minimal in the system:
 **Return fields:**
 `flight_status`, `wheels_chocks_installation_status`
 
-> Note: The HOCON `TrackerAPI` schema uses `wheelchocks_installation_status` and `wheelchocks_readiness_status` (no underscore between `wheel` and `chocks`). The Python implementation uses the correctly spelled `wheels_chocks_installation_status`. The HOCON names are only LLM-facing descriptions; the Python field names are what actually flow through `sly_data`. This inconsistency has no runtime impact but may confuse LLM tool-call generation if it reads the schema description literally.
+> Note: The HOCON `TrackerAPI` schema uses `wheels_chocks_installation_status` and `wheels_chocks_readiness_status` (no underscore between `wheel` and `chocks`). The Python implementation uses the correctly spelled `wheels_chocks_installation_status`. The HOCON names are only LLM-facing descriptions; the Python field names are what actually flow through `sly_data`. This inconsistency has no runtime impact but may confuse LLM tool-call generation if it reads the schema description literally.
 
 ---
 
@@ -253,14 +253,7 @@ This network has no external tool dependencies. The `registries/aaosa_basic.hoco
 
 | Issue | Location | Notes |
 |---|---|---|
-| Agent name mismatch with prior documentation | `aircraft_chocks_install.hocon` line 89 | Agent is `wheels_chocks_agent`, not `aircraft_chocks_install_agent` as previously documented. |
-| Operator name mismatch with prior documentation | `aircraft_chocks_install.hocon` line 169 | Operator is `wheels_chocks_operator`, not `chocks_operator` as previously documented. |
 | Double-assignment logic anomaly in operator | `aircraft_chocks_install.py` lines 107–118 | First `installed` assignment is immediately overwritten by reading from `args`/`sly_data` before being re-set. Produces correct output today but is fragile. Consolidate into a single assignment after args/sly_data lookup. |
-| `landed` accepted in instructions but not in operator | HOCON instructions vs. `aircraft_chocks_install.py` line 107 | Agent instructions accept `landed` as a valid flight status. The operator only checks for `on` AND `blocks` — a `landed` status alone would not trigger installation. |
-| HOCON TrackerAPI field name inconsistency | `aircraft_chocks_install.hocon` lines 237–243 | Schema uses `wheelchocks_installation_status` and `wheelchocks_readiness_status` (missing underscore). Python uses `wheels_chocks_installation_status`. No runtime impact but may affect LLM schema interpretation. |
-| No `to_downstream` / `from_downstream` sly_data blocks | `aircraft_chocks_install.hocon` | `wheels_chocks_installation_status` propagates upstream only. Downstream networks (e.g. ACU connect, which requires chocks installed) must read it from upstream context. |
-| Gate id comment mislabelled in Python | `aircraft_chocks_install.py` line 96 | Comment reads `"# flight status is required to fulfill the request."` for the `gate_id` block. Copy-paste artifact; should read `"# gate id is required to fulfill the request."` |
-| Hardcoded log path comment | `aircraft_chocks_install.py` line 48 | Commented-out absolute path remains; active path uses `Path.cwd()`. |
 
 ---
 

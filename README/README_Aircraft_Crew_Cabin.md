@@ -80,22 +80,22 @@ The single entry-point agent. It reads the `task_id` field first, matches a bran
 |-----------------------------------|--------|:--------:|-----------------------------------|
 | Parameter                         | Type   | Required | Description                       |
 |-----------------------------------|--------|:--------:|-----------------------------------|
-| `aircraft_type`                   | string | ✅       | Aircraft model/type               |
-| `flight_status`                   | string | ✅       | Expected: contains `on blocks`    |
-| `flight_number`                   | string | ✅       | Flight identifier                 |
-| `gate_id`                         | string | ❌       | Gate where the aircraft is parked |
-| `task_id`                         | string | ❌       | **Primary routing discriminant**  |
-| `deplaning_equipment_type`        | string | ❌       | `jetway` or `stairtruck`          |
-| `jetbridge_connection_status`     | string | ❌       | Required for BRANCH A             |
-| `stairtruck_connection_status`    | string | ❌       | Required for BRANCH A             |
-| `acu_connection_status`           | string | ❌       | Required for BRANCH A             |
-| `gpu_connection_status`           | string | ❌       | Required for BRANCH A             |
-| `wheelchocks_installation_status` | string | ❌       | Required for BRANCH A             |
-| `door_opening_status`             | string | ❌       | Required for BRANCH B + C         |
-| `passenger_disembarkation_status` | string | ❌       | Required for BRANCH C             |
-| `baggage_unload_status`           | string | ❌       | Required for BRANCH C             |
-| `crew_debrief_status`             | string | ❌       | Output of BRANCH C                |
-| `assigned_runway_id`              | string | ❌       | Contextual field                  |
+| `aircraft_type`                   | string |    ✅     | Aircraft model/type               |
+| `flight_status`                   | string |    ✅     | Expected: contains `on blocks`    |
+| `flight_number`                   | string |    ✅     | Flight identifier                 |
+| `gate_id`                         | string |    ❌     | Gate where the aircraft is parked |
+| `task_id`                         | string |    ❌     | **Primary routing discriminant**  |
+| `deplaning_equipment_type`        | string |    ❌     | `jetway` or `stairtruck`          |
+| `jetbridge_connection_status`     | string |    ❌     | Required for BRANCH A             |
+| `stairtruck_connection_status`    | string |    ❌     | Required for BRANCH A             |
+| `acu_connection_status`           | string |    ❌     | Required for BRANCH A             |
+| `gpu_connection_status`           | string |    ❌     | Required for BRANCH A             |
+| `wheels_chocks_installation_status` | string |    ❌     | Required for BRANCH A             |
+| `door_opening_status`             | string |    ❌     | Required for BRANCH B + C         |
+| `passenger_disembarkation_status` | string |    ❌     | Required for BRANCH C             |
+| `baggage_unload_status`           | string |    ❌     | Required for BRANCH C             |
+| `crew_debrief_status`             | string |    ❌     | Output of BRANCH C                |
+| `assigned_runway_id`              | string |    ❌     | Contextual field                  |
 |-----------------------------------|--------|:--------:|-----------------------------------|
 
 #### Routing logic
@@ -124,7 +124,7 @@ The agent reads `task_id` FIRST before any inquiry text. Each branch carries an 
 - If `flight_status` not on blocks → stop: `"Door cannot be opened — aircraft is not yet on blocks."`
 
 **STEP 2 — Execute door opening:**
-Call `/AirlineTurnaround/aircraft_door_opening` with: `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `deplaning_equipment_type`, `jetbridge_connection_status`, `stairtruck_connection_status`, `acu_connection_status`, `gpu_connection_status`, `wheelchocks_installation_status`. Extract `door_opening_status`. Call `TrackerAPI` to store it.
+Call `/AirlineTurnaround/aircraft_door_opening` with: `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `deplaning_equipment_type`, `jetbridge_connection_status`, `stairtruck_connection_status`, `acu_connection_status`, `gpu_connection_status`, `wheels_chocks_installation_status`. Extract `door_opening_status`. Call `TrackerAPI` to store it.
 
 **RETURN SUMMARY:**
 ```
@@ -209,7 +209,7 @@ Call `/AirlineTurnaround/aircraft_crew_debrief` with: `flight_number`, `aircraft
 
 All four directions carry the same 16-field set:
 
-`flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `engines_stop_status`, `door_opening_status`, `passenger_disembarkation_status`, `jetbridge_connection_status`, `stairtruck_connection_status`, `deplaning_equipment_type`, `crew_debrief_status`, `baggage_unload_status`, `task_id`, `acu_connection_status`, `gpu_connection_status`, `wheelchocks_installation_status`
+`flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `engines_stop_status`, `door_opening_status`, `passenger_disembarkation_status`, `jetbridge_connection_status`, `stairtruck_connection_status`, `deplaning_equipment_type`, `crew_debrief_status`, `baggage_unload_status`, `task_id`, `acu_connection_status`, `gpu_connection_status`, `wheels_chocks_installation_status`
 
 > Note: `engines_stop_status` is in the sly_data allow blocks but is **absent from the Python `FLIGHT_TURNAROUND_TRACKED_FIELDS`**. It propagates through the sly_data channel between networks but TrackerAPI will not log or return it.
 
@@ -240,13 +240,13 @@ Standard sly_data-first implementation. Called to persist results after BRANCH A
 
 #### Configuration (22 tracked fields = 22 return fields)
 
-`acu_connection_status`, `acu_readiness_status`, `aircraft_direction`, `aircraft_type`, `assigned_runway_id`, `assigned_runway_length`, `baggage_unload_status`, `clearance_type`, `crew_debrief_status`, `deplaning_equipment_type`, `door_opening_status`, `flight_number`, `flight_status`, `gate_id`, `gpu_connection_status`, `ground_clearance_status`, `ground_clearance_type`, `jetbridge_connection_status`, `passenger_disembarkation_status`, `stairtruck_connection_status`, `wheelchocks_installation_status`, `wheelchocks_readiness_status`
+`acu_connection_status`, `acu_readiness_status`, `aircraft_direction`, `aircraft_type`, `assigned_runway_id`, `assigned_runway_length`, `baggage_unload_status`, `clearance_type`, `crew_debrief_status`, `deplaning_equipment_type`, `door_opening_status`, `flight_number`, `flight_status`, `gate_id`, `gpu_connection_status`, `ground_clearance_status`, `ground_clearance_type`, `jetbridge_connection_status`, `passenger_disembarkation_status`, `stairtruck_connection_status`, `wheels_chocks_installation_status`, `wheels_chocks_readiness_status`
 
 > Note: Tracked fields and return fields are identical — TrackerAPI returns everything it tracks.
 
 > Note: `engines_stop_status` is in the sly_data allow blocks and the HOCON TrackerAPI parameter schema but **absent from Python tracked fields**. It will not be tracked or returned.
 
-> Note: The HOCON TrackerAPI description contains `"wheels_chucks_installation_status"` (line 417) — double-`c` typo. Should be `wheelchocks_installation_status`. Stale copy-paste artifact also seen in several other networks.
+> Note: The HOCON TrackerAPI description contains `"wheels_chucks_installation_status"` (line 417) — double-`c` typo. Should be `wheels_chocks_installation_status`. Stale copy-paste artifact also seen in several other networks.
 
 > Note: The HOCON `TrackerAPI` definition correctly includes `"required": []`.
 
@@ -300,16 +300,11 @@ This contrasts with BRANCH C, which calls TrackerAPI first — by STEP 13, both 
 
 ## 9. Known Issues and Maintenance Notes
 
-|---------------------------------------------------------------------------------|------------------------------------------------------------------------------------|:--------:|------------------------------------------------------------------------------------------------------------|
-| Issue                                                                           | Location                                                                           | Severity | Notes                                                                                                      |
-|---------------------------------------------------------------------------------|------------------------------------------------------------------------------------|:--------:|------------------------------------------------------------------------------------------------------------|
-| `engines_stop_status` in sly_data allow blocks but not in Python tracked fields | `aircraft_crew_cabin.hocon` lines 328, 348; `aircraft_crew_cabin.py` lines 426–448 | Low      | The field propagates between networks via sly_data channels but TrackerAPI will not track or echo it back. |
-| HOCON TrackerAPI description `"wheels_chucks_installation_status"` typo         | `aircraft_crew_cabin.hocon` line 417                                               | Low      | Double-`c` in `chucks`. Should be `wheelchocks_installation_status`.                                       |
-| ~145-line commented-out `execute_aircraft_landing` class                        | `aircraft_crew_cabin.py` lines 28–143                                              | Low      | Identical block also present in `aircraft_cabin_services.py`. Belongs in `aircraft_landing.py`. Dead code. |
-| Unused imports: `fcntl`, `asyncio`, `random`, `os`, `platform`                  | `aircraft_crew_cabin.py` lines 7–12                                                | Low      | All unused. `fcntl` Unix-only, fails on Windows. Same issue as other networks.                             |
-| HOCON metadata description not updated                                          | `aircraft_crew_cabin.hocon` line 6                                                 | Low      | Says "Simple agent network using a single LLM-based agent" — generic boilerplate.                          |
-| BRANCH B design decision should be documented in code                           | `aircraft_crew_cabin.hocon` BRANCH B STEP 1                                        | Info     | The "Trust the args, not TrackerAPI" rationale is documented inline. Well-designed; no fix needed.         |
-|---------------------------------------------------------------------------------|------------------------------------------------------------------------------------|:--------:|------------------------------------------------------------------------------------------------------------|
+|--------------------------------------------------------|---------------------------------------------|:--------:|------------------------------------------------------------------------------------------------------------|
+| Issue                                                  | Location                                    | Severity | Notes                                                                                                      |
+|--------------------------------------------------------|---------------------------------------------|:--------:|------------------------------------------------------------------------------------------------------------|
+| BRANCH B design decision should be documented in code  | `aircraft_crew_cabin.hocon` BRANCH B STEP 1 |   Info   | The "Trust the args, not TrackerAPI" rationale is documented inline. Well-designed; no fix needed.         |
+|--------------------------------------------------------|---------------------------------------------|:--------:|------------------------------------------------------------------------------------------------------------|
 
 ---
 
@@ -317,26 +312,22 @@ This contrasts with BRANCH C, which calls TrackerAPI first — by STEP 13, both 
 
 Both `aircraft_crew_cabin` and `aircraft_cabin_services` are three-branch routing agents. The key structural differences:
 
-|--------------------------------------|----------------------------------------|-------------------------------------|
-| Aspect                               | `aircraft_cabin_services`              | `aircraft_crew_cabin`               |
-|--------------------------------------|----------------------------------------|-------------------------------------|
-| Entry agent name                     | `cabin_services`                       | `cabin_crew_agent`                  |
-| Primary routing discriminant         | `instruction` field (keyword match)    | `task_id` token (priority-first)    |
-| Branches                             | clean / lavatory / catering            | door opening / disembark / debrief  |
-| Called by                            | `aircraft_turnaround_manager` directly | `aircraft_crew_pilot`               |
-| TrackerAPI avoidance in any branch   | No                                     | Yes — BRANCH B explicitly avoids it |
-| Execution limits                     | 3,000 / 300s                           | 40,000 / 7,200s                     |
-| TrackerAPI class path                | Wrong module                           | Correct module                      |
-|--------------------------------------|----------------------------------------|-------------------------------------|
+|------------------------------------|----------------------------------------|-------------------------------------|
+| Aspect                             | `aircraft_cabin_services`              | `aircraft_crew_cabin`               |
+|------------------------------------|----------------------------------------|-------------------------------------|
+| Entry agent name                   | `cabin_services`                       | `cabin_crew_agent`                  |
+| Primary routing discriminant       | `instruction` field (keyword match)    | `task_id` token (priority-first)    |
+| Branches                           | clean / lavatory / catering            | door opening / disembark / debrief  |
+| Called by                          | `aircraft_turnaround_manager` directly | `aircraft_crew_pilot`               |
+| TrackerAPI avoidance in any branch | No                                     | Yes — BRANCH B explicitly avoids it |
+| Execution limits                   | 3,000 / 300s                           | 40,000 / 7,200s                     |
+| TrackerAPI class path              | Wrong module                           | Correct module                      |
+|------------------------------------|----------------------------------------|-------------------------------------|
 
 ---
 
 ## 11. Extensibility Guidance
 
-- Add `engines_stop_status` to `FLIGHT_TURNAROUND_TRACKED_FIELDS` and `RETURN_FIELDS` in Python, or remove it from the sly_data allow blocks
-- Remove the commented-out `execute_aircraft_landing` class from the Python file
-- Remove unused imports (`fcntl`, `asyncio`, `random`, `os`, `platform`)
-- Fix the `"wheels_chucks_installation_status"` typo in the HOCON TrackerAPI description
 - Update the metadata description from the generic boilerplate
 - If a crew exit branch is ever added here (currently it's in `aircraft_crew_pilot` as a direct call to `aircraft_crew_exit`), add it as BRANCH D with a `CREW_EXIT` task_id trigger
 

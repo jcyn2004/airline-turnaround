@@ -20,9 +20,6 @@ import re
 import pandas as pd
 from pathlib import Path
 
-## findRestriction
-## Addtion to check restriction per discussion with Risto 
-# class pull_restriction(CodedTool):
 class ExtractDocs(CodedTool):
     """
     CodedTool implementation extracts text from all PDFs in the given directory.
@@ -40,14 +37,11 @@ class ExtractDocs(CodedTool):
     print("\n")
 
     def __init__(self):
-        # self.default_path = ["coded_tools/aircraft_cleaning/knowdocs/Help Center.txt"]
         self.default_path = ["coded_tools/AirlineTurnaround/aircraft_cleaning_procedure/knowdocs/cabin"]
 
         self.docs_path = {
             "cabin crew seats and service entry door lining panels": "coded_tools/AirlineTurnaround/aircraft_cleaning_procedure/knowdocs/cabin/passenger_seating_area",
         }
-
-            # "cabin crew seats and service entry door lining panels": "coded_tools/aircraft_cleaning/knowdocs/cabin/cabin_crew_seats_and_service_entry_door_lining_panels",
 
     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
         """

@@ -84,15 +84,15 @@ The entry-point agent. It reads all parameters from TrackerAPI, validates flight
 
 #### Input parameters
 
-| Parameter | Type | Required | Description |
-|---|---|:---:|---|
-| `flight_number` | string | ✅ | Flight identifier |
-| `aircraft_type` | string | ✅ | Aircraft model/type |
-| `gate_id` | string | ✅ | Gate where the aircraft is parked |
-| `flight_status` | string | ✅ | Expected: contains `on blocks` or `block` |
-| `acu_connection_status` | string | ✅ | Expected: contains `connected` |
-| `gpu_connection_status` | string | ✅ | Expected: contains `connected` |
-| `wheelchocks_installation_status` | string | ❌ | Expected: contains `installed` |
+| Parameter                         | Type   | Required | Description                               |
+|-----------------------------------|--------|:--------:|-------------------------------------------|
+| `flight_number`                   | string |    ✅     | Flight identifier                         |
+| `aircraft_type`                   | string |    ✅     | Aircraft model/type                       |
+| `gate_id`                         | string |    ✅     | Gate where the aircraft is parked         |
+| `flight_status`                   | string |    ✅     | Expected: contains `on blocks` or `block` |
+| `acu_connection_status`           | string |    ✅     | Expected: contains `connected`            |
+| `gpu_connection_status`           | string |    ✅     | Expected: contains `connected`            |
+| `wheels_chocks_installation_status` | string |    ❌     | Expected: contains `installed`            |
 
 > Note: The agent `function.description` says "I am in charge of connecting the **jetbridge** to the aircraft at the gate" — a copy-paste artifact from `aircraft_jetbridge_connect.hocon`. The actual function is stairtruck connection.
 
@@ -121,12 +121,12 @@ Call `stairtruck_operator` with `flight_number`, `aircraft_type`, `flight_status
 
 #### sly_data contract
 
-| Direction | Parameters |
-|---|---|
-| **To upstream** | `stairtruck_connection_status` |
-| **To downstream** | `stairtruck_connection_status` |
-| **From upstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `acu_connection_status`, `gpu_connection_status`, `wheelchocks_installation_status`, `stairtruck_connection_status` |
-| **From downstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `acu_connection_status`, `gpu_connection_status`, `wheelchocks_installation_status`, `stairtruck_connection_status` |
+| Direction           | Parameters                                                                                                                                                                        |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **To upstream**     | `stairtruck_connection_status`                                                                                                                                                    |
+| **To downstream**   | `stairtruck_connection_status`                                                                                                                                                    |
+| **From upstream**   | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `acu_connection_status`, `gpu_connection_status`, `wheels_chocks_installation_status`, `stairtruck_connection_status` |
+| **From downstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `acu_connection_status`, `gpu_connection_status`, `wheels_chocks_installation_status`, `stairtruck_connection_status` |
 
 > Note: Both outbound directions propagate only `stairtruck_connection_status` — identical narrow pattern to `aircraft_jetbridge_connect`.
 
@@ -150,14 +150,14 @@ The Python class docstring explicitly acknowledges its origin: *"Mirrors jetbrid
 
 #### Input parameters
 
-| Parameter | Type | Required | Source priority |
-|---|---|:---:|---|
-| `flight_number` | string | ✅ | `args` → `sly_data` |
-| `aircraft_type` | string | ✅ | `args` → `sly_data` |
-| `flight_status` | string | ✅ | `args` → `sly_data` |
-| `gate_id` | string | ✅ | `args` → `sly_data` |
-| `acu_connection_status` | string | ✅ | `args` → `sly_data` |
-| `gpu_connection_status` | string | ✅ | `args` → `sly_data` |
+| Parameter               | Type   | Required | Source priority     |
+|-------------------------|--------|:--------:|---------------------|
+| `flight_number`         | string |    ✅     | `args` → `sly_data` |
+| `aircraft_type`         | string |    ✅     | `args` → `sly_data` |
+| `flight_status`         | string |    ✅     | `args` → `sly_data` |
+| `gate_id`               | string |    ✅     | `args` → `sly_data` |
+| `acu_connection_status` | string |    ✅     | `args` → `sly_data` |
+| `gpu_connection_status` | string |    ✅     | `args` → `sly_data` |
 
 #### Connection logic
 
@@ -201,7 +201,7 @@ Standard sly_data-first implementation. Called in STEP 1 to read all available p
 **Return fields:**
 `acu_connection_status`, `flight_status`, `gpu_connection_status`, `stairtruck_connection_status`
 
-> Note: `wheelchocks_installation_status` is in the HOCON sly_data allow blocks and HOCON TrackerAPI parameter schema, but is **not in `FLIGHT_TURNAROUND_TRACKED_FIELDS`**. TrackerAPI will not persist or return this field — identical gap to `aircraft_jetbridge_connect`.
+> Note: `wheels_chocks_installation_status` is in the HOCON sly_data allow blocks and HOCON TrackerAPI parameter schema, but is **not in `FLIGHT_TURNAROUND_TRACKED_FIELDS`**. TrackerAPI will not persist or return this field — identical gap to `aircraft_jetbridge_connect`.
 
 > Note: `flight_number`, `aircraft_type`, and `gate_id` are tracked but not returned.
 
@@ -215,12 +215,12 @@ Standard sly_data-first implementation. Called in STEP 1 to read all available p
 
 ## 6. External Tool Dependencies
 
-| Tool path | Purpose | Condition triggering call |
-|---|---|---|
+| Tool path                                        | Purpose     | Condition triggering call                         |
+|--------------------------------------------------|-------------|---------------------------------------------------|
 | `/AirlineTurnaround/aircraft_ground_acu_connect` | Connect ACU | STEP 3: `acu_connection_status` not `'connected'` |
 | `/AirlineTurnaround/aircraft_ground_gpu_connect` | Connect GPU | STEP 3: `gpu_connection_status` not `'connected'` |
 
-> Note: No external tool exists for `wheelchocks_installation_status`. If chocks are not installed, the agent can only stop and report.
+> Note: No external tool exists for `wheels_chocks_installation_status`. If chocks are not installed, the agent can only stop and report.
 
 ---
 
@@ -244,7 +244,7 @@ and wheelchocks have been installed. Connect the stairtruck."
 
 **Execution steps:**
 
-1. `TrackerAPI` called (STEP 1) — reads: `flight_status=on blocks`, `acu_connection_status=connected`, `gpu_connection_status=connected`, `wheelchocks_installation_status=installed`
+1. `TrackerAPI` called (STEP 1) — reads: `flight_status=on blocks`, `acu_connection_status=connected`, `gpu_connection_status=connected`, `wheels_chocks_installation_status=installed`
 2. `flight_status` check: contains `'on blocks'` ✅ (STEP 2)
 3. All three prerequisites confirmed ✅ → skip to STEP 4 (STEP 3)
 4. `stairtruck_operator` called — returns `stairtruck_connection_status=connected`
@@ -274,7 +274,7 @@ and wheelchocks have been installed. Connect the stairtruck."
   "gate_id": "A1",
   "acu_connection_status": "connected",
   "gpu_connection_status": "connected",
-  "wheelchocks_installation_status": "installed",
+  "wheels_chocks_installation_status": "installed",
   "stairtruck_connection_status": "connected"
 }
 ```
@@ -283,36 +283,30 @@ and wheelchocks have been installed. Connect the stairtruck."
 
 ## 9. Known Issues and Maintenance Notes
 
-| Issue | Location | Severity | Notes |
-|---|---|:---:|---|
-| **`'connected' in` accepts `'not connected'`** | `aircraft_stairtruck_connect.py` line 152 | **High** | Substring match: `'connected' in 'not connected'` is `True`. Operator would grant connection even if ACU/GPU status explicitly says `'not connected'`. Fix: exact matching `== 'connected'`. Same bug as `aircraft_jetbridge_connect`. |
-| `wheelchocks_installation_status` not tracked by TrackerAPI Python config | `aircraft_stairtruck_connect.py` lines 458–465 | Medium | In HOCON sly_data blocks and TrackerAPI schema but absent from `FLIGHT_TURNAROUND_TRACKED_FIELDS`. |
-| No external tool to resolve wheelchocks | `aircraft_stairtruck_connect.hocon` line 218 | Medium | STEP 3 checks wheelchocks but no resolution tool is registered. Same gap as `aircraft_jetbridge_connect`. |
-| Agent description says "connecting the **jetbridge**" | `aircraft_stairtruck_connect.hocon` line 93 | Low | Copy-paste from `aircraft_jetbridge_connect.hocon`. Should say "stairtruck". |
-| `stairtruck_operator` description says "connects **jetbridge**" | `aircraft_stairtruck_connect.hocon` line 225 | Low | Same copy-paste. Should say "stairtruck". |
-| Redundant second `message` assignment (dead code) | `aircraft_stairtruck_connect.py` line 168 | Low | Assigned after the `if` block but never used — `return stairtruck_connection_status` follows immediately. Same dead code as jetbridge (line 175). |
-| Comment on line 98 says "flight status" for `gate_id` block | `aircraft_stairtruck_connect.py` line 98 | Low | `# flight status is required...` should say `# gate id is required`. Same copy-paste residue as jetbridge. |
-| `'block'` in STEP 2 overly broad substring match | `aircraft_stairtruck_connect.hocon` line 144 | Low | Accepts `"blocked"`, `"unblocked"`, etc. Same issue as jetbridge. |
-| TrackerAPI description has `statusengines_stop_status` | `aircraft_stairtruck_connect.hocon` line 267 | Low | Concatenated copy-paste artifact, same as jetbridge. |
-| Commented-out `# sly_data["gate_id"] = gate_id` | `aircraft_stairtruck_connect.py` line 135 | Low | Vestigial dev artifact. Same commented line as jetbridge (line 142). |
+| Issue                                                                     | Location                                       | Severity | Notes                                                                                                                                                                                                                                  |
+|---------------------------------------------------------------------------|------------------------------------------------|:--------:|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| No external tool to resolve wheelchocks                                   | `aircraft_stairtruck_connect.hocon` line 218   |  Medium  | STEP 3 checks wheelchocks but no resolution tool is registered. Same gap as `aircraft_jetbridge_connect`.                                                                                                                              |
+| Agent description says "connecting the **jetbridge**"                     | `aircraft_stairtruck_connect.hocon` line 93    |   Low    | Copy-paste from `aircraft_jetbridge_connect.hocon`. Should say "stairtruck".                                                                                                                                                           |
+| `stairtruck_operator` description says "connects **jetbridge**"           | `aircraft_stairtruck_connect.hocon` line 225   |   Low    | Same copy-paste. Should say "stairtruck".                                                                                                                                                                                              |
+| Redundant second `message` assignment (dead code)                         | `aircraft_stairtruck_connect.py` line 168      |   Low    | Assigned after the `if` block but never used — `return stairtruck_connection_status` follows immediately. Same dead code as jetbridge (line 175).                                                                                      |
 
 ---
 
 ## 10. Comparison with `aircraft_jetbridge_connect`
 
-| Aspect | `aircraft_jetbridge_connect` | `aircraft_stairtruck_connect` |
-|---|---|---|
-| Entry agent name | `jetbridge_connect_agent` | `stairtruck_connect_agent` |
-| Operator name | `jetbridge_operator` | `stairtruck_operator` |
-| Output status field | `jetbridge_connection_status` | `stairtruck_connection_status` |
-| Initial status value | `'retracted'` | `'retracted'` |
-| `'connected' in` substring bug | Yes | Yes |
-| Redundant `message` assignment | Yes (line 175) | Yes (line 168) |
-| `wheelchocks_installation_status` not tracked | Yes | Yes |
-| TrackerAPI schema includes both bridge/truck fields | No (only jetbridge) | Yes (both `jetbridge_connection_status` and `stairtruck_connection_status`) |
-| Agent description copy-paste | No | Yes ("connecting the jetbridge") |
-| Operator description copy-paste | No | Yes ("connects jetbridge") |
-| Class docstring documents mirror relationship | No | Yes ("Mirrors jetbridge_operator...") |
+| Aspect                                              | `aircraft_jetbridge_connect`  | `aircraft_stairtruck_connect`                                               |
+|-----------------------------------------------------|-------------------------------|-----------------------------------------------------------------------------|
+| Entry agent name                                    | `jetbridge_connect_agent`     | `stairtruck_connect_agent`                                                  |
+| Operator name                                       | `jetbridge_operator`          | `stairtruck_operator`                                                       |
+| Output status field                                 | `jetbridge_connection_status` | `stairtruck_connection_status`                                              |
+| Initial status value                                | `'retracted'`                 | `'retracted'`                                                               |
+| `'connected' in` substring bug                      | Yes                           | Yes                                                                         |
+| Redundant `message` assignment                      | Yes (line 175)                | Yes (line 168)                                                              |
+| `wheels_chocks_installation_status` not tracked       | Yes                           | Yes                                                                         |
+| TrackerAPI schema includes both bridge/truck fields | No (only jetbridge)           | Yes (both `jetbridge_connection_status` and `stairtruck_connection_status`) |
+| Agent description copy-paste                        | No                            | Yes ("connecting the jetbridge")                                            |
+| Operator description copy-paste                     | No                            | Yes ("connects jetbridge")                                                  |
+| Class docstring documents mirror relationship       | No                            | Yes ("Mirrors jetbridge_operator...")                                       |
 
 The TrackerAPI HOCON schema difference is the one structurally meaningful distinction: `aircraft_stairtruck_connect`'s TrackerAPI exposes both `jetbridge_connection_status` and `stairtruck_connection_status`, which makes it appropriate for use in contexts where both connection types need to be visible in state.
 
@@ -320,12 +314,8 @@ The TrackerAPI HOCON schema difference is the one structurally meaningful distin
 
 ## 11. Extensibility Guidance
 
-- Fix the `'connected' in` substring check to exact matching on both ACU and GPU conditions: `acu_connection_status.strip().lower() == 'connected'`
-- Add `wheelchocks_installation_status` to `FLIGHT_TURNAROUND_TRACKED_FIELDS` and `RETURN_FIELDS`
+- Add `wheels_chocks_installation_status` to `FLIGHT_TURNAROUND_TRACKED_FIELDS` and `RETURN_FIELDS`
 - Consider adding `/AirlineTurnaround/aircraft_ground_wheelchocks_install` to the tools list for complete prerequisite resolution
-- Fix the two copy-paste description errors ("jetbridge" in agent and operator descriptions)
-- Remove the dead code second `message` assignment (line 168)
-- Fix the `'block'` substring match in STEP 2 to require `'on blocks'`
 
 ---
 

@@ -351,6 +351,7 @@ I check door opening status as door_opening_status.
                             "description": "This is the deplaning equipment type (jetway or stairtruck)."
                         },
                     }, 
+                    "required": [] 
                 }
             },
             "class": "AirlineTurnaround.aircraft_crew_debrief.aircraft_crew_debrief.TrackerAPI" 

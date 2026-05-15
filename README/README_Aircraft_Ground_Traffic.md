@@ -59,7 +59,7 @@ ground_traffic_orchestrator  (LLM Agent — entry point)
 - **Three-level agent delegation:** The orchestrator handles prerequisites and flow control; the controller handles clearance routing; the execution tool makes the decision. This separation allows each level to be swapped or extended independently.
 - **Status-driven clearance:** `execute_ground_clearance` grants clearance based on `flight_status` keyword matching (`'landed'` → taxi-in, `'off blocks'` → taxi-out). CSV data is loaded and validated but not currently used to filter runway selection.
 - **Typed clearance contract:** The operator uses Python `Literal` types and a `TypedDict` (`ClearanceDict`) for structured output, providing stronger type guarantees than any other network in the system.
-- **Runway regex validation:** `assigned_runway_id` is validated against a regex (`^(?:[0-3]?\d|[0-2]\d|3[0-6])[LRC]?$`) before clearance is issued.
+- **Runway regex validation:** `assigned_runway_id` is validated against a regex (`^(?:[0-3]?\d| [0-2]\d |3[0-6])[LRC]?$`) before clearance is issued.
 
 ---
 
@@ -87,15 +87,15 @@ Parses taxi requests, resolves all parameters, enforces the flight-status prereq
 
 #### Input parameters
 
-| Parameter | Type | Required | Description |
-|---|---|:---:|---|
-| `flight_number` | string | ✅ | Flight identifier |
-| `aircraft_type` | string | ✅ | Aircraft model/type |
-| `flight_status` | string | ✅ | Expected: `landed` (taxi-in) or `off blocks` (taxi-out) |
-| `assigned_runway_id` | string | ✅ | Runway designator (e.g. `28L`, `04R`) |
-| `gate_id` | string | ✅ | Assigned gate |
-| `ground_clearance_type` | string | ❌ | Auto-set from taxi-in/taxi-out phrasing |
-| `ground_clearance_status` | string | ❌ | Clearance outcome |
+| Parameter                 | Type   | Required | Description                                             |
+|---------------------------|--------|:--------:|---------------------------------------------------------|
+| `flight_number`           | string |    ✅     | Flight identifier                                       |
+| `aircraft_type`           | string |    ✅     | Aircraft model/type                                     |
+| `flight_status`           | string |    ✅     | Expected: `landed` (taxi-in) or `off blocks` (taxi-out) |
+| `assigned_runway_id`      | string |    ✅     | Runway designator (e.g. `28L`, `04R`)                   |
+| `gate_id`                 | string |    ✅     | Assigned gate                                           |
+| `ground_clearance_type`   | string |    ❌     | Auto-set from taxi-in/taxi-out phrasing                 |
+| `ground_clearance_status` | string |    ❌     | Clearance outcome                                       |
 
 #### Orchestration flow
 
@@ -112,11 +112,11 @@ Parses taxi requests, resolves all parameters, enforces the flight-status prereq
 
 #### sly_data contract
 
-| Direction | Parameters |
-|---|---|
-| **To upstream** | `flight_number`, `aircraft_type`, `ground_clearance_type`, `ground_clearance_status`, `assigned_runway_id`, `flight_status`, `gate_id` |
-| **To downstream** | `flight_number`, `aircraft_type`, `ground_clearance_type`, `ground_clearance_status`, `assigned_runway_id`, `flight_status`, `gate_id` |
-| **From upstream** | `flight_number`, `aircraft_type`, `ground_clearance_type`, `ground_clearance_status`, `assigned_runway_id`, `flight_status`, `gate_id` |
+| Direction           | Parameters                                                                                                                             |
+|---------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| **To upstream**     | `flight_number`, `aircraft_type`, `ground_clearance_type`, `ground_clearance_status`, `assigned_runway_id`, `flight_status`, `gate_id` |
+| **To downstream**   | `flight_number`, `aircraft_type`, `ground_clearance_type`, `ground_clearance_status`, `assigned_runway_id`, `flight_status`, `gate_id` |
+| **From upstream**   | `flight_number`, `aircraft_type`, `ground_clearance_type`, `ground_clearance_status`, `assigned_runway_id`, `flight_status`, `gate_id` |
 | **From downstream** | `flight_number`, `aircraft_type`, `ground_clearance_type`, `ground_clearance_status`, `assigned_runway_id`, `flight_status`, `gate_id` |
 
 All four directions carry identical 7-field sets — the most symmetric full-context contract in the system.
@@ -161,11 +161,11 @@ The only coded execution tool in this network (besides TrackerAPI). It loads two
 
 #### Constructor paths
 
-| Attribute | Default path |
-|---|---|
+| Attribute       | Default path                                                                                             |
+|-----------------|----------------------------------------------------------------------------------------------------------|
 | `aircraft_base` | `Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_traffic_controller" / "aircraft_base.csv"` |
-| `runway_base` | `Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_traffic_controller" / "runways_base.csv"` |
-| `log_path` | `Path.cwd() / "test_debug" / "airlineturnaround.txt"` |
+| `runway_base`   | `Path.cwd() / "coded_tools" / "AirlineTurnaround" / "aircraft_traffic_controller" / "runways_base.csv"`  |
+| `log_path`      | `Path.cwd() / "test_debug" / "airlineturnaround.txt"`                                                    |
 
 #### Required CSV schemas
 
@@ -177,15 +177,15 @@ If either file is missing or a required column is absent, the tool returns an er
 
 #### Input parameters
 
-| Parameter | Type | Required | Source priority |
-|---|---|:---:|---|
-| `aircraft_type` | string | ✅ | `args` → `sly_data` |
-| `flight_number` | string | ✅ | `args` → `sly_data` |
-| `flight_status` | string | ✅ | `args` → `sly_data` |
-| `assigned_runway_id` | string | ✅ | `args` → `sly_data` |
-| `gate_id` | string | ✅ | `args` → `sly_data` |
-| `ground_clearance_type` | string | ✅ | `args` → `sly_data` |
-| `ground_clearance_status` | string | ❌ | `args` → `sly_data` |
+| Parameter                 | Type   | Required | Source priority     |
+|---------------------------|--------|:--------:|---------------------|
+| `aircraft_type`           | string |    ✅     | `args` → `sly_data` |
+| `flight_number`           | string |    ✅     | `args` → `sly_data` |
+| `flight_status`           | string |    ✅     | `args` → `sly_data` |
+| `assigned_runway_id`      | string |    ✅     | `args` → `sly_data` |
+| `gate_id`                 | string |    ✅     | `args` → `sly_data` |
+| `ground_clearance_type`   | string |    ✅     | `args` → `sly_data` |
+| `ground_clearance_status` | string |    ❌     | `args` → `sly_data` |
 
 All inputs are written to sly_data immediately on entry (unconditional persist), before any validation.
 
@@ -194,16 +194,16 @@ All inputs are written to sly_data immediately on entry (unconditional persist),
 Clearance is granted based on `flight_status` keyword matching only:
 
 | `flight_status` contains | `ground_clearance_type` set to | `ground_clearance_status` | `flight_status` updated to |
-|---|---|---|---|
-| `'landed'` | `CLEARANCE_TO_TAXI_IN` | `GRANTED` | `TAXIING_IN` |
-| `'off blocks'` | `CLEARANCE_TO_TAXI_OUT` | `GRANTED` | `TAXIING_OUT` |
-| neither | (no change) | (no change) | (no change) |
+|--------------------------|--------------------------------|---------------------------|----------------------------|
+| `'landed'`               | `CLEARANCE_TO_TAXI_IN`         | `GRANTED`                 | `TAXIING_IN`               |
+| `'off blocks'`           | `CLEARANCE_TO_TAXI_OUT`        | `GRANTED`                 | `TAXIING_OUT`              |
+| neither                  | (no change)                    | (no change)               | (no change)                |
 
 > Note: The runway CSVs are loaded and validated but **not used in the clearance decision**. The aircraft's landing/takeoff run requirements are loaded from `aircraft_base.csv` and the runway lengths from `runways_base.csv`, but no comparison between them takes place. Clearance is always `GRANTED` when `flight_status` matches, regardless of runway length compatibility. This appears to be incomplete runway validation logic.
 
 #### Runway ID validation
 
-`assigned_runway_id` is validated against the regex `^(?:[0-3]?\d|[0-2]\d|3[0-6])[LRC]?$` (accepts runway numbers 01–36 with optional L/R/C suffix). If it does not match, `build_clearance()` raises `ValueError` and the tool returns an error string.
+`assigned_runway_id` is validated against the regex `^(?:[0-3]?\d| [0-2]\d |3[0-6])[LRC]?$` (accepts runway numbers 01–36 with optional L/R/C suffix). If it does not match, `build_clearance()` raises `ValueError` and the tool returns an error string.
 
 #### Return value
 
@@ -339,21 +339,14 @@ The aircraft is a B747 and has landed on runway 28L."
 
 ## 9. Known Issues and Maintenance Notes
 
-| Issue | Location | Severity | Notes |
-|---|---|:---:|---|
-| Agent name mismatch with prior documentation | `aircraft_ground_traffic.hocon` line 90 | Low | Agent is `ground_traffic_orchestrator`, not `aircraft_ground_traffic_agent`. |
-| **`clearance_report` assigned as tuple** | `aircraft_ground_traffic.py` line 247 | **High** | `clearance_report = line1 + line2,` — trailing comma creates a tuple `(str,)` rather than a string. Fix: remove the trailing comma. |
-| **Runway CSV data loaded but not used for clearance decision** | `aircraft_ground_traffic.py` lines 184–193 | **High** | `aircraft_base.csv` and `runways_base.csv` are loaded and column-validated but the aircraft run requirements are never compared against runway lengths. Clearance is always `GRANTED` on `flight_status` match alone. |
-| **`ground_clearance_type` and `ground_clearance_status` not written to sly_data** | `aircraft_ground_traffic.py` lines 257–283 | **High** | The `sly_data.update()` block and individual writes for these two fields are fully commented out. Only `flight_status` propagates via sly_data. Downstream agents cannot read clearance outcome from sly_data. |
-| `GroundClearanceType` Literal inconsistent with `build_clearance` validation | `aircraft_ground_traffic.py` lines 18 vs. 63 | Medium | The type annotation allows `CLEARED_FOR_TAXI`, `CLEARED_FOR_TAXI_IN`, etc. The runtime check allows `CLEARANCE_TO_TAXI_IN`, `TAXI_IN`, etc. These sets do not overlap. |
-| Class-level `print` statements in `execute_ground_clearance` | `aircraft_ground_traffic.py` lines 101–107 | Medium | `print()` at class body level executes at import time, not at invocation. Banner prints once when the module loads. |
-| Duplicate `assigned_runway_id` in tracked/return fields | `aircraft_ground_traffic.py` lines 613, 626 | Low | Listed twice in both `FLIGHT_TURNAROUND_TRACKED_FIELDS` and `RETURN_FIELDS`. Deduplicate. |
-| `off blocks` logic set twice (double assignment) | `aircraft_ground_traffic.py` lines 218–228 | Low | `ground_clearance_type` and `ground_clearance_status` are assigned to the same values twice (lines 218–219 and 227–228) before lowercasing. Redundant. |
-| `ground_traffic_controller` has no `parameters` schema | `aircraft_ground_traffic.hocon` lines 229–278 | Low | Only `function.description` and `instructions` are defined — no parameter schema. Arguments pass through aaosa inquiry mode without schema validation. |
-| `ground_traffic_orchestrator` `parameters` placed after `instructions` | `aircraft_ground_traffic.hocon` lines 98–173 | Low | Non-standard ordering vs. all other tools in the system. |
-| Interactive user-wait loop in step 3 | `aircraft_ground_traffic.hocon` lines 116–118 | Low | If `ground_clearance_type` is None, the agent waits for user response — same risk as `aircraft_engines_stop` in automated contexts. |
-| `TrackerAPI._log_data_summary` has `print()` calls | `aircraft_ground_traffic.py` lines 568–575 | Low | Produces extra stdout output not present in other TrackerAPI implementations. |
-| Hardcoded CSV paths cross module boundaries | `aircraft_ground_traffic.py` lines 111–112 | Low | Paths reference `aircraft_traffic_controller` directory. If that directory is moved or renamed, the tool fails with `FileNotFoundError`. |
+| Issue                                                                             | Location                                      | Severity | Notes                                                                                                                                                                                                                 |
+|-----------------------------------------------------------------------------------|-----------------------------------------------|:--------:|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Runway CSV data loaded but not used for clearance decision**                    | `aircraft_ground_traffic.py` lines 184–193    | **High** | `aircraft_base.csv` and `runways_base.csv` are loaded and column-validated but the aircraft run requirements are never compared against runway lengths. Clearance is always `GRANTED` on `flight_status` match alone. |
+| Class-level `print` statements in `execute_ground_clearance`                      | `aircraft_ground_traffic.py` lines 101–107    |  Medium  | `print()` at class body level executes at import time, not at invocation. Banner prints once when the module loads.                                                                                                   |
+| Duplicate `assigned_runway_id` in tracked/return fields                           | `aircraft_ground_traffic.py` lines 613, 626   |   Low    | Listed twice in both `FLIGHT_TURNAROUND_TRACKED_FIELDS` and `RETURN_FIELDS`. Deduplicate.                                                                                                                             |
+| `off blocks` logic set twice (double assignment)                                  | `aircraft_ground_traffic.py` lines 218–228    |   Low    | `ground_clearance_type` and `ground_clearance_status` are assigned to the same values twice (lines 218–219 and 227–228) before lowercasing. Redundant.                                                                |
+| Interactive user-wait loop in step 3                                              | `aircraft_ground_traffic.hocon` lines 116–118 |   Low    | If `ground_clearance_type` is None, the agent waits for user response — same risk as `aircraft_engines_stop` in automated contexts.                                                                                   |
+| `TrackerAPI._log_data_summary` has `print()` calls                                | `aircraft_ground_traffic.py` lines 568–575    |   Low    | Produces extra stdout output not present in other TrackerAPI implementations.                                                                                                                                         |
 
 ---
 
