@@ -41,17 +41,13 @@ class door_operator(CodedTool):
             - flight_number
             - aircraft_type
             - gate_id 
-            - acu_connection_status 
-            - gpu_connection_status 
-            - wheels_chocks_installation status 
             - jetbridge_connection_status
 
         :return: None in write mode or any of teh parameters in read mode
         """
         
-        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
-        door_opening_status = 'closed'
+        door_opening_status = 'pending'
 
         # flight number is needed in particular. 
         flight_number: str = args.get("flight_number", None)
@@ -457,44 +453,6 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
     "gate_id", 
     "jetbridge_connection_status",
     "stairtruck_connection_status"] 
-
-#     "acu_connection_status", 
-#     "acu_readiness_status",
-#     "aircraft_direction",
-#     "aircraft_landing_report",
-#     "aircraft_type",
-#     "assigned_runway_id",
-#     "assigned_runway_length",
-#     "baggage_unload_status", 
-#     "catering_loading_status", 
-#     "cleaning_cabin_status", 
-#     "clearance_landing_valid",
-#     "clearance_takeoff_valid", 
-#     "clearance_type",
-#     "crew_debrief_status", 
-#     "crew_exit_status", 
-#     "deplaning_equipment_type",
-#     "door_opening_status", 
-#     "engines_stop_status", 
-#     "flight_number",
-#     "flight_status",
-#     "fueling_status", 
-#     "gate_id",
-#     "gpu_connection_status", 
-#     "gpu_readiness_status",
-#     "ground_clearance_status",
-#     "ground_clearance_type",
-#     "ground_services_inquiry_type", 
-#     "ground_services_request_type",
-#     "inspection_maintenance_status", 
-#     "jetbridge_connection_status", 
-#     "jetbridge_status", 
-#     "lavatory_service_status", 
-#     "passenger_disembarkation_status", 
-#     "runway_length",
-#     "wheels_chocks_installation_status", 
-#     "wheels_chocks_readiness_status",
-# ]
 
 # Define which fields should be returned from the API
 FLIGHT_TURNAROUND_RETURN_FIELDS = [

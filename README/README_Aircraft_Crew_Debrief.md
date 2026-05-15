@@ -297,12 +297,7 @@ Debrief the crew."
 
 | Issue | Location | Notes |
 |---|---|---|
-| Agent name mismatch with prior documentation | `aircraft_crew_debrief.hocon` line 90 | Agent is `crew_debrief_agent`, not `aircraft_crew_debrief_agent` as previously documented. |
-| Log message copy-paste artifact | `aircraft_crew_debrief.py` line 149 | Message reads `"...door {door_opening_status}. installed. Its crew debrief status is status is {crew_debrief_status}."` — contains both `"installed"` (from baggage unload) and duplicated `"status is"`. |
-| HOCON TrackerAPI missing `"required"` field | `aircraft_crew_debrief.hocon` line 354 | The `parameters` object closes without `"required": []`. All other TrackerAPI definitions in the system include it. No runtime impact. |
 | `debrief_notes` parameter does not exist | Previous documentation vs. actual implementation | The prior doc listed `debrief_notes` as an input parameter and described a `crew_debrief_recorder` component. Neither exists. The operator only records `crew_debrief_status = completed`. |
-| Hardcoded log path comment | `aircraft_crew_debrief.py` line 49 | Commented-out absolute path remains; active path uses `Path.cwd()`. |
-| `passenger_disembarkation_status` tracked and returned but unused | `aircraft_crew_debrief.py` `FLIGHT_TURNAROUND_RETURN_FIELDS` | The field appears in both tracked and return fields but plays no role in the debrief logic or orchestration flow. Retained for upstream context sharing. |
 
 ---
 
@@ -310,8 +305,6 @@ Debrief the crew."
 
 - Add structured debrief content capture if actual crew debrief recording is required — a `debrief_notes` field and a persistence step (database write or document store) would need to be added to both the HOCON schema and the operator
 - Add integration with safety management systems (SMS) for incident reporting triggered by debrief content
-- Fix the log message copy-paste artifacts (`"installed"`, duplicated `"status is"`)
-- Add `"required": []` to the TrackerAPI HOCON schema for consistency with other networks
 - Consider adding `crew_exit_status` as a tracked field since crew debrief logically follows crew exit
 
 ---

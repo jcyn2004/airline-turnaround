@@ -2,7 +2,7 @@
     include "registries/aaosa_basic.hocon" 
 
     "metadata": {
-        "description": "Ground services readiness orchestrator – ACU, GPU, wheelchocks",
+        "description": "Ground services readiness orchestrator - ACU, GPU, wheels chocks",
         "tags": ["readiness", "ground"],
         "sample_queries": [
             "The B747 of flight AF84 has been assigned gate A1. Report the readiness of ground services at the gate.", 
@@ -12,8 +12,8 @@
     "llm_config": {
         "model_name": "gpt-5.4-mini",
     },
-    "max_iterations": 3000,
-    "max_execution_seconds": 300,
+    "max_iterations": 50000,
+    "max_execution_seconds": 7200,
     "commondefs": {
         "replacement_strings": {
             "instructions_prefix": """
@@ -91,7 +91,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
 I check and report all ground services readiness statuses at the gate:
 air conditioning unit readiness status (acu_readiness_status),
 ground power unit readiness status (gpu_readiness_status),
-and wheelchocks readiness status (wheelchocks_readiness_status).
+and wheels chocks readiness status (wheels_chocks_readiness_status).
 When called with aircraft_type and gate_id, I return all three statuses.
                 """,
                 "parameters": {
@@ -101,11 +101,15 @@ When called with aircraft_type and gate_id, I return all three statuses.
                             "type": "string", 
                             "description": "Type of the incoming aircraft."
                         },                 
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },   
                         "gate_id": {
                             "type": "string", 
                             "description": "Gate id assigned to the aircraft."
                         },   
-                        "wheelchocks_readiness_status": {
+                        "wheels_chocks_readiness_status": {
                             "type": "string", 
                             "description": "Wheelchocks readiness status."
                         },   
@@ -122,12 +126,6 @@ When called with aircraft_type and gate_id, I return all three statuses.
                 },
             },
 
-            # FIX: The original instructions called each readiness subsystem
-            # separately, which caused the turnaround orchestrator to call this
-            # agent three times (once per equipment). This forced the orchestrator
-            # to know the internals of this subsystem — a violation of abstraction.
-            # The fix: this agent always checks ALL THREE readiness statuses in one
-            # call and returns them together. The orchestrator only needs one call.
             "instructions": """
 You are the agent in charge of reporting ground services readiness at the gate.
 When called, you ALWAYS check ALL THREE ground services readiness statuses in
@@ -135,33 +133,33 @@ sequence and return all three results together in a single response.
 
 Proceed as follows:
 
-STEP 1 – Validate inputs
+STEP 1 - Validate inputs
   - Confirm aircraft_type and gate_id are available.
   - If either is missing, call TrackerAPI to retrieve them.
   - If still missing, ask the user and wait.
 
-STEP 2 – Check ACU readiness
+STEP 2 - Check ACU readiness
   - Call /AirlineTurnaround/aircraft_ground_acu_setup with:
       aircraft_type, gate_id.
   - Wait for response.
   - Store acu_readiness_status.
   - Call TrackerAPI and log acu_readiness_status.
 
-STEP 3 – Check GPU readiness
+STEP 3 - Check GPU readiness
   - Call /AirlineTurnaround/aircraft_ground_gpu_setup with:
       aircraft_type, gate_id.
   - Wait for response.
   - Store gpu_readiness_status.
   - Call TrackerAPI and log gpu_readiness_status.
 
-STEP 4 – Check wheelchocks readiness
-  - Call /AirlineTurnaround/aircraft_ground_wheelchocks_setup with:
+STEP 4 - Check wheels chocks readiness
+  - Call /AirlineTurnaround/aircraft_ground_wheels_chocks_setup with:
       aircraft_type, gate_id.
   - Wait for response.
-  - Store wheelchocks_readiness_status.
-  - Call TrackerAPI and log wheelchocks_readiness_status.
+  - Store wheels_chocks_readiness_status.
+  - Call TrackerAPI and log wheels_chocks_readiness_status.
 
-STEP 5 – Return combined readiness report
+STEP 5 - Return combined readiness report
   Provide the ground services readiness summary:
   ***************************************
   * Ground services readiness summary   *
@@ -170,11 +168,14 @@ STEP 5 – Return combined readiness report
   ** gate id                        **: [gate_id]
   ** ACU readiness status           **: [acu_readiness_status]
   ** GPU readiness status           **: [gpu_readiness_status]
-  ** wheelchocks readiness status   **: [wheelchocks_readiness_status]
+  ** wheels chocks readiness status   **: [wheels_chocks_readiness_status]
 
-NOTE: Always return ALL THREE statuses even if one or more is 'not ready'.
+NOTE 1: Always return ALL THREE statuses even if one or more is 'not ready'.
 Do not stop early if one status is 'not ready' — complete all three checks
 and report all results.
+NOTE 2: Always proceed through ALL THREE steps regardless of the result from
+any individual step. If a step returns an error string, record the error
+as the status value and continue to the next step. Never abort early.
             """ ${aaosa_instructions},  
 
             "allow": {
@@ -184,16 +185,17 @@ and report all results.
                         "gate_id": true, 
                         "gpu_readiness_status": true, 
                         "acu_readiness_status": true, 
-                        "wheelchocks_readiness_status": true, 
+                        "wheels_chocks_readiness_status": true, 
                     }
                 },
                 "from_upstream": {
                     "sly_data": {
                         "aircraft_type": true, 
+                        "flight_number": true,
                         "gate_id": true, 
                         "gpu_readiness_status": true, 
                         "acu_readiness_status": true, 
-                        "wheelchocks_readiness_status": true, 
+                        "wheels_chocks_readiness_status": true, 
                     }
                 },
                 "from_downstream": {
@@ -202,7 +204,7 @@ and report all results.
                         "gate_id": true, 
                         "gpu_readiness_status": true, 
                         "acu_readiness_status": true, 
-                        "wheelchocks_readiness_status": true, 
+                        "wheels_chocks_readiness_status": true, 
                     }
                 },
                 "to_downstream": {
@@ -211,7 +213,7 @@ and report all results.
                         "gate_id": true, 
                         "gpu_readiness_status": true, 
                         "acu_readiness_status": true, 
-                        "wheelchocks_readiness_status": true, 
+                        "wheels_chocks_readiness_status": true, 
                     }
                 }
             },
@@ -220,7 +222,7 @@ and report all results.
                 "TrackerAPI",
                 "/AirlineTurnaround/aircraft_ground_acu_setup",
                 "/AirlineTurnaround/aircraft_ground_gpu_setup",  
-                "/AirlineTurnaround/aircraft_ground_wheelchocks_setup", 
+                "/AirlineTurnaround/aircraft_ground_wheels_chocks_setup", 
             ]
         },
 
@@ -235,9 +237,13 @@ I am the flight tracker in charge of logging parameters during aircraft turnarou
                     "properties": {
                         "aircraft_type": {"type": "string", "description": "Aircraft type."},         
                         "gate_id": {"type": "string", "description": "Gate id."},     
-                        "wheelchocks_readiness_status": {"type": "string", "description": "Wheelchocks readiness status."},   
+                        "wheels_chocks_readiness_status": {"type": "string", "description": "Wheelchocks readiness status."},   
                         "gpu_readiness_status": {"type": "string", "description": "GPU readiness status."},      
-                        "acu_readiness_status": {"type": "string", "description": "ACU readiness status."},      
+                        "acu_readiness_status": {"type": "string", "description": "ACU readiness status."},     
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },    
                     }, 
                     "required": [] 
                 }

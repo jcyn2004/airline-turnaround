@@ -85,17 +85,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
     },
 
     "tools": [
-        # This first agent definition is regarded as the "Front Man", which
-        # does all the talking to the outside world/client.
-        #
-        # Some disqualifications from being a front man:
-        #   1) Cannot use a CodedTool "class" definition
-        #   2) Cannot use a Tool "toolbox" definition
-        #
-        # Besides the first agent being the front man, these tool definitions
-        # do not have to be in any particular order. How they are linked and
-        # call each other is defined within their own specs.
-        # This could be a graph, potentially even with cycles.
+
         {
             "name": "aircraft_cleaning_assistant",
             "function": {
@@ -175,13 +165,8 @@ When interacting with the user, act as the single point of interaction and proce
             "tools":    ["passenger_seating_area","TrackerAPI"]
         },
 
-// 6. If passenger_seating_area returns cleaning_procedure or compliance_response or restriction_on_cleaning:
-//     a. store it as cleaning_procedure or compliance_response or restriction_on_cleaning
-//     b. call TrackerAPI to log cleaning_procedure or compliance_response or restriction_on_cleaning
-
         {
             "name": "passenger_seating_area",
-            // "function": ${aaosa_call}, 
 
             "function": {
                 "description": """
@@ -262,39 +247,11 @@ Store the name of this app as app_name and proceed in the following order:
     e. Stop further processing. 
 
             """ ${aaosa_instructions}, 
-            // "command": ${aaosa_command},
             "tools": ["check_restriction","TrackerAPI","check_compliance","recommender_agent","extract_docs_cabin_passenger_seating"]
         },
 
-// ,"escalation_agent"
-
-// 3. If restriction_on_cleaning is None or empty:
-//     a. Call extract_docs_cabin_passenger_seating to determine the procedure to follow 
-//     b. wait for its response and store it as cleaning_procedure
-//     c. call TrackerAPI to log cleaning_procedure
-//     d. return cleaning_procedure to user. 
-//     e. Stop further processing.
-// 4. If restriction_on_cleaning is not None or not empty: 
-//     a. call check_compliance to determine if user_inquiry complies with restriction_on_cleaning. 
-//     b. wait for its response and store it as compliance_response
-//     c. call TrackerAPI to log compliance_response
-//     d. return compliance_response.
-// 5. If compliance_response is "compliant", then go to step 3. a:
-// 6. If compliance_response is "non-compliant":
-//     a. call recommender_agent to recommend a compliant process.
-//     b. wait for its response and store it as user_response_to_recommendation. 
-//     c. call TrackerAPI to log user_response_to_recommendation
-// 7. If user_response_to_recommendation is "yes", then go to step 3. a:
-// 8. If user_response_to_recommendation is "no":
-//     a. call escalation_agent to create an escalation
-//     b. wait for its response and store it as escalation_response.   
-//     c. call TrackerAPI to log escalation_response
-//     d. return escalation_response.
-//     e. Stop further processing.
-
         {
             "name": "check_restriction",
-            // "function": ${aaosa_call}, 
 
             "function": {
                 "description": """
@@ -332,11 +289,8 @@ When you receive user inquiry, proceed in the following order:
     c. Call TrackerAPI to log restriction_on_cleaning. 
 4. return restriction_on_cleaning
             """ ${aaosa_instructions}, 
-            // "command": ${aaosa_command},
             "tools": [ "pull_restriction","TrackerAPI"]
         },
-
-// "execution",
 
         {
             "name": "pull_restriction",
@@ -421,50 +375,8 @@ You receive existing operational restriction from check_restriction.
     b. call TrackerAPI to log compliance_response
     c. return compliance_response
             """ ${aaosa_instructions}, 
-            // "command": ${aaosa_command},
             "tools": [ ]
         },
-// "escalation_agent","extract_docs_cabin_passenger_seating","TrackerAPI"
-// ${instructions_prefix} 
-
-//         {
-//             "name": "escalation_agent",
-//             "function": {
-//                 "description": """
-// This agent creates escalation.
-//                 """,
-//                 "parameters": {
-//                     "type": "object",
-//                     "properties": {
-//                         "app_name": {
-//                             "type": "string",
-//                             "description": "The name of an app, website or tool"
-//                         },
-//                         "restriction_on_cleaning": {
-//                             "type": "string",
-//                             "description": "This is the restriction on cleaning"
-//                         },
-//                         "response_to_recommendation": {
-//                             "type": "string",
-//                             "description": "The user response to the suggestion that could be either positive or negative."
-//                         },
-//                         "user_inquiry": {
-//                             "type": "string",
-//                             "description": "The user inquiry text"
-//                         },
-//                         "escalation_response": {
-//                             "type": "string",
-//                             "description": "The escalation response for user resusal of recommendation"
-//                         },
-//                     },
-//                     "required": ["user_inquiry","restriction_on_cleaning","response_to_recommendation"]
-//                 }
-//             },
-
-//             "class": "AirlineTurnaround.aircraft_cleaning_procedure.extract_docs_cabin_passenger_seating.create_escalation",
-//         },
-
-            // "class": "extract_docs_cabin_passenger_seating.create_escalation"
 
         {
             "name": "extract_docs_cabin_passenger_seating",
@@ -503,8 +415,6 @@ This agent extracts and returns the text contents of operational procedures for 
             "class": "AirlineTurnaround.aircraft_cleaning_procedure.extract_docs_cabin_passenger_seating.ExtractDocs",
         },
 
-            // "class": "extract_docs_cabin_passenger_seating.ExtractDocs"
-
         {
             "name": "TrackerAPI",
             "function": {
@@ -542,8 +452,6 @@ Store and track parameters and states of the cleaning process.
             "class": "AirlineTurnaround.aircraft_cleaning_procedure.extract_docs_cabin_passenger_seating.TrackerAPI",
         },
 
-            // "class": "extract_docs_cabin_passenger_seating.TrackerAPI"
-
         {
             "name": "recommender_agent",
             "function": {
@@ -574,8 +482,6 @@ You recommend a compliant process to the user and ask for their confirmation by 
             """ ${aaosa_instructions}, 
             "tools": []
         },
-
-// "escalation_agent","extract_docs_cabin_passenger_seating","cleaning_tracker"
 
     ]
 }

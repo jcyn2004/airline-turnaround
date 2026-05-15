@@ -15,8 +15,8 @@
     "llm_config": {
         "model_name": "gpt-5.4-mini", #"gpt-4o", # "claude-haiku-4-5-20251001", #"claude-sonnet-4-6", #
     },
-    "max_iterations": 3000, #3000 
-    "max_execution_seconds": 300, #600
+    "max_iterations": 40000, #3000 
+    "max_execution_seconds": 7200, #600
     "commondefs": {
         "replacement_strings": {
             "instructions_prefix": """
@@ -146,7 +146,7 @@ When user submits inquiry for cabin services, proceed as follows:
         ****************************************
         * Summary of aircraft lavatory service *
         ****************************************
-        ** flight_number **: [flight_number]
+        ** flight number **: [flight_number]
         ** aircraft_type **: [aircraft_type]
         ** flight_status **: [flight_status]
         ** gate_id **: [gate_id]
@@ -245,6 +245,9 @@ When user submits inquiry for cabin services, proceed as follows:
                         "catering_loading_status": true, 
                         "cabin_cleaning_status": true, 
                         "lavatory_service_status": true, 
+                        "passenger_disembarkation_status": true, 
+                        "crew_exit_status": true, 
+                        "baggage_unload_status": true
                     }
                 },
                 "from_downstream": {
@@ -256,6 +259,9 @@ When user submits inquiry for cabin services, proceed as follows:
                         "catering_loading_status": true, 
                         "cabin_cleaning_status": true, 
                         "lavatory_service_status": true, 
+                        "passenger_disembarkation_status": true, 
+                        "crew_exit_status": true, 
+                        "baggage_unload_status": true
                     }
                 },
                 "to_downstream": {
@@ -280,29 +286,6 @@ When user submits inquiry for cabin services, proceed as follows:
 
         },
 
-// 5. Call your tools to inquire on air conditioning unit readiness status as acu_readiness_status, 
-//     a. Wait for your all your tools to return acu_readiness_status.
-//     b. Call TrackerAPI and log all the available parameters.
-//     c. Store the returned acu_readiness_status for later use.
-// 6. Call your tools to inquire on ground power unit readiness status as gpu_readiness_status, 
-//     a. Wait for your all your tools to return gpu_readiness_status.
-//     b. Call TrackerAPI and log all the available parameters.
-//     c. Store the returned gpu_readiness_status for later use.
-// 7. Call your tools to inquire on wheelchocks readiness status as wheelchocks_readiness_status, 
-//     a. Wait for your all your tools to return wheelchocks_readiness_status.
-//     b. Call TrackerAPI and log all the available parameters.
-//     c. Store the returned wheelchocks_readiness_status for later use.
-
-// 5. Call your tools to inquire on air conditioning unit readiness status as acu_readiness_status, ground power unit readiness status as gpu_readiness_status, and wheelchocks readiness status as wheelchocks_readiness_status, respectively, by calling the following tools:
-//     a. Wait for your all your tools to return acu_readiness_status, gpu_readiness_status, and wheelchocks_readiness_status.
-//     b. Call TrackerAPI and log all the available parameters.
-//     c. Store the returned parameters for later use.
-
-// 5. Call your tools to inquire on acu readiness status as acu_readiness_status, gpu readiness status as gpu_readiness_status and wheelchocks readiness status as wheelchocks_readiness_status. 
-//      a. Wait for your all your tools to return acu readiness status as acu_readiness_status, gpu readiness status as gpu_readiness_status and wheelchocks readiness status as wheelchocks_readiness_status.
-//      b. Call TrackerAPI and log acu_readiness_status, gpu_readiness_status and wheelchocks_readiness_status.
-//      c. Store acu_readiness_status, gpu_readiness_status and wheelchocks_readiness_status for later use.
-
         {
             "name": "TrackerAPI",
             "function": {
@@ -325,23 +308,23 @@ I check baggage unload status as baggage_unload_status.
                             "type": "string", 
                             "description": "This is the gate assigned to the aircraft parking."
                         },     
-                        "wheelchocks_installation_status": {
+                        "catering_loading_status": {
                             "type": "string", 
-                            "description": "This is the wheels chocks installation status."
-                        },   
-                        "gpu_connection_status": {
+                            "description": "This is the catering loading status."
+                        },  
+                        "cabin_cleaning_status": {
                             "type": "string", 
-                            "description": "This is the ground_power_unit connection status."
-                        },      
-                        "acu_connection_status": {
+                            "description": "Cabin cleaning status."
+                        }, 
+                        "lavatory_service_status": {
                             "type": "string", 
-                            "description": "This is the air_conditioning_unit connection status."
-                        },      
+                            "description": "Lavatory service status."                            
+                        }   
                     }, 
                     "required": [] 
                 }
             },
-            "class": "AirlineTurnaround.aircraft_ground_rampservices.aircraft_ground_rampservices.TrackerAPI" 
+            "class": "AirlineTurnaround.aircraft_cabin_services.aircraft_cabin_services.TrackerAPI" 
         }, 
     ],
 }

@@ -151,9 +151,9 @@ When you receive user request to land an aircraft, proceed as follows:
 3. If flight_status is None, or clearance_type is not "cleared for landing", or assigned_runway_id is None, or assigned_runway_length is None, then:
     a. call aircraft_traffic_controller to request the clearance for landing. 
     b. Wait for the response on your request. 
-    c. return to step 2. 
+    c. return to step 2. Repeat this loop no more than 3 times. If after 3 loops, you still don't have the required information to land, then return a response indicating that you can't land the aircraft and specify the missing information.
 4. If aircraft has been cleared for landing, or clearance_type contains 'clear' and 'landing', and assigned_runway_id is not None, and assigned_runway_length is not None, then:
-    - Land the aircraft. 
+    - call aircraft_pilot to land the aircraft. 
 5. Call TrackerAPI 
     a. wait for its response 
     b. store the following parameters: flight_number, aircraft_type, flight_status.
@@ -177,6 +177,7 @@ When you receive user request to land an aircraft, proceed as follows:
                         "flight_status": true, 
                         "flight_number": true, 
                         "aircraft_type": true, 
+                        "aircraft_direction": true, 
                         "assigned_runway_id": true, 
                         "assigned_runway_length": true, 
                     }
@@ -187,6 +188,7 @@ When you receive user request to land an aircraft, proceed as follows:
                         "flight_status": true, 
                         "flight_number": true, 
                         "aircraft_type": true, 
+                        "aircraft_direction": true, 
                         "assigned_runway_id": true, 
                         "assigned_runway_length": true, 
                     }
@@ -197,6 +199,7 @@ When you receive user request to land an aircraft, proceed as follows:
                         "flight_status": true, 
                         "flight_number": true, 
                         "aircraft_type": true, 
+                        "aircraft_direction": true, 
                         "assigned_runway_id": true, 
                         "assigned_runway_length": true, 
                     }
@@ -207,6 +210,7 @@ When you receive user request to land an aircraft, proceed as follows:
                         "flight_status": true, 
                         "flight_number": true, 
                         "aircraft_type": true, 
+                        "aircraft_direction": true, 
                         "assigned_runway_id": true, 
                         "assigned_runway_length": true, 
                     }
@@ -330,10 +334,10 @@ I am the flight tracker in charge of logging parameters during aircraft turnarou
                             "type": "string", 
                             "description": "This is the flight status."
                         },        
-                        "traffic_direction": {
+                        "aircraft_direction": {
                             "type": "string", 
                             "description": "This is the direction of the aircraft: incoming or departing."
-                        },        
+                        },           
                         "clearance_type": {
                             "type": "string", 
                             "description": "This is the type of clearance given to the aircrfat."
@@ -347,6 +351,7 @@ I am the flight tracker in charge of logging parameters during aircraft turnarou
                             "description": "This is the length of assigned runway."
                         },
                     }, 
+                    "required": [] 
                 },
             },
             "class": "AirlineTurnaround.aircraft_landing.aircraft_landing.TrackerAPI" 

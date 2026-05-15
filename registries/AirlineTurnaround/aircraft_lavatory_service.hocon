@@ -114,7 +114,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "This is the passenger disembarkation status."
                         },    
-                        crew_exit_status:  {
+                        "crew_exit_status":  {
                             "type": "string", 
                             "description": "This is the crew exit status." 
                         },
@@ -137,7 +137,7 @@ When user submits inquiry, proceed as follows:
 1. Determine if the followings are provided by the user: 
     a. flight_number 
     b. aircraft_type
-    c. flight statuys such as 'on blocks'
+    c. flight status such as 'on blocks'
     d. gate_id
     e. passenger disembarkation status such as'completed'
     f. crew exit status such as 'completed' or 'exited'
@@ -149,15 +149,15 @@ When user submits inquiry, proceed as follows:
 4. If passenger_disembarkation_status is not 'completed', 
     a. call aircraft_disembark to disembark passengers 
     b. wait for its response 
-    c. Return to step 2.
+    c. Return to step 2. Repeat this loop no more than 3 times. If after 3 loops, passenger_disembarkation_status is still not 'completed', report failure and stop.
 5. If crew_exit_status does not includes 'completed' or 'exited', 
     a. call aircraft_crew_exit to make sure that crew exits the aircraft
     b. wait for its response 
     c. Return to step 2.
 6. If baggage_unload_status does not includes 'completed' or 'unloaded'
-    a. call baggage_unload to make sure that baggage is unloaded from the aircraft  
+    a. call /AirlineTurnaround/aircraft_baggage_unload to make sure that baggage is unloaded from the aircraft  
     b. wait for its response 
-    c. Return to step 2.
+    c. Return to step 2. Repeat tghis loop no more than 3 times. If after 3 loops, baggage_unload_status is still not 'completed' or 'unloaded', report failure and stop.
 7. If passenger_disembarkation_status is 'completed', and crew_exit_status includes 'completed', and baggage_unload_status includes 'completed'
     a. call lavatory_service_operator to service lavatories on aircraft
     b. Wait for its response and save it as lavatory_service_status
@@ -205,7 +205,8 @@ When user submits inquiry, proceed as follows:
                         "gate_id": true 
                         "passenger_disembarkation_status": true
                         "crew_exit_status": true
-                        "baggage_unload_status": true
+                        "baggage_unload_status": true 
+                        "lavatory_service_status": true
                     }
                 }
                 "to_downstream": {
@@ -221,7 +222,7 @@ When user submits inquiry, proceed as follows:
                 }
             },
 
-            "tools":    ["TrackerAPI","lavatory_service_operator","/AirlineTurnaround/aircraft_disembark","/AirlineTurnaround/aircraft_crew_exit","/AirlineTurnaround/aircraft_crew_exit","/AirlineTurnaround/aircraft_baggage_unload"]
+            "tools":    ["TrackerAPI","lavatory_service_operator","/AirlineTurnaround/aircraft_disembark","/AirlineTurnaround/aircraft_crew_exit","/AirlineTurnaround/aircraft_baggage_unload"]
         },
 
         {
@@ -253,7 +254,7 @@ This agent services lavatories on the aircraft at the gate.
                             "type": "string", 
                             "description": "This is the passenger disembarkation status."
                         },    
-                        crew_exit_status:  {
+                        "crew_exit_status":  {
                             "type": "string", 
                             "description": "This is the crew exit status." 
                         },
@@ -342,7 +343,7 @@ I check baggage unload status as baggage_unload_status.
                             "type": "string", 
                             "description": "This is the passenger disembarkation status."
                         },    
-                        crew_exit_status:  {
+                        "crew_exit_status":  {
                             "type": "string", 
                             "description": "This is the crew exit status." 
                         },

@@ -8,11 +8,7 @@ from dataclasses import dataclass
 import re
 import pandas as pd
 from pathlib import Path
-
 import sys
-print("Python path:", sys.path)
-print("Current file:", __file__)
-print("Package:", __package__)
 
 
 # =========================
@@ -192,7 +188,7 @@ class execute_air_clearance(CodedTool):
         self._log(self.log_path, line1)
         self._log(self.log_path, line2) 
 
-        clearance_report = line1 + line2,
+        clearance_report = line1 + line2
 
         sly_data.update({
             "clearance_type": clearance_type,
@@ -214,87 +210,6 @@ class execute_air_clearance(CodedTool):
         except Exception as e:
             return f"Error: failed to build clearance: {e}"
 
-    
-class tracker_aircraft_traffic_controller(CodedTool):
-
-    """
-    Taxiing information.
-    """
-
-    def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
-        """
-        :param args: a dictionary with the following keys:
-            - flight_status: this is the flight status. 
-            - clearance_type: this is the air clearance type requested for landing or for takeoff. 
-            - assigned_runway_id: this is the id of the runway assigned for landing or for takeoff. 
-            - assigned_runway_length: this is the length of the runway assigned for landing or for takeoff. 
-
-        :param sly_data: a dictionary with the following keys:
-
-        :return:
-            In case of successful execution:
-                all parameters available.
-            otherwise:
-                a string error message in the format:
-                "Error: <error message>"
-        """
-        print(">>>>>>>>>>>>>>>>>>> trackerAPI flight operation agent >>>>>>>>>>>>>>>>>>")
-
-        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
-        file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
-
-        # ground clearance type is required to fulfill the request.
-        flight_status: str = args.get("flight_status", None)
-        if not flight_status:
-            print("No ground flight status provided. Trying to get it from sly_data")
-            flight_status = sly_data.get("flight_status")   
-        else: 
-            sly_data["flight_status"] = flight_status
-        if flight_status: 
-            flight_status = flight_status.lower().replace("_", " ").strip()
-            
-        # ground clearance status is required to fulfill the request.
-        clearance_type: str = args.get("clearance_type", None)
-        if not clearance_type:
-            print("No ground clearance status provided. Trying to get it from sly_data")
-            clearance_type = sly_data.get("clearance_type")
-        else: 
-            sly_data["clearance_type"] = clearance_type
-
-        # flight status is required to fulfill the request.
-        assigned_runway_id: str = args.get("assigned_runway_id", None)
-        if not assigned_runway_id:
-            print("No flight status provided. Trying to get it from sly_data")
-            assigned_runway_id = sly_data.get("assigned_runway_id")  
-        else: 
-            sly_data["assigned_runway_id"] = assigned_runway_id
-        
-        # assigned runway is required to fulfill the request.
-        assigned_runway_length: str = args.get("assigned_runway_length", None)
-        if not assigned_runway_length:
-            print("No assigned runway provided. Trying to get it from sly_data")
-            assigned_runway_length = sly_data.get("assigned_runway_length")
-        else:  
-            sly_data["assigned_runway_length"] = assigned_runway_length
-
-        message = f"{clearance_type} type clearance given at runway {assigned_runway_id} with length {assigned_runway_length} and flight status updated to {flight_status}"
-        print(message)
-        print(">>>>>>>>>>>>>>>>>>> DONE !!! >>>>>>>>>>>>>>>>>>")
-
-        # Log
-        ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-        line = ts + ": " + message
-
-        with open(file_path_log, "a", encoding="utf-8") as f:
-            f.write(line + "\n")
-
-        return message
-
-    async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
-        """
-        Delegates to the synchronous invoke method because it's quick, non-blocking.
-        """
-        return self.invoke(args, sly_data)
  
 #############################################################################
 # Tracker API for all parameters in the aircraft turnaround agentic system  #
@@ -585,44 +500,6 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
     "flight_number",
     "flight_status", 
 ]
-
-# [
-#     "acu_connection_status", 
-#     "acu_readiness_status",
-#     "aircraft_direction",
-#     "aircraft_landing_report",
-#     "aircraft_type",
-#     "assigned_runway_id",
-#     "assigned_runway_length",
-#     "baggage_unload_status", 
-#     "catering_loading_status", 
-#     "cleaning_cabin_status", 
-#     "clearance_landing_valid",
-#     "clearance_takeoff_valid", 
-#     "clearance_type",
-#     "crew_debrief_status", 
-#     "crew_exit_status", 
-#     "door_opening_status", 
-#     "engines_stop_status", 
-#     "flight_number",
-#     "flight_status",
-#     "fueling_status", 
-#     "gate_id",
-#     "gpu_connection_status", 
-#     "gpu_readiness_status",
-#     "ground_clearance_status",
-#     "ground_clearance_type",
-#     "ground_services_inquiry_type", 
-#     "ground_services_request_type",
-#     "inspection_maintenance_status", 
-#     "jetbridge_connection_status", 
-#     "jetbridge_status", 
-#     "lavatory_service_status", 
-#     "passenger_disembarkation_status", 
-#     "runway_length",
-#     "wheels_chocks_installation_status", 
-#     "wheels_chocks_readiness_status",
-# ]
 
 # Define which fields should be returned from the API
 FLIGHT_TURNAROUND_RETURN_FIELDS = [

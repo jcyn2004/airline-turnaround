@@ -191,11 +191,6 @@ When user submits inquiry, proceed as follows:
                         "baggage_unload_status": true
                     }
                 },
-                "to_downstream": {
-                    "sly_data": {
-                        "baggage_unload_status": true
-                    }
-                },
                 "from_upstream": {
                     "sly_data": {
                         "flight_number": true
@@ -296,6 +291,9 @@ This agent unloads baggages from the aircraft.
 I am the flight tracker in charge of logging parameters during aircraft turnaround. 
 I check jetbridge connection status as jetbridge_connection_status. 
 I check door opening status as door_opening_status. 
+I check baggage unload status as baggage_unload_status. 
+I check stairtruck connection status as stairtruck_connection_status. 
+I check deplaning equipment type as deplaning_equipment_type. 
                 """
 
                 "parameters": {

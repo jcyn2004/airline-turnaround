@@ -132,8 +132,6 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                 }
             },
 
-// ,"passenger_disembarkation_status","crew_exit_status","baggage_unload_status"
-
             "instructions": """
 You are the agent in charge of the aircraft cabin cleaning at the gate.
 Only use your tools to fulfill cabin cleaning tasks.
@@ -209,7 +207,6 @@ RETURN SUMMARY:
                         "passenger_disembarkation_status": true
                         "crew_exit_status": true
                         "baggage_unload_status": true 
-                        "cabin_cleaning_status": true
                     }
                 }
                 "from_upstream": {
@@ -310,71 +307,23 @@ I am the flight tracker in charge of logging parameters during aircraft turnarou
 I check passenger disembarkation status as passenger_disembarkation_status. 
 I check crew exit status as crew_exit_status. 
 I check baggage unload status as baggage_unload_status. 
-                """
+                """,
 
                 "parameters": {
                     "type": "object", 
                     "properties": {
-                        "flight_number": {
-                            "type": "string", 
-                            "description": "This is the flight number of the incoming aicraft."
-                        },   
                         "aircraft_type": {
                             "type": "string", 
                             "description": "This is the type of the incoming aircraft."
-                        },     
+                        },    
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aircraft."
+                        },
                         "flight_status": {
                             "type": "string", 
                             "description": "This is the flight status."
-                        },          
-                        "gate_id": {
-                            "type": "string", 
-                            "description": "This is the gate assigned to the aircraft parking."
-                        },     
-                        "ground_services_request_type": {
-                            "type": "string", 
-                            "description": "This is the type of the inquiry received for grand services."
-                        },         
-                        "wheels_chocks_readiness_status": {
-                            "type": "string", 
-                            "description": "This is the wheels chocks readiness status."
-                        },   
-                        "wheels_chocks_installation_status": {
-                            "type": "string", 
-                            "description": "This is the wheels chocks installation status."
-                        },   
-                        "gpu_readiness_status": {
-                            "type": "string", 
-                            "description": "This is the gpu readiness status."
-                        },     
-                        "acu_connection_status": {
-                            "type": "string", 
-                            "description": "This is the acu connection status."
-                        },     
-                        "gpu_connection_status": {
-                            "type": "string", 
-                            "description": "This is the gpu connection status."
-                        },     
-                        "engines_stop_status": {
-                            "type": "string", 
-                            "description": "This is the engines stop status."
-                        },    
-                        "jetbridge_connection_status": {
-                            "type": "string", 
-                            "description": "This is the jetbridge connection status."
-                        },    
-                        "door_opening_status": {
-                            "type": "string", 
-                            "description": "This is the door opening status."
-                        },    
-                        "passenger_disembarkation_status": {
-                            "type": "string", 
-                            "description": "This is the passenger disembarkation status."
-                        },    
-                        "crew_exit_status":  {
-                            "type": "string", 
-                            "description": "This is the crew exit status." 
-                        },
+                        }, 
                         "baggage_unload_status": {
                             "type": "string", 
                             "description": "This is the baggage unload status."
@@ -383,6 +332,14 @@ I check baggage unload status as baggage_unload_status.
                             "type": "string", 
                             "description": "cabin cleaning status"
                         }, 
+                        "crew_exit_status":  {
+                            "type": "string", 
+                            "description": "This is the crew exit status." 
+                        },
+                        "passenger_disembarkation_status": {
+                            "type": "string", 
+                            "description": "This is the passenger disembarkation status."
+                        },    
                     }, 
                     "required": [] 
                 },
@@ -391,4 +348,3 @@ I check baggage unload status as baggage_unload_status.
         }, 
     ],
 }
-

@@ -47,18 +47,13 @@ class acu_operator(CodedTool):
         :return: None in write mode or any of teh parameters in read mode
         """
         
-        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
-        # acu_connection_status = 'pending'
 
         print("\n")
         print("\n")
         print(" #################### ACU CONNECT OPERATOR - PARAMETERS #################### ")
         print("\n")
         print("\n")
-
-        # engines_stop_status_temp = 'running'
-        # wheels_chocks_installation_status_temp = 'preparing'
 
         # flight number is needed in particular. 
         flight_number: str = args.get("flight_number", None)
@@ -189,6 +184,11 @@ class acu_operator(CodedTool):
 
                 sly_data["acu_connection_status"] = acu_connection_status
 
+        if ((engines_stop_status is None) | (wheels_chocks_installation_status is None)):
+            error = "Error: ACU cannot be connected until aircraft engine(s) is (are) stopped, and wheels chocks are installed."
+            print(error)
+            return error     
+
         return acu_connection_status
 
     async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
@@ -288,7 +288,6 @@ class TrackerAPI(CodedTool):
         # Log final state summary
         self._log_data_summary(field_values, config)
         
-        # Return specific fields as defined in configuration
         return self._build_return_tuple(field_values, config)
     
     def _get_config(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> TrackerConfig:

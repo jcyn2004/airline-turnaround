@@ -155,7 +155,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string",
                             "description": "GPU connection status. Required for door opening."
                         },
-                        "wheelchocks_installation_status": {
+                        "wheels_chocks_installation_status": {
                             "type": "string",
                             "description": "Wheelchocks installation status. Required for door opening."
                         },
@@ -206,7 +206,7 @@ BRANCH A — Open the aircraft door
       deplaning_equipment_type,
       jetbridge_connection_status, stairtruck_connection_status,
       acu_connection_status, gpu_connection_status,
-      wheelchocks_installation_status.
+      wheels_chocks_installation_status.
     Wait for response. This is the ONLY action in this turn.
     Extract door_opening_status from the response.
     Call TrackerAPI to store door_opening_status.
@@ -325,7 +325,6 @@ BRANCH C — Crew debrief
                         "aircraft_type": true,
                         "flight_status": true,
                         "gate_id": true, 
-                        "engines_stop_status": true,
                         "door_opening_status": true, 
                         "passenger_disembarkation_status": true,
                         "jetbridge_connection_status": true,
@@ -336,7 +335,7 @@ BRANCH C — Crew debrief
                         "task_id": true,
                         "acu_connection_status": true,
                         "gpu_connection_status": true,
-                        "wheelchocks_installation_status": true
+                        "wheels_chocks_installation_status": true
                     }
                 }
                 "to_downstream": {
@@ -345,7 +344,6 @@ BRANCH C — Crew debrief
                         "aircraft_type": true,
                         "flight_status": true,
                         "gate_id": true, 
-                        "engines_stop_status": true,
                         "door_opening_status": true, 
                         "passenger_disembarkation_status": true,
                         "jetbridge_connection_status": true,
@@ -356,7 +354,7 @@ BRANCH C — Crew debrief
                         "task_id": true,
                         "acu_connection_status": true,
                         "gpu_connection_status": true,
-                        "wheelchocks_installation_status": true
+                        "wheels_chocks_installation_status": true
                     }
                 }
                 "from_upstream": {
@@ -365,7 +363,6 @@ BRANCH C — Crew debrief
                         "aircraft_type": true,
                         "flight_status": true,
                         "gate_id": true, 
-                        "engines_stop_status": true,
                         "door_opening_status": true, 
                         "passenger_disembarkation_status": true,
                         "jetbridge_connection_status": true,
@@ -376,7 +373,7 @@ BRANCH C — Crew debrief
                         "task_id": true,
                         "acu_connection_status": true,
                         "gpu_connection_status": true,
-                        "wheelchocks_installation_status": true
+                        "wheels_chocks_installation_status": true
                     }
                 }
                 "from_downstream": {
@@ -385,7 +382,6 @@ BRANCH C — Crew debrief
                         "aircraft_type": true,
                         "flight_status": true,
                         "gate_id": true, 
-                        "engines_stop_status": true,
                         "door_opening_status": true, 
                         "passenger_disembarkation_status": true,
                         "jetbridge_connection_status": true,
@@ -396,7 +392,7 @@ BRANCH C — Crew debrief
                         "task_id": true,
                         "acu_connection_status": true,
                         "gpu_connection_status": true,
-                        "wheelchocks_installation_status": true
+                        "wheels_chocks_installation_status": true
                     }
                 }
             },
@@ -480,7 +476,7 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                             "type": "string",
                             "description": "GPU connection status."
                         },
-                        "wheelchocks_installation_status": {
+                        "wheels_chocks_installation_status": {
                             "type": "string",
                             "description": "Wheelchocks installation status."
                         },

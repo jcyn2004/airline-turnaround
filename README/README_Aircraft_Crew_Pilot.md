@@ -101,50 +101,54 @@ This enables `aircraft_turnaround_manager`'s per-step response validation (it ch
 
 #### Input parameters
 
-| Parameter | Type | Required | Description |
-|---|---|:---:|---|
-| `aircraft_type` | string | ✅ | Aircraft model/type |
-| `flight_number` | string | ✅ | Flight identifier |
-| `flight_status` | string | ❌ | Current flight status |
-| `gate_id` | string | ❌ | Gate identifier |
-| `task_id` | string | ❌ | **Primary routing discriminant** |
-| `aircraft_direction` | string | ❌ | `incoming` or `departing` |
-| `clearance_type` | string | ❌ | ATC clearance type |
-| `assigned_runway_id` | string | ❌ | Assigned runway |
-| `assigned_runway_length` | string | ❌ | Runway length |
-| `ground_clearance_type` | string | ❌ | `taxi in` or `taxi out` |
-| `ground_clearance_status` | string | ❌ | Clearance status |
-| `wheelchocks_readiness_status` | string | ❌ | From ground readiness |
-| `acu_readiness_status` | string | ❌ | From ground readiness |
-| `gpu_readiness_status` | string | ❌ | From ground readiness |
-| `engines_stop_status` | string | ❌ | Engine state |
-| `door_opening_status` | string | ❌ | Door state |
-| `passenger_disembarkation_status` | string | ❌ | Disembarkation state |
-| `baggage_unload_status` | string | ❌ | Baggage state |
-| `crew_debrief_status` | string | ❌ | Debrief state |
-| `crew_exit_status` | string | ❌ | Crew exit state |
-| `deplaning_equipment_type` | string | ❌ | `jetway` or `stairtruck` |
-| `jetbridge_connection_status` | string | ❌ | Jetbridge state |
-| `stairtruck_connection_status` | string | ❌ | Stairtruck state |
-| `acu_connection_status` | string | ❌ | ACU state |
-| `gpu_connection_status` | string | ❌ | GPU state |
-| `wheelchocks_installation_status` | string | ❌ | Chocks state |
+|-----------------------------------|--------|:--------:|----------------------------------|
+| Parameter                         | Type   | Required | Description                      |
+|-----------------------------------|--------|:--------:|----------------------------------|
+| `aircraft_type`                   | string |    ✅     | Aircraft model/type              |
+| `flight_number`                   | string |    ✅     | Flight identifier                |
+| `flight_status`                   | string |    ❌     | Current flight status            |
+| `gate_id`                         | string |    ❌     | Gate identifier                  |
+| `task_id`                         | string |    ❌     | **Primary routing discriminant** |
+| `aircraft_direction`              | string |    ❌     | `incoming` or `departing`        |
+| `clearance_type`                  | string |    ❌     | ATC clearance type               |
+| `assigned_runway_id`              | string |    ❌     | Assigned runway                  |
+| `assigned_runway_length`          | string |    ❌     | Runway length                    |
+| `ground_clearance_type`           | string |    ❌     | `taxi in` or `taxi out`          |
+| `ground_clearance_status`         | string |    ❌     | Clearance status                 |
+| `wheels_chocks_readiness_status`    | string |    ❌     | From ground readiness            |
+| `acu_readiness_status`            | string |    ❌     | From ground readiness            |
+| `gpu_readiness_status`            | string |    ❌     | From ground readiness            |
+| `engines_stop_status`             | string |    ❌     | Engine state                     |
+| `door_opening_status`             | string |    ❌     | Door state                       |
+| `passenger_disembarkation_status` | string |    ❌     | Disembarkation state             |
+| `baggage_unload_status`           | string |    ❌     | Baggage state                    |
+| `crew_debrief_status`             | string |    ❌     | Debrief state                    |
+| `crew_exit_status`                | string |    ❌     | Crew exit state                  |
+| `deplaning_equipment_type`        | string |    ❌     | `jetway` or `stairtruck`         |
+| `jetbridge_connection_status`     | string |    ❌     | Jetbridge state                  |
+| `stairtruck_connection_status`    | string |    ❌     | Stairtruck state                 |
+| `acu_connection_status`           | string |    ❌     | ACU state                        |
+| `gpu_connection_status`           | string |    ❌     | GPU state                        |
+| `wheels_chocks_installation_status` | string |    ❌     | Chocks state                     |
+|-----------------------------------|--------|:--------:|----------------------------------|
 
 ---
 
 #### Branch routing table
 
-| `task_id` contains | Branch | Turnaround step | Primary action |
-|---|---|---|---|
-| (none / free text) | **BRANCH A** | STEP 1 | Request landing clearance |
-| (none / free text) | **BRANCH B** | STEP 2 | Land aircraft |
-| `'GROUND_CLEARANCE'` | **BRANCH C** | STEP 5 | Request ground clearance (taxi in) |
-| `'TAXI_TO_GATE'` | **BRANCH D** | STEP 6 | Taxi aircraft to gate |
-| `'STOP_ENGINES'` | **BRANCH E** | STEP 7 | Stop engines |
-| `'CREW_EXIT'` | **BRANCH F** | STEP 14 | Authorise and execute crew exit |
-| `'DOOR_OPENING'` | **BRANCH G** | STEP 10 | Open aircraft doors |
-| `'PAX_DISEMBARKATION'` | **BRANCH H** | STEP 11 | Disembark passengers |
-| `'CREW_DEBRIEF'` | **BRANCH I** | STEP 13 | Conduct crew debrief |
+|------------------------|--------------|-----------------|------------------------------------|
+| `task_id` contains     | Branch       | Turnaround step | Primary action                     |
+|------------------------|--------------|-----------------|------------------------------------|
+| (none / free text)     | **BRANCH A** | STEP 1          | Request landing clearance          |
+| (none / free text)     | **BRANCH B** | STEP 2          | Land aircraft                      |
+| `'GROUND_CLEARANCE'`   | **BRANCH C** | STEP 5          | Request ground clearance (taxi in) |
+| `'TAXI_TO_GATE'`       | **BRANCH D** | STEP 6          | Taxi aircraft to gate              |
+| `'STOP_ENGINES'`       | **BRANCH E** | STEP 7          | Stop engines                       |
+| `'CREW_EXIT'`          | **BRANCH F** | STEP 14         | Authorise and execute crew exit    |
+| `'DOOR_OPENING'`       | **BRANCH G** | STEP 10         | Open aircraft doors                |
+| `'PAX_DISEMBARKATION'` | **BRANCH H** | STEP 11         | Disembark passengers               |
+| `'CREW_DEBRIEF'`       | **BRANCH I** | STEP 13         | Conduct crew debrief               |
+|------------------------|--------------|-----------------|------------------------------------|
 
 > Note: BRANCHes A and B have no `task_id` triggers — they rely on inquiry text matching. All other branches have `task_id`-priority routing with explicit overrides: *"When task_id='STEP_X_...' is present, this branch MUST execute. It is never irrelevant when this task_id is present."*
 
@@ -230,9 +234,9 @@ Calls TrackerAPI for prerequisite verification (same design decision as `aircraf
 
 All four directions carry the same 25-field set:
 
-`flight_number`, `aircraft_type`, `flight_status`, `ground_clearance_type`, `gate_id`, `assigned_runway_id`, `assigned_runway_length`, `wheelchocks_readiness_status`, `acu_readiness_status`, `gpu_readiness_status`, `aircraft_direction`, `clearance_type`, `engines_stop_status`, `ground_clearance_status`, `task_id`, `door_opening_status`, `passenger_disembarkation_status`, `jetbridge_connection_status`, `stairtruck_connection_status`, `deplaning_equipment_type`, `crew_debrief_status`, `baggage_unload_status`, `acu_connection_status`, `gpu_connection_status`, `wheelchocks_installation_status`
+`flight_number`, `aircraft_type`, `flight_status`, `ground_clearance_type`, `gate_id`, `assigned_runway_id`, `assigned_runway_length`, `wheels_chocks_readiness_status`, `acu_readiness_status`, `gpu_readiness_status`, `aircraft_direction`, `clearance_type`, `engines_stop_status`, `ground_clearance_status`, `task_id`, `door_opening_status`, `passenger_disembarkation_status`, `jetbridge_connection_status`, `stairtruck_connection_status`, `deplaning_equipment_type`, `crew_debrief_status`, `baggage_unload_status`, `acu_connection_status`, `gpu_connection_status`, `wheels_chocks_installation_status`
 
-> Note: `acu_readiness_status`, `gpu_readiness_status`, and `wheelchocks_readiness_status` each appear **twice** in all four sly_data allow blocks (lines 614–615, 622–624 in `to_upstream`, etc.). HOCON will likely use the last occurrence or deduplicate, but this is a redundancy to clean up.
+> Note: `acu_readiness_status`, `gpu_readiness_status`, and `wheels_chocks_readiness_status` each appear **twice** in all four sly_data allow blocks (lines 614–615, 622–624 in `to_upstream`, etc.). HOCON will likely use the last occurrence or deduplicate, but this is a redundancy to clean up.
 
 ---
 
@@ -246,19 +250,23 @@ The most sophisticated TrackerAPI in the system. It extends the standard sly_dat
 
 **`flight_status`:**
 
-| Input contains | Normalised output | Action |
-|---|---|---|
-| `'land'` | `'landed'` | Stored |
-| `'block'` | `'on blocks'` | Stored |
-| `'approach'` or `'taxi'` | `None` | **EVICTED from sly_data** |
-| Other mid-transit values | unchanged | Stored (fails downstream checks) |
+|--------------------------|-------------------|----------------------------------|
+| Input contains           | Normalised output | Action                           |
+|--------------------------|-------------------|----------------------------------|
+| `'land'`                 | `'landed'`        | Stored                           |
+| `'block'`                | `'on blocks'`     | Stored                           |
+| `'approach'` or `'taxi'` | `None`            | **EVICTED from sly_data**        |
+| Other mid-transit values | unchanged         | Stored (fails downstream checks) |
+|--------------------------|-------------------|----------------------------------|
 
 **`ground_clearance_status`:**
 
-| Condition | Normalised output | Action |
-|---|---|---|
-| Contains `'grant'` or `'clear'` AND `sly_data["flight_status"] == "on blocks"` | `None` | **EVICTED from sly_data** |
-| All other values | unchanged | Stored |
+|--------------------------------------------------------------------------------|-------------------|---------------------------|
+| Condition                                                                      | Normalised output | Action                    |
+|--------------------------------------------------------------------------------|-------------------|---------------------------|
+| Contains `'grant'` or `'clear'` AND `sly_data["flight_status"] == "on blocks"` | `None`            | **EVICTED from sly_data** |
+| All other values                                                               | unchanged         | Stored                    |
+|--------------------------------------------------------------------------------|-------------------|---------------------------|
 
 #### Active eviction mechanism
 
@@ -273,7 +281,7 @@ The docstrings explicitly document these design choices:
 
 #### Configuration (22 tracked fields = 22 return fields)
 
-`aircraft_direction`, `aircraft_type`, `assigned_runway_id`, `assigned_runway_length`, `baggage_unload_status`, `clearance_type`, `crew_debrief_status`, `crew_exit_status`, `deplaning_equipment_type`, `door_opening_status`, `engines_stop_status`, `flight_number`, `flight_status`, `gate_id`, `ground_clearance_status`, `ground_clearance_type`, `jetbridge_connection_status`, `passenger_disembarkation_status`, `stairtruck_connection_status`, `wheelchocks_readiness_status`, `acu_readiness_status`, `gpu_readiness_status`
+`aircraft_direction`, `aircraft_type`, `assigned_runway_id`, `assigned_runway_length`, `baggage_unload_status`, `clearance_type`, `crew_debrief_status`, `crew_exit_status`, `deplaning_equipment_type`, `door_opening_status`, `engines_stop_status`, `flight_number`, `flight_status`, `gate_id`, `ground_clearance_status`, `ground_clearance_type`, `jetbridge_connection_status`, `passenger_disembarkation_status`, `stairtruck_connection_status`, `wheels_chocks_readiness_status`, `acu_readiness_status`, `gpu_readiness_status`
 
 > Note: Tracked fields and return fields are identical — TrackerAPI returns everything it tracks.
 
@@ -283,18 +291,20 @@ The docstrings explicitly document these design choices:
 
 ## 7. External Tool Dependencies
 
-| Tool path | Branches | Purpose |
-|---|---|---|
-| `/AirlineTurnaround/aircraft_traffic_controller` | A | Landing clearance |
-| `/AirlineTurnaround/aircraft_landing` | B | Land aircraft |
-| `/AirlineTurnaround/aircraft_ground_traffic` | C, D | Ground clearance |
-| `/AirlineTurnaround/aircraft_ground_readiness` | D | Equipment readiness |
-| `/AirlineTurnaround/aircraft_taxiing` | D | Execute taxiing |
-| `/AirlineTurnaround/aircraft_engines_stop` | E | Stop engines |
-| `/AirlineTurnaround/aircraft_crew_exit` | F | Crew exit |
-| `/AirlineTurnaround/aircraft_door_opening` | G | Open doors |
-| `/AirlineTurnaround/aircraft_disembark` | H | Passenger disembarkation |
-| `/AirlineTurnaround/aircraft_crew_debrief` | I | Crew debrief |
+|--------------------------------------------------|----------|--------------------------|
+| Tool path                                        | Branches | Purpose                  |
+|--------------------------------------------------|----------|--------------------------|
+| `/AirlineTurnaround/aircraft_traffic_controller` | A        | Landing clearance        |
+| `/AirlineTurnaround/aircraft_landing`            | B        | Land aircraft            |
+| `/AirlineTurnaround/aircraft_ground_traffic`     | C, D     | Ground clearance         |
+| `/AirlineTurnaround/aircraft_ground_readiness`   | D        | Equipment readiness      |
+| `/AirlineTurnaround/aircraft_taxiing`            | D        | Execute taxiing          |
+| `/AirlineTurnaround/aircraft_engines_stop`       | E        | Stop engines             |
+| `/AirlineTurnaround/aircraft_crew_exit`          | F        | Crew exit                |
+| `/AirlineTurnaround/aircraft_door_opening`       | G        | Open doors               |
+| `/AirlineTurnaround/aircraft_disembark`          | H        | Passenger disembarkation |
+| `/AirlineTurnaround/aircraft_crew_debrief`       | I        | Crew debrief             |
+|--------------------------------------------------|----------|--------------------------|
 
 ---
 
@@ -325,23 +335,22 @@ The docstrings explicitly document these design choices:
 
 `aircraft_crew_pilot.py`'s TrackerAPI has the most comprehensive normalisation in the system:
 
-| Network TrackerAPI | `flight_status` normalisation | `ground_clearance_status` normalisation | Eviction |
-|---|---|---|---|
-| `aircraft_taxiing` | Yes (3 tokens: landed/taxiing/on blocks) | No | No |
-| `aircraft_crew_pilot` | Yes (landed/on blocks; APPROACH/TAXI → evict) | Yes (evict when on blocks) | **Yes** |
-| All others | No | No | No |
+|-----------------------|-----------------------------------------------|-----------------------------------------|----------|
+| Network TrackerAPI    | `flight_status` normalisation                 | `ground_clearance_status` normalisation | Eviction |
+|-----------------------|-----------------------------------------------|-----------------------------------------|----------|
+| `aircraft_taxiing`    | Yes (3 tokens: landed/taxiing/on blocks)      | No                                      | No       |
+| `aircraft_crew_pilot` | Yes (landed/on blocks; APPROACH/TAXI → evict) | Yes (evict when on blocks)              | **Yes**  |
+| All others            | No                                            | No                                      | No       |
+|-----------------------|-----------------------------------------------|-----------------------------------------|----------|
 
 ---
 
 ## 10. Known Issues and Maintenance Notes
 
-| Issue | Location | Severity | Notes |
-|---|---|:---:|---|
-| Duplicate sly_data fields in allow blocks | `aircraft_crew_pilot.hocon` lines 614–615, 622–624 (and equivalents in all 4 directions) | Low | `acu_readiness_status`, `gpu_readiness_status`, `wheelchocks_readiness_status` each appear twice. HOCON parsers typically use last value. Clean up. |
-| `aircraft_crew_cabin` bypassed by direct tool registration | `aircraft_crew_pilot.hocon` line 735–747 | Info | BRANCHes G, H, I register and call leaf networks directly. `aircraft_crew_cabin` exists as a standalone network but is not used in the integrated call path through `aircraft_crew_pilot`. |
-| ~145-line commented-out `execute_aircraft_landing` class | `aircraft_crew_pilot.py` lines 28–143 | Low | Identical block in `aircraft_cabin_services.py` and `aircraft_crew_cabin.py`. Dead code. |
-| Unused imports: `fcntl`, `asyncio`, `random`, `os`, `platform` | `aircraft_crew_pilot.py` lines 7–12 | Low | All unused. `fcntl` Unix-only, fails on Windows. |
-| BRANCH D STEP 3: TrackerAPI called before taxiing to write `flight_status='landed'` | `aircraft_crew_pilot.hocon` BRANCH D STEP 3 | Info | Intentional: overwrites any stale mid-transit value before passing to `aircraft_taxiing`. The eviction mechanism in TrackerAPI supports this. |
+| Issue                                                                               | Location                                     | Severity | Notes                                                                                                                                                                                      |
+|-------------------------------------------------------------------------------------|----------------------------------------------|:--------:|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `aircraft_crew_cabin` bypassed by direct tool registration                          | `aircraft_crew_pilot.hocon` line 735–747     |   Info   | BRANCHes G, H, I register and call leaf networks directly. `aircraft_crew_cabin` exists as a standalone network but is not used in the integrated call path through `aircraft_crew_pilot`. |
+| BRANCH D STEP 3: TrackerAPI called before taxiing to write `flight_status='landed'` | `aircraft_crew_pilot.hocon` BRANCH D STEP 3  |   Info   | Intentional: overwrites any stale mid-transit value before passing to `aircraft_taxiing`. The eviction mechanism in TrackerAPI supports this.                                              |
 
 ---
 
@@ -349,15 +358,17 @@ The docstrings explicitly document these design choices:
 
 This network's instructions contain the most detailed documentation of when NOT to call TrackerAPI and why. The pattern appears in five separate branches:
 
-| Branch | Avoids TrackerAPI for... | Reason |
-|---|---|---|
-| A | `flight_status` after clearance | `'APPROACH'` is ATC status, not aircraft state |
-| C | `flight_status` after ground traffic | `'TAXIING_IN'` is authority status, not aircraft state |
-| D STEP 1 | `flight_status` after ground traffic | Same as BRANCH C |
-| D STEP 3 | Reading after taxiing | Taxiing tool writes directly; TrackerAPI would return stale pre-taxi value |
-| F STEP 1 | Prerequisite verification | Local sly_data may not reflect latest upstream values |
-| G STEP 1 | Prerequisite verification | Same stale-data concern |
-| H STEP 1 | Prerequisite verification | Same stale-data concern (identical text to `aircraft_crew_cabin` BRANCH B) |
+|----------|--------------------------------------|----------------------------------------------------------------------------|
+| Branch   | Avoids TrackerAPI for...             | Reason                                                                     |
+|----------|--------------------------------------|----------------------------------------------------------------------------|
+| A        | `flight_status` after clearance      | `'APPROACH'` is ATC status, not aircraft state                             |
+| C        | `flight_status` after ground traffic | `'TAXIING_IN'` is authority status, not aircraft state                     |
+| D STEP 1 | `flight_status` after ground traffic | Same as BRANCH C                                                           |
+| D STEP 3 | Reading after taxiing                | Taxiing tool writes directly; TrackerAPI would return stale pre-taxi value |
+| F STEP 1 | Prerequisite verification            | Local sly_data may not reflect latest upstream values                      |
+| G STEP 1 | Prerequisite verification            | Same stale-data concern                                                    |
+| H STEP 1 | Prerequisite verification            | Same stale-data concern (identical text to `aircraft_crew_cabin` BRANCH B) |
+|----------|--------------------------------------|----------------------------------------------------------------------------|
 
 The TrackerAPI's eviction mechanism (`del sly_data[field_name]` when normalisation returns `None`) is the counterpart to these avoidance rules — it proactively removes transient values that would cause false reads on the next TrackerAPI call.
 
@@ -365,9 +376,6 @@ The TrackerAPI's eviction mechanism (`del sly_data[field_name]` when normalisati
 
 ## 12. Extensibility Guidance
 
-- Fix the duplicate sly_data field entries (remove duplicates from all four allow directions)
-- Remove the ~145-line commented-out `execute_aircraft_landing` block from the Python file
-- Remove unused imports (`fcntl`, `asyncio`, `random`, `os`, `platform`)
 - Consider whether `aircraft_crew_cabin` should be used for BRANCHes G, H, I (currently bypassed) or deprecated since its functionality is duplicated here
 - If a departing aircraft sequence is added, BRANCHes for takeoff clearance, pushback, and taxi-out would follow the same `task_id`-priority pattern as existing branches
 

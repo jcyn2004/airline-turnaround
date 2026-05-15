@@ -257,14 +257,11 @@ The engines are stopped and wheels chocks have been installed. Connect the ACU."
 
 ## 9. Known Issues and Maintenance Notes
 
-|---------------------------------------------|--------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Issue                                       | Location                                               | Notes                                                                                                                                                                  |
-|---------------------------------------------|--------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Duplicate `acu_connection_status` property  | `aircraft_acu_connect.hocon` → `TrackerAPI` parameters | Safe to remove one copy                                                                                                                                                |
-| Typo `wheels_chucks_installation_status`    | `aircraft_acu_connect.hocon` → agent instructions      | Only affects LLM instruction text; coded tools use the correct spelling `wheels_chocks_installation_status`                                                            |
-| Hardcoded log path fallback                 | `aircraft_acu_connect.py` → `acu_operator`             | A commented-out absolute path remains; active path uses `Path.cwd()`                                                                                                   |
-| No explicit return when prerequisites unmet | `aircraft_acu_connect.py` → `acu_operator`             | If `engines_stop_status` or `wheels_chocks_installation_status` is `None`, `acu_connection_status` is never assigned and the return statement will raise a `NameError` |
-|---------------------------------------------|--------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|-------|----------|--------|
+| Issue | Location | Notes  |
+|-------|----------|--------|
+|       |          |        |
+|-------|----------|--------|
 
 ---
 

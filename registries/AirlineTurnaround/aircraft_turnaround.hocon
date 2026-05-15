@@ -118,11 +118,11 @@ You are in charge of aircraft turnaround at the airport.
                             "type": "string", 
                             "description": "Deplaning equipment type."
                         },      
-                        "wheelchocks_readiness_status": {
+                        "wheels_chocks_readiness_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks readiness status."
                         },   
-                        "wheelchocks_installation_status": {
+                        "wheels_chocks_installation_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks installation status."
                         },   
@@ -243,7 +243,7 @@ TOOL ROUTING CHEATSHEET — override model priors, consult before every tool cal
     STEP 14 — crew exit               → aircraft_crew_pilot (BRANCH F)
   Ground operation tasks → /AirlineTurnaround/aircraft_ground_operation
     STEP 4  — ground readiness        → aircraft_ground_operation (instruction: 'Check ground services readiness.')
-    STEP 8  — ramp services           → aircraft_ground_operation (instruction: 'Execute ground ramp services.')
+    STEP 8  — ramp services           → aircraft_ground_rampservices (DIRECT — bypasses aircraft_ground_operation)
     STEP 12 — baggage unload          → aircraft_ground_operation (instruction: 'Unload baggage from the aircraft.')
     STEP 18 — inspection/maint        → aircraft_ground_operation (instruction: 'Perform inspection and maintenance.')
     STEP 19 — fueling                 → aircraft_ground_operation (instruction: 'Fuel the aircraft.')
@@ -337,10 +337,10 @@ STEP 4 - Ground services readiness check
     from STEP 1 or any earlier step while waiting. Do not call any other
     agent until this response arrives. Simply wait.
   - Call /AirlineTurnaround/aircraft_ground_operation with named parameters:
-      aircraft_type, gate_id,
+      flight_number, aircraft_type, gate_id,
       instruction='Check ground services readiness.'
   - Wait for response. This is the ONLY action in this turn.
-  - Extract and store: wheelchocks_readiness_status, acu_readiness_status, gpu_readiness_status.
+  - Extract and store: wheels_chocks_readiness_status, acu_readiness_status, gpu_readiness_status.
   - VALIDATION: all three statuses must be 'ready'. If any contains
     'error', 'not relevant', or is null, the gate_id passed was likely
     invalid. Stop and report:
@@ -379,7 +379,7 @@ STEP 6 - Taxi the aircraft to the gate
   - Call /AirlineTurnaround/aircraft_crew_pilot with:
       flight_number, aircraft_type, flight_status, gate_id,
       ground_clearance_type, ground_clearance_status, assigned_runway_id, 
-      wheelchocks_readiness_status, acu_readiness_status, gpu_readiness_status,
+      wheels_chocks_readiness_status, acu_readiness_status, gpu_readiness_status,
       task_id='STEP_6_TAXI_TO_GATE',
       and the explicit instruction: "Taxi in the aircraft."
   - Wait for response.
@@ -413,12 +413,13 @@ STEP 7 - Stop engines
   - Extract and store: engines_stop_status.
 
 STEP 8 - Ground ramp services (wheelchocks install + ACU connect + GPU connect)
-  - Call /AirlineTurnaround/aircraft_ground_operation with named parameters:
+  - Call /AirlineTurnaround/aircraft_ground_rampservices directly with named parameters:
       flight_number, aircraft_type, gate_id, flight_status, engines_stop_status,
-      wheelchocks_readiness_status, acu_readiness_status, gpu_readiness_status,
+      wheels_chocks_readiness_status, acu_readiness_status, gpu_readiness_status,
       instruction='Execute ground ramp services.'
+  - Do NOT route this through aircraft_ground_operation.
   - Wait for response.
-  - Extract and store: wheelchocks_installation_status, acu_connection_status, gpu_connection_status.
+  - Extract and store: wheels_chocks_installation_status, acu_connection_status, gpu_connection_status.
 
 STEP 9 - Connect deplaning equipment (jetbridge or stairtruck)
   - Check deplaning_equipment_type from your working context (set at STEP 3):
@@ -428,7 +429,7 @@ STEP 9 - Connect deplaning equipment (jetbridge or stairtruck)
   - Call /AirlineTurnaround/aircraft_gate_services with named parameters:
       flight_number, aircraft_type, flight_status, gate_id,
       acu_connection_status, gpu_connection_status,
-      wheelchocks_installation_status, deplaning_equipment_type,
+      wheels_chocks_installation_status, deplaning_equipment_type,
       instruction=<determined above>
   - ALL parameters MUST be passed as named key-value pairs.
   - Wait for response.
@@ -459,7 +460,7 @@ STEP 10 - Open aircraft doors (via pilot — cabin crew under pilot authority)
       deplaning_equipment_type,
       jetbridge_connection_status, stairtruck_connection_status,
       acu_connection_status, gpu_connection_status,
-      wheelchocks_installation_status.
+      wheels_chocks_installation_status.
   - ALL parameters MUST be passed as named key-value pairs.
   - Wait for response.
   - Extract and store: door_opening_status.
@@ -580,6 +581,16 @@ STEP 15 - Cabin cleaning
     sub-agent to reject the call.
   - Wait for response.
   - Extract and store: cabin_cleaning_status.
+  - VALIDATION: cabin_cleaning_status MUST contain 'completed'.
+    The cabin cleaning tool may return 'pending' or 'requested' if any
+    prerequisite status (passenger_disembarkation_status, crew_exit_status,
+    baggage_unload_status) was not recognised. If cabin_cleaning_status does
+    not contain 'completed', retry ONCE passing all prerequisite statuses
+    explicitly as named parameters.
+    If still not 'completed' after retry, stop and report:
+      "STEP 15 FAILED: cabin cleaning did not complete.
+       Raw response: [cabin_cleaning_status]"
+  - Do NOT proceed to STEP 16 unless cabin_cleaning_status contains 'completed'.
 
 STEP 16 - Lavatory servicing
   - CRITICAL: Parameters MUST be passed as individual named key-value pairs —
@@ -670,8 +681,8 @@ STEP 20 - Final report
   ** Clearance Type       **: [clearance_type]
   ** Flight Status        **: [flight_status]
   ** Engines Stop         **: [engines_stop_status]
-  ** Wheelchocks Readiness**: [wheelchocks_readiness_status]
-  ** Wheelchocks Install  **: [wheelchocks_installation_status]
+  ** Wheelchocks Readiness**: [wheels_chocks_readiness_status]
+  ** Wheelchocks Install  **: [wheels_chocks_installation_status]
   ** ACU Readiness        **: [acu_readiness_status]
   ** ACU Connection       **: [acu_connection_status]
   ** GPU Readiness        **: [gpu_readiness_status]
@@ -722,8 +733,8 @@ STEP 20 - Final report
                         "jetbridge_connection_status": true, 
                         "lavatory_service_status": true, 
                         "passenger_disembarkation_status": true, 
-                        "wheelchocks_installation_status": true, 
-                        "wheelchocks_readiness_status": true,
+                        "wheels_chocks_installation_status": true, 
+                        "wheels_chocks_readiness_status": true,
                         "acu_connection_status": true,
                         "acu_readiness_status": true,
                         "gpu_connection_status": true,
@@ -760,8 +771,8 @@ STEP 20 - Final report
                         "jetbridge_connection_status": true, 
                         "lavatory_service_status": true, 
                         "passenger_disembarkation_status": true, 
-                        "wheelchocks_installation_status": true, 
-                        "wheelchocks_readiness_status": true,
+                        "wheels_chocks_installation_status": true, 
+                        "wheels_chocks_readiness_status": true,
                         "acu_connection_status": true,
                         "acu_readiness_status": true,
                         "gpu_connection_status": true,
@@ -771,13 +782,33 @@ STEP 20 - Final report
                 }
             },
 
+    // STEP 8  — ramp services           → aircraft_ground_operation (instruction: 'Execute ground ramp services.')
+
+// STEP 8 - Ground ramp services (wheelchocks install + ACU connect + GPU connect)
+//   - Call /AirlineTurnaround/aircraft_ground_operation with named parameters:
+//       flight_number, aircraft_type, gate_id, flight_status, engines_stop_status,
+//       wheels_chocks_readiness_status, acu_readiness_status, gpu_readiness_status,
+//       instruction='Execute ground ramp services.'
+//   - Wait for response.
+//   - Extract and store: wheels_chocks_installation_status, acu_connection_status, gpu_connection_status.
+
+            // "tools": [
+            //     "TrackerAPI",
+            //     "/AirlineTurnaround/aircraft_cabin_services", 
+            //     "/AirlineTurnaround/aircraft_crew_pilot",    # ALL crew tasks: STEPS 1/2/5/6/7/10/11/13/14
+            //     "/AirlineTurnaround/aircraft_gate_services",
+            //     "/AirlineTurnaround/aircraft_ground_operation",  # STEP 4 readiness, STEP 8 ramp services, STEP 12 baggage, STEP 18 inspection, STEP 19 fueling
+            // ], 
+
             "tools": [
                 "TrackerAPI",
                 "/AirlineTurnaround/aircraft_cabin_services", 
                 "/AirlineTurnaround/aircraft_crew_pilot",    # ALL crew tasks: STEPS 1/2/5/6/7/10/11/13/14
                 "/AirlineTurnaround/aircraft_gate_services",
-                "/AirlineTurnaround/aircraft_ground_operation",  # STEP 4 readiness, STEP 8 ramp services, STEP 12 baggage, STEP 18 inspection, STEP 19 fueling
-            ], 
+                "/AirlineTurnaround/aircraft_ground_operation",  # STEP 4 readiness, STEP 12 baggage, STEP 18 inspection, STEP 19 fueling
+                "/AirlineTurnaround/aircraft_ground_rampservices",  # STEP 8 ramp services direct
+            ],
+
         }, 
 
         {
@@ -811,11 +842,11 @@ I am the tracker of the aircraft turnaround process. I store parameters and and 
                             "type": "string", 
                             "description": "This is the gate assigned to the aircraft parking."
                         },      
-                        "wheelchocks_readiness_status": {
+                        "wheels_chocks_readiness_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks readiness status."
                         },   
-                        "wheelchocks_installation_status": {
+                        "wheels_chocks_installation_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks installation status."
                         },   
@@ -872,6 +903,7 @@ I am the tracker of the aircraft turnaround process. I store parameters and and 
                             "description": "This is the runway assigned to the aircraft movement autorized by the clearance."
                         },                   
                     }, 
+                    "required": [] 
                 }
             },
             "class": "AirlineTurnaround.aircraft_turnaround.aircraft_turnaround.TrackerAPI" 

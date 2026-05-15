@@ -135,7 +135,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string",
                             "description": "GPU connection status. Required when internally calling stairtruck_connect."
                         },
-                        "wheelchocks_installation_status": {
+                        "wheels_chocks_installation_status": {
                             "type": "string",
                             "description": "Wheelchocks installation status."
                         },
@@ -174,7 +174,7 @@ STEP 3 — Ensure deplaning equipment is connected (ONE call if needed)
         with named parameters:
           flight_number, aircraft_type, flight_status, gate_id,
           acu_connection_status, gpu_connection_status,
-          wheelchocks_installation_status.
+          wheels_chocks_installation_status.
         CRITICAL: acu_connection_status and gpu_connection_status MUST be
         passed explicitly — stairtruck_operator requires both to be
         'connected' to proceed. Do NOT omit them.
@@ -231,6 +231,8 @@ RETURN SUMMARY:
                         "flight_status": true,
                         "gate_id": true,
                         "jetbridge_connection_status": true,
+                        "stairtruck_connection_status": true,
+                        "deplaning_equipment_type": true,
                         "door_opening_status": true
                     }
                 },
@@ -242,7 +244,7 @@ RETURN SUMMARY:
                         "gate_id": true,
                         "acu_connection_status": true,
                         "gpu_connection_status": true,
-                        "wheelchocks_installation_status": true,
+                        "wheels_chocks_installation_status": true,
                         "jetbridge_connection_status": true,
                         "stairtruck_connection_status": true,
                         "deplaning_equipment_type": true

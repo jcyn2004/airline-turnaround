@@ -83,16 +83,16 @@ The top-level agent. It resolves all parameters, requests clearance from the ext
 
 #### Input parameters
 
-| Parameter | Type | Required | Description |
-|---|---|:---:|---|
-| `aircraft_direction` | string | ✅ | Direction: `incoming` or `departing` |
-| `flight_number` | string | ✅ | Flight identifier |
-| `aircraft_type` | string | ✅ | Aircraft model/type |
-| `flight_status` | string | ❌ | e.g. `approach`, `cleared for landing` |
-| `clearance_type` | string | ❌ | Expected: contains `cleared for landing` |
-| `assigned_runway_id` | string | ❌ | Assigned runway designator |
-| `assigned_runway_length` | string | ❌ | Length of assigned runway in meters |
-| `landing_summary` | string | ❌ | Landing outcome summary |
+| Parameter                | Type   | Required | Description                              |
+|--------------------------|--------|:--------:|------------------------------------------|
+| `aircraft_direction`     | string |    ✅     | Direction: `incoming` or `departing`     |
+| `flight_number`          | string |    ✅     | Flight identifier                        |
+| `aircraft_type`          | string |    ✅     | Aircraft model/type                      |
+| `flight_status`          | string |    ❌     | e.g. `approach`, `cleared for landing`   |
+| `clearance_type`         | string |    ❌     | Expected: contains `cleared for landing` |
+| `assigned_runway_id`     | string |    ❌     | Assigned runway designator               |
+| `assigned_runway_length` | string |    ❌     | Length of assigned runway in meters      |
+| `landing_summary`        | string |    ❌     | Landing outcome summary                  |
 
 #### Orchestration flow
 
@@ -111,12 +111,12 @@ The instructions use older numbered-prose style:
 
 #### sly_data contract
 
-| Direction | Parameters |
-|---|---|
-| **To upstream** | `clearance_type`, `flight_status`, `flight_number`, `aircraft_type`, `assigned_runway_id`, `assigned_runway_length` |
-| **To downstream** | same 6 fields |
-| **From upstream** | same 6 fields |
-| **From downstream** | same 6 fields |
+| Direction           | Parameters                                                                                                          |
+|---------------------|---------------------------------------------------------------------------------------------------------------------|
+| **To upstream**     | `clearance_type`, `flight_status`, `flight_number`, `aircraft_type`, `assigned_runway_id`, `assigned_runway_length` |
+| **To downstream**   | same 6 fields                                                                                                       |
+| **From upstream**   | same 6 fields                                                                                                       |
+| **From downstream** | same 6 fields                                                                                                       |
 
 > Note: All four directions carry the same 6-field set. `aircraft_direction` and `landing_summary` are in the agent parameter schema but absent from all sly_data allow blocks.
 
@@ -160,14 +160,14 @@ The coded tool confirms landing clearance conditions and, if met, sets `flight_s
 
 #### Input parameters (args-first, broken sly_data fallback — see Known Issues)
 
-| Parameter | Type | Source |
-|---|---|---|
-| `flight_status` | string | `args` (sly_data fallback broken) |
-| `aircraft_type` | string | `args` (sly_data fallback broken) |
-| `flight_number` | string | `args` (sly_data fallback broken) |
-| `aircraft_direction` | string | `args` (sly_data fallback broken) |
-| `clearance_type` | string | `args` (sly_data fallback broken) |
-| `assigned_runway_id` | string | `args` (sly_data fallback broken) |
+| Parameter                | Type   | Source                            |
+|--------------------------|--------|-----------------------------------|
+| `flight_status`          | string | `args` (sly_data fallback broken) |
+| `aircraft_type`          | string | `args` (sly_data fallback broken) |
+| `flight_number`          | string | `args` (sly_data fallback broken) |
+| `aircraft_direction`     | string | `args` (sly_data fallback broken) |
+| `clearance_type`         | string | `args` (sly_data fallback broken) |
+| `assigned_runway_id`     | string | `args` (sly_data fallback broken) |
 | `assigned_runway_length` | string | `args` (sly_data fallback broken) |
 
 #### Landing condition
@@ -181,10 +181,10 @@ if clearance_type and flight_status:
 
 Note the condition uses `|` (bitwise OR) not `or` (logical OR), and `&` (bitwise AND) not `and`. For string boolean expressions this works in Python but is non-standard and fragile.
 
-| Condition | Accepted values |
-|---|---|
+| Condition        | Accepted values                         |
+|------------------|-----------------------------------------|
 | `clearance_type` | Contains `'clear'` OR contains `'land'` |
-| `flight_status` | `None` OR contains `'approach'` |
+| `flight_status`  | `None` OR contains `'approach'`         |
 
 > Note: `clearance_type` containing `'land'` would accept `"no landing"`, `"Iceland"`, or any string with the substring. Similarly `'clear'` accepts `"not cleared"`. Exact matching is safer.
 
@@ -223,8 +223,8 @@ Standard sly_data-first implementation. Called in step 2 to store available para
 
 ## 6. External Tool Dependencies
 
-| Tool path | Purpose | Condition triggering call |
-|---|---|---|
+| Tool path                                        | Purpose                                                                                             | Condition triggering call                          |
+|--------------------------------------------------|-----------------------------------------------------------------------------------------------------|----------------------------------------------------|
 | `/AirlineTurnaround/aircraft_traffic_controller` | Request landing clearance, receive `clearance_type`, `assigned_runway_id`, `assigned_runway_length` | Step 3 — when any of those three values is missing |
 
 ---
@@ -274,47 +274,33 @@ that has a length of 2350 meters. It is a B747."
 
 ## 9. Known Issues and Maintenance Notes
 
-| Issue | Location | Severity | Notes |
-|---|---|:---:|---|
-| **Broken sly_data fallback — variable used as key** | `aircraft_landing.py` lines 61, 66, 69, 72, 75, 78, 81 | **Critical** | `sly_data.get(flight_status, None)` passes the variable's *value* (e.g. `None`) as the key, not the string `"flight_status"`. When `flight_status is None`, `sly_data.get(None, None)` always returns `None`. The sly_data fallback is completely non-functional for all 7 parameters. Fix: `sly_data.get("flight_status", None)` (quoted string). |
-| **`"required": {}` in TrackerAPI HOCON** | `aircraft_landing.hocon` line 350 | **High** | Object `{}` instead of array `[]`. Strict parsers will reject this as a JSON Schema error. Fix: `"required": []`. |
-| Agent hierarchy name confusion | `aircraft_landing.hocon` lines 90, 271 | Medium | `aircraft_landing_agent` in the HOCON is a coded-tool wrapper, not the orchestrator. The true entry point is `flight_operation_agent`. Previous documentation called the orchestrator `aircraft_landing_agent`, which matches the coded wrapper's name — not the orchestrator. |
-| CSV files declared but never used | `aircraft_landing.py` lines 38–39 | Medium | `aircraft_base` and `runway_base` paths are assigned but never read. The operator makes no runway compatibility check. |
-| `'land' in clearance_type` is overly broad | `aircraft_landing.py` line 97 | Medium | Matches `"no landing"`, `"Iceland"`, etc. Use exact matching or require both `'clear'` and `'landing'` as co-present substrings. |
-| `flight_status is None` branch unreachable | `aircraft_landing.py` line 97 | Low | `if clearance_type and flight_status:` (line 93) is `False` when `flight_status is None`, so the inner `or (flight_status is None)` on line 97 is never reached. |
-| Step 4 does not name which tool to call | `aircraft_landing.hocon` line 155–156 | Low | "Land the aircraft" — ambiguous between `aircraft_pilot` and `aircraft_landing_agent`. LLM must autonomously select. |
-| Loop in step 3 has no retry limit | `aircraft_landing.hocon` step 3 | Low | Returns to step 2 indefinitely if `aircraft_traffic_controller` fails to supply clearance. |
-| `aircraft_direction` absent from sly_data allow blocks | `aircraft_landing.hocon` | Low | Present in agent parameters but not propagated in any of the four sly_data directions. |
-| `traffic_direction` vs `aircraft_direction` mismatch | `aircraft_landing.hocon` line 333 | Low | TrackerAPI HOCON parameter uses `traffic_direction`; the network uses `aircraft_direction`. |
-| Unix-only imports not used | `aircraft_landing.py` lines 10, 12 | Low | `fcntl` (Unix-only, will fail on Windows) and `asyncio` are imported but never called. |
-| Operator returns string, not dict | `aircraft_landing.py` line 113 | Low | Returns `flight_status` (string). Previous documentation described a structured `ClearanceDict` return — this does not exist. |
-| `random`, `os`, `platform` imported but unused | `aircraft_landing.py` lines 7–9 | Low | Dead imports. |
+| Issue                                                  | Location                                               |   Severity   | Notes                                                                                                                                                                                                                                                                                                                                              |
+|--------------------------------------------------------|--------------------------------------------------------|:------------:|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Agent hierarchy name confusion                         | `aircraft_landing.hocon` lines 90, 271                 |    Medium    | `aircraft_landing_agent` in the HOCON is a coded-tool wrapper, not the orchestrator. The true entry point is `flight_operation_agent`. Previous documentation called the orchestrator `aircraft_landing_agent`, which matches the coded wrapper's name — not the orchestrator.                                                                     |
+| CSV files declared but never used                      | `aircraft_landing.py` lines 38–39                      |    Medium    | `aircraft_base` and `runway_base` paths are assigned but never read. The operator makes no runway compatibility check.                                                                                                                                                                                                                             |
+| `'land' in clearance_type` is overly broad             | `aircraft_landing.py` line 97                          |    Medium    | Matches `"no landing"`, `"Iceland"`, etc. Use exact matching or require both `'clear'` and `'landing'` as co-present substrings.                                                                                                                                                                                                                   |
+| `flight_status is None` branch unreachable             | `aircraft_landing.py` line 97                          |     Low      | `if clearance_type and flight_status:` (line 93) is `False` when `flight_status is None`, so the inner `or (flight_status is None)` on line 97 is never reached.                                                                                                                                                                                   |
 
 ---
 
 ## 10. Key Differences from Prior Documentation
 
-| Aspect | Old documentation | Actual implementation |
-|---|---|---|
-| Top-level agent name | `aircraft_landing_agent` | `flight_operation_agent` |
-| Number of LLM agents | 1 | 3 (`flight_operation_agent`, `aircraft_pilot`, `aircraft_landing_agent`) |
-| Coded tool name | `landing_operator` | `execute_aircraft_landing` |
-| Primary prerequisite | `aircraft_direction = incoming` | `clearance_type` contains `'clear'` or `'land'`, `flight_status` contains `'approach'` |
-| Fields `landing_status`, `clearance_pending`, etc. | ✅ Present | ❌ Do not exist |
-| Output | `ClearanceDict` (structured) | `flight_status` string only |
-| Runway CSV usage | Yes (selection logic) | Paths declared, never read |
+| Aspect                                             | Old documentation               | Actual implementation                                                                  |
+|----------------------------------------------------|---------------------------------|----------------------------------------------------------------------------------------|
+| Top-level agent name                               | `aircraft_landing_agent`        | `flight_operation_agent`                                                               |
+| Number of LLM agents                               | 1                               | 3 (`flight_operation_agent`, `aircraft_pilot`, `aircraft_landing_agent`)               |
+| Coded tool name                                    | `landing_operator`              | `execute_aircraft_landing`                                                             |
+| Primary prerequisite                               | `aircraft_direction = incoming` | `clearance_type` contains `'clear'` or `'land'`, `flight_status` contains `'approach'` |
+| Fields `landing_status`, `clearance_pending`, etc. | ✅ Present                       | ❌ Do not exist                                                                         |
+| Output                                             | `ClearanceDict` (structured)    | `flight_status` string only                                                            |
+| Runway CSV usage                                   | Yes (selection logic)           | Paths declared, never read                                                             |
 
 ---
 
 ## 11. Extensibility Guidance
 
-- **Fix the sly_data fallback immediately** — change all seven `sly_data.get(variable, None)` calls to `sly_data.get("field_name", None)` with quoted string keys
-- Fix `"required": {}` to `"required": []` in the TrackerAPI HOCON definition
-- Remove unused imports: `fcntl`, `asyncio`, `random`, `os`, `platform`
 - Make the CSV paths functional — read `aircraft_base.csv` to validate that the assigned runway length meets the aircraft's landing run requirement
 - Replace the `'land' in clearance_type` substring check with an exact-match or combined-substring check
-- Name the landing tool explicitly in step 4 instructions (`"Call aircraft_pilot to land the aircraft"`)
-- Add a maximum retry count to the step 3 clearance request loop
 
 ---
 

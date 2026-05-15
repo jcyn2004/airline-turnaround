@@ -80,20 +80,20 @@ The entry-point agent. It reads all parameters from TrackerAPI, validates flight
 
 #### Input parameters
 
-| Parameter | Type | Required | Description |
-|---|---|:---:|---|
-| `flight_number` | string | ✅ | Flight identifier |
-| `aircraft_type` | string | ✅ | Aircraft model/type |
-| `gate_id` | string | ✅ | Gate where the aircraft is parked |
-| `flight_status` | string | ✅ | Expected: contains `on blocks` or `block` |
-| `acu_connection_status` | string | ✅ | Expected: contains `connected` |
-| `gpu_connection_status` | string | ✅ | Expected: contains `connected` |
-| `wheelchocks_installation_status` | string | ❌ | Expected: contains `installed` |
+| Parameter                         | Type   | Required | Description                               |
+|-----------------------------------|--------|:--------:|-------------------------------------------|
+| `flight_number`                   | string |    ✅     | Flight identifier                         |
+| `aircraft_type`                   | string |    ✅     | Aircraft model/type                       |
+| `gate_id`                         | string |    ✅     | Gate where the aircraft is parked         |
+| `flight_status`                   | string |    ✅     | Expected: contains `on blocks` or `block` |
+| `acu_connection_status`           | string |    ✅     | Expected: contains `connected`            |
+| `gpu_connection_status`           | string |    ✅     | Expected: contains `connected`            |
+| `wheels_chocks_installation_status` | string |    ❌     | Expected: contains `installed`            |
 
 #### Orchestration flow (STEP pattern)
 
 **STEP 1 — Resolve prerequisites:**
-Call `TrackerAPI` with `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `acu_connection_status`, `gpu_connection_status`, `wheelchocks_installation_status`. Wait. Read back all values.
+Call `TrackerAPI` with `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `acu_connection_status`, `gpu_connection_status`, `wheels_chocks_installation_status`. Wait. Read back all values.
 
 **STEP 2 — Verify flight status:**
 `flight_status` must contain `'on blocks'` or `'block'`. If not → stop and report: `"Cannot connect jetbridge — aircraft is not yet on blocks."`
@@ -110,18 +110,18 @@ Call `jetbridge_operator` with `flight_number`, `aircraft_type`, `flight_status`
 
 **RETURN SUMMARY.**
 
-> Note: `wheelchocks_installation_status` is checked in STEP 3's condition but there is **no external tool** to resolve it if it fails. The tools list (line 218) includes `aircraft_ground_acu_connect` and `aircraft_ground_gpu_connect` but no wheelchocks resolution tool. If chocks are not installed, the agent can only stop and report the failure — it cannot fix it automatically, unlike ACU and GPU.
+> Note: `wheels_chocks_installation_status` is checked in STEP 3's condition but there is **no external tool** to resolve it if it fails. The tools list (line 218) includes `aircraft_ground_acu_connect` and `aircraft_ground_gpu_connect` but no wheelchocks resolution tool. If chocks are not installed, the agent can only stop and report the failure — it cannot fix it automatically, unlike ACU and GPU.
 
 > Note: `flight_status` is checked for `'on blocks'` or `'block'` in STEP 2 — the second alternative `'block'` would also match substrings like `"blocked"` or any string containing the word "block".
 
 #### sly_data contract
 
-| Direction | Parameters |
-|---|---|
-| **To upstream** | `jetbridge_connection_status` |
-| **To downstream** | `jetbridge_connection_status` |
-| **From upstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `acu_connection_status`, `gpu_connection_status`, `wheelchocks_installation_status`, `jetbridge_connection_status` |
-| **From downstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `acu_connection_status`, `gpu_connection_status`, `wheelchocks_installation_status`, `jetbridge_connection_status` |
+| Direction           | Parameters                                                                                                                                                                       |
+|---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **To upstream**     | `jetbridge_connection_status`                                                                                                                                                    |
+| **To downstream**   | `jetbridge_connection_status`                                                                                                                                                    |
+| **From upstream**   | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `acu_connection_status`, `gpu_connection_status`, `wheels_chocks_installation_status`, `jetbridge_connection_status` |
+| **From downstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `acu_connection_status`, `gpu_connection_status`, `wheels_chocks_installation_status`, `jetbridge_connection_status` |
 
 > Note: Both `to_upstream` and `to_downstream` propagate only `jetbridge_connection_status`. All context flows in via `from_upstream`/`from_downstream`. This is the narrowest outbound sly_data in a multi-prerequisite network.
 
@@ -145,16 +145,16 @@ Initial value of `jetbridge_connection_status` is `'retracted'` (not `'pending'`
 
 #### Input parameters
 
-| Parameter | Type | Required | Source priority |
-|---|---|:---:|---|
-| `flight_number` | string | ✅ | `args` → `sly_data` |
-| `aircraft_type` | string | ✅ | `args` → `sly_data` |
-| `flight_status` | string | ✅ | `args` → `sly_data` |
-| `gate_id` | string | ✅ | `args` → `sly_data` |
-| `acu_connection_status` | string | ✅ | `args` → `sly_data` |
-| `gpu_connection_status` | string | ✅ | `args` → `sly_data` |
+| Parameter               | Type   | Required | Source priority     |
+|-------------------------|--------|:--------:|---------------------|
+| `flight_number`         | string |    ✅     | `args` → `sly_data` |
+| `aircraft_type`         | string |    ✅     | `args` → `sly_data` |
+| `flight_status`         | string |    ✅     | `args` → `sly_data` |
+| `gate_id`               | string |    ✅     | `args` → `sly_data` |
+| `acu_connection_status` | string |    ✅     | `args` → `sly_data` |
+| `gpu_connection_status` | string |    ✅     | `args` → `sly_data` |
 
-> Note: The operator does **not** check `wheelchocks_installation_status`. The operator docstring lists `wheels_chocks_installation status` but it is neither read from args nor from sly_data in the implementation. Wheelchocks validation is entirely the orchestrator's responsibility.
+> Note: The operator does **not** check `wheels_chocks_installation_status`. The operator docstring lists `wheels_chocks_installation status` but it is neither read from args nor from sly_data in the implementation. Wheelchocks validation is entirely the orchestrator's responsibility.
 
 #### Connection logic
 
@@ -208,7 +208,7 @@ Standard sly_data-first implementation. Called in STEP 1 to read all available p
 **Return fields:**
 `acu_connection_status`, `flight_status`, `gpu_connection_status`, `jetbridge_connection_status`
 
-> Note: `wheelchocks_installation_status` is in the HOCON sly_data allow blocks and HOCON TrackerAPI parameter schema, but is **not in `FLIGHT_TURNAROUND_TRACKED_FIELDS`**. TrackerAPI will not persist or return this field. If an upstream caller passes `wheelchocks_installation_status` via sly_data, it will flow through the allow blocks but TrackerAPI cannot log or echo it.
+> Note: `wheels_chocks_installation_status` is in the HOCON sly_data allow blocks and HOCON TrackerAPI parameter schema, but is **not in `FLIGHT_TURNAROUND_TRACKED_FIELDS`**. TrackerAPI will not persist or return this field. If an upstream caller passes `wheels_chocks_installation_status` via sly_data, it will flow through the allow blocks but TrackerAPI cannot log or echo it.
 
 > Note: `flight_number`, `aircraft_type`, and `gate_id` are tracked but not returned — they are persisted to sly_data but not echoed back in the return tuple.
 
@@ -222,12 +222,12 @@ Standard sly_data-first implementation. Called in STEP 1 to read all available p
 
 These tools are resolved at runtime from `registries/aaosa_basic.hocon`:
 
-| Tool path | Purpose | Condition triggering call |
-|---|---|---|
+| Tool path                                        | Purpose                 | Condition triggering call                              |
+|--------------------------------------------------|-------------------------|--------------------------------------------------------|
 | `/AirlineTurnaround/aircraft_ground_acu_connect` | Connect ACU to aircraft | `acu_connection_status` does not contain `'connected'` |
 | `/AirlineTurnaround/aircraft_ground_gpu_connect` | Connect GPU to aircraft | `gpu_connection_status` does not contain `'connected'` |
 
-> Note: There is no external tool to resolve `wheelchocks_installation_status`. If chocks are not installed when STEP 3 runs, the only outcome is a stop-and-report failure. The caller (or a higher-level orchestrator) must ensure chocks are installed before calling this network.
+> Note: There is no external tool to resolve `wheels_chocks_installation_status`. If chocks are not installed when STEP 3 runs, the only outcome is a stop-and-report failure. The caller (or a higher-level orchestrator) must ensure chocks are installed before calling this network.
 
 ---
 
@@ -251,7 +251,7 @@ and wheelchocks have been installed. Connect the jet bridge."
 
 **Execution steps:**
 
-1. `TrackerAPI` called (STEP 1) — reads: `flight_status=on blocks`, `acu_connection_status=connected`, `gpu_connection_status=connected`, `wheelchocks_installation_status=installed`
+1. `TrackerAPI` called (STEP 1) — reads: `flight_status=on blocks`, `acu_connection_status=connected`, `gpu_connection_status=connected`, `wheels_chocks_installation_status=installed`
 2. `flight_status` check: contains `'on blocks'` ✅ (STEP 2)
 3. All three prerequisites confirmed ✅ → skip to STEP 4 (STEP 3)
 4. `jetbridge_operator` called — returns `jetbridge_connection_status=connected`
@@ -281,7 +281,7 @@ and wheelchocks have been installed. Connect the jet bridge."
   "gate_id": "A1",
   "acu_connection_status": "connected",
   "gpu_connection_status": "connected",
-  "wheelchocks_installation_status": "installed",
+  "wheels_chocks_installation_status": "installed",
   "jetbridge_connection_status": "connected"
 }
 ```
@@ -290,30 +290,21 @@ and wheelchocks have been installed. Connect the jet bridge."
 
 ## 9. Known Issues and Maintenance Notes
 
-| Issue | Location | Severity | Notes |
-|---|---|:---:|---|
-| Agent name mismatch with prior documentation | `aircraft_jetbridge_connect.hocon` line 90 | Low | Agent is `jetbridge_connect_agent`, not `aircraft_jetbridge_connect_agent`. |
-| Prior documentation describes wrong prerequisites | Prior documentation | — | Old doc said "on blocks + engines stopped." Actual prerequisites are ACU connected + GPU connected + wheelchocks installed (plus on-blocks check). `engines_stop_status`, `inspection_status`, `maintenance_status`, `detected_defects` don't exist in this network. |
-| **`'connected' in` accepts `'not connected'`** | `aircraft_jetbridge_connect.py` line 159 | **High** | `'connected' in 'not connected'` is `True`. The operator would grant connection even if ACU/GPU status explicitly says `'not connected'`. Use exact matching: `acu_connection_status.strip().lower() == 'connected'`. |
-| No external tool to resolve `wheelchocks_installation_status` | `aircraft_jetbridge_connect.hocon` line 218 | Medium | STEP 3 checks wheelchocks but no wheelchocks connect/install tool is in the tools list. A chocks failure can only produce a stop-and-report, not automated resolution. Consider adding `/AirlineTurnaround/aircraft_ground_wheelchocks_install` to the tools list. |
-| `wheelchocks_installation_status` not tracked by TrackerAPI | `aircraft_jetbridge_connect.py` lines 466–473 | Medium | The field is in the HOCON sly_data blocks and TrackerAPI schema but absent from `FLIGHT_TURNAROUND_TRACKED_FIELDS`. TrackerAPI cannot log or return its value. |
-| Redundant second `message` assignment (dead code) | `aircraft_jetbridge_connect.py` line 175 | Low | `message` is reassigned unconditionally after the `if` block, but `return jetbridge_connection_status` (line 178) means `message` is never returned. Dead code. The commented `# return message` (line 177) shows the original intent was to return the log string, which was correctly changed. |
-| `'block'` in STEP 2 is an overly broad substring match | `aircraft_jetbridge_connect.hocon` line 144 | Low | `flight_status contains 'block'` matches `"blocked"`, `"unblock"`, etc. Use `'on blocks'` as the sole accepted value. |
-| HOCON TrackerAPI description has `statusengines_stop_status` | `aircraft_jetbridge_connect.hocon` line 267 | Low | `"status"` prefix concatenated with `"engines_stop_status"`. Stale copy-paste. Neither field is tracked by this network. |
-| `gate_id` comment on line 105 | `aircraft_jetbridge_connect.py` line 105 | Low | Comment says "flight status is required to fulfill the request" — should say "gate_id". Copy-paste artifact. |
-| `# sly_data["gate_id"] = gate_id` commented out | `aircraft_jetbridge_connect.py` line 142 | Low | Commented-out sly_data write inside the GPU lookup block. Vestigial development artifact. |
+| Issue                                                         | Location                                      | Severity | Notes                                                                                                                                                                                                                                                                                            |
+|---------------------------------------------------------------|-----------------------------------------------|:--------:|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| No external tool to resolve `wheels_chocks_installation_status` | `aircraft_jetbridge_connect.hocon` line 218   |  Medium  | STEP 3 checks wheelchocks but no wheelchocks connect/install tool is in the tools list. A chocks failure can only produce a stop-and-report, not automated resolution. Consider adding `/AirlineTurnaround/aircraft_ground_wheelchocks_install` to the tools list.                               |
 
 ---
 
 ## 10. Prerequisites — Comparison with Prior Documentation
 
-| Prerequisite | Old documentation | Actual implementation |
-|---|---|---|
-| Aircraft on blocks | ✅ Required | ✅ Required (STEP 2) |
-| Engines stopped | ✅ Required | ❌ Not checked anywhere |
-| ACU connected | ❌ Not mentioned | ✅ Required (STEP 3) — resolved via external tool |
-| GPU connected | ❌ Not mentioned | ✅ Required (STEP 3) — resolved via external tool |
-| Wheel chocks installed | ❌ Not mentioned | ✅ Checked (STEP 3) — but not resolvable via tool |
+| Prerequisite           | Old documentation  | Actual implementation                             |
+|------------------------|--------------------|---------------------------------------------------|
+| Aircraft on blocks     | ✅ Required        | ✅ Required (STEP 2)                              |
+| Engines stopped        | ✅ Required        | ❌ Not checked anywhere                           |
+| ACU connected          | ❌ Not mentioned   | ✅ Required (STEP 3) — resolved via external tool |
+| GPU connected          | ❌ Not mentioned   | ✅ Required (STEP 3) — resolved via external tool |
+| Wheel chocks installed | ❌ Not mentioned   | ✅ Checked (STEP 3) — but not resolvable via tool |
 
 The prerequisite shift reflects the actual physical logic of jetbridge deployment: you want to confirm the aircraft has stable ground power and is mechanically secured before extending the bridge.
 
@@ -321,12 +312,7 @@ The prerequisite shift reflects the actual physical logic of jetbridge deploymen
 
 ## 11. Extensibility Guidance
 
-- Fix the `'connected' in` substring check to exact matching on both ACU and GPU conditions
 - Add `/AirlineTurnaround/aircraft_ground_wheelchocks_install` to the tools list so STEP 3 can resolve all three prerequisites, not just two
-- Add `wheelchocks_installation_status` to `FLIGHT_TURNAROUND_TRACKED_FIELDS` and `RETURN_FIELDS`
-- Remove the dead code second `message` assignment (line 175)
-- Fix the `'block'` substring match in STEP 2 to require `'on blocks'` specifically
-- Fix the comment on line 105 from "flight status" to "gate_id"
 
 ---
 

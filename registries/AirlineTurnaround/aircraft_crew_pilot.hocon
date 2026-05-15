@@ -142,7 +142,7 @@ Cabin crew operates under my authority.
                             "type": "string", 
                             "description": "This is the length of assigned runway."
                         },     
-                        "wheelchocks_readiness_status": {
+                        "wheels_chocks_readiness_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks readiness status."
                         },   
@@ -172,20 +172,12 @@ Cabin crew operates under my authority.
                         "deplaning_equipment_type": {"type": "string", "description": "Deplaning equipment type (jetway or stairtruck)."},
                         "acu_connection_status": {"type": "string", "description": "ACU connection status. Required for door opening (BRANCH G)."},
                         "gpu_connection_status": {"type": "string", "description": "GPU connection status. Required for door opening (BRANCH G)."},
-                        "wheelchocks_installation_status": {"type": "string", "description": "Wheelchocks installation status. Required for door opening (BRANCH G)."},
+                        "wheels_chocks_installation_status": {"type": "string", "description": "Wheelchocks installation status. Required for door opening (BRANCH G)."},
                     }, 
                     "required": ["aircraft_type","flight_number"] 
                 }
             },
 
-            # FIX: The original instructions used ambiguous routing logic that caused
-            # the agent to guess which sub-task was being requested, often picking the
-            # wrong subsystem or short-circuiting. The fix introduces EXPLICIT INTENT
-            # DETECTION: the caller (aircraft_turnaround_manager) now always includes
-            # an "explicit instruction" keyword phrase. This agent's new prompt maps
-            # those phrases to deterministic branches.
-            # This eliminates the core failure mode where mid-level agents relied on
-            # loose keyword matching against a broad inquiry string.
             "instructions": """
 You are the agent in charge of operating the aircraft in all phases of flight.
 You may be called by the turnaround orchestrator or directly by a user.
@@ -326,7 +318,7 @@ BRANCH D — Taxi the aircraft to the gate
     Call /AirlineTurnaround/aircraft_ground_readiness ONCE with
     aircraft_type, gate_id.
     Wait. Extract acu_readiness_status, gpu_readiness_status,
-    wheelchocks_readiness_status.
+    wheels_chocks_readiness_status.
     Call TrackerAPI to store all three.
     Continue to STEP 3 regardless of readiness values.
     Report any unready items in the final summary only.
@@ -351,7 +343,7 @@ BRANCH D — Taxi the aircraft to the gate
       flight_status='landed',
       gate_id, ground_clearance_type, ground_clearance_status,
       assigned_runway_id, acu_readiness_status,
-      gpu_readiness_status, wheelchocks_readiness_status.
+      gpu_readiness_status, wheels_chocks_readiness_status.
     Wait for the response from aircraft_taxiing.
     The response summary line '** flight status **' must contain 'on blocks'.
     If it does not contain 'on blocks', report failure immediately.
@@ -372,7 +364,7 @@ BRANCH D — Taxi the aircraft to the gate
        ** ground clearance status  **: [ground_clearance_status]
        ** ACU readiness            **: [acu_readiness_status]
        ** GPU readiness            **: [gpu_readiness_status]
-       ** wheelchocks readiness    **: [wheelchocks_readiness_status]
+       ** wheelchocks readiness    **: [wheels_chocks_readiness_status]
        ** flight status            **: on blocks
 
 BRANCH E — Stop the aircraft engines
@@ -483,7 +475,7 @@ BRANCH G — Open the aircraft door  (cabin crew — under pilot authority)
       deplaning_equipment_type,
       jetbridge_connection_status, stairtruck_connection_status,
       acu_connection_status, gpu_connection_status,
-      wheelchocks_installation_status.
+      wheels_chocks_installation_status.
     Wait for response. This is the ONLY action in this turn.
     Extract door_opening_status from the response.
     Call TrackerAPI to store door_opening_status.
@@ -618,7 +610,7 @@ If no branch matches, reply you are not relevant.
                         "gate_id": true, 
                         "assigned_runway_id": true, 
                         "assigned_runway_length": true, 
-                        "wheelchocks_readiness_status": true, 
+                        "wheels_chocks_readiness_status": true, 
                         "acu_readiness_status": true, 
                         "gpu_readiness_status": true,
                         "aircraft_direction": true,
@@ -626,9 +618,6 @@ If no branch matches, reply you are not relevant.
                         "engines_stop_status": true,
                         "ground_clearance_status": true,
                         "task_id": true,
-                        "acu_readiness_status": true,
-                        "gpu_readiness_status": true,
-                        "wheelchocks_readiness_status": true,
                         "door_opening_status": true,
                         "passenger_disembarkation_status": true,
                         "jetbridge_connection_status": true,
@@ -638,7 +627,7 @@ If no branch matches, reply you are not relevant.
                         "baggage_unload_status": true,
                         "acu_connection_status": true,
                         "gpu_connection_status": true,
-                        "wheelchocks_installation_status": true,
+                        "wheels_chocks_installation_status": true,
                     }
                 }
                 "to_downstream": {
@@ -650,7 +639,7 @@ If no branch matches, reply you are not relevant.
                         "gate_id": true, 
                         "assigned_runway_id": true, 
                         "assigned_runway_length": true, 
-                        "wheelchocks_readiness_status": true, 
+                        "wheels_chocks_readiness_status": true, 
                         "acu_readiness_status": true, 
                         "gpu_readiness_status": true,
                         "aircraft_direction": true,
@@ -658,9 +647,6 @@ If no branch matches, reply you are not relevant.
                         "engines_stop_status": true,
                         "ground_clearance_status": true,
                         "task_id": true,
-                        "acu_readiness_status": true,
-                        "gpu_readiness_status": true,
-                        "wheelchocks_readiness_status": true,
                         "door_opening_status": true,
                         "passenger_disembarkation_status": true,
                         "jetbridge_connection_status": true,
@@ -670,7 +656,7 @@ If no branch matches, reply you are not relevant.
                         "baggage_unload_status": true,
                         "acu_connection_status": true,
                         "gpu_connection_status": true,
-                        "wheelchocks_installation_status": true,
+                        "wheels_chocks_installation_status": true,
                     }
                 }
                 "from_upstream": {
@@ -682,7 +668,7 @@ If no branch matches, reply you are not relevant.
                         "gate_id": true, 
                         "assigned_runway_id": true, 
                         "assigned_runway_length": true, 
-                        "wheelchocks_readiness_status": true, 
+                        "wheels_chocks_readiness_status": true, 
                         "acu_readiness_status": true, 
                         "gpu_readiness_status": true,
                         "aircraft_direction": true,
@@ -690,9 +676,6 @@ If no branch matches, reply you are not relevant.
                         "engines_stop_status": true,
                         "ground_clearance_status": true,
                         "task_id": true,
-                        "acu_readiness_status": true,
-                        "gpu_readiness_status": true,
-                        "wheelchocks_readiness_status": true,
                         "door_opening_status": true,
                         "passenger_disembarkation_status": true,
                         "jetbridge_connection_status": true,
@@ -702,7 +685,7 @@ If no branch matches, reply you are not relevant.
                         "baggage_unload_status": true,
                         "acu_connection_status": true,
                         "gpu_connection_status": true,
-                        "wheelchocks_installation_status": true,
+                        "wheels_chocks_installation_status": true,
                     }
                 }
                 "from_downstream": {
@@ -714,7 +697,7 @@ If no branch matches, reply you are not relevant.
                         "gate_id": true, 
                         "assigned_runway_id": true, 
                         "assigned_runway_length": true, 
-                        "wheelchocks_readiness_status": true, 
+                        "wheels_chocks_readiness_status": true, 
                         "acu_readiness_status": true, 
                         "gpu_readiness_status": true,
                         "aircraft_direction": true,
@@ -722,9 +705,6 @@ If no branch matches, reply you are not relevant.
                         "engines_stop_status": true,
                         "ground_clearance_status": true,
                         "task_id": true,
-                        "acu_readiness_status": true,
-                        "gpu_readiness_status": true,
-                        "wheelchocks_readiness_status": true,
                         "door_opening_status": true,
                         "passenger_disembarkation_status": true,
                         "jetbridge_connection_status": true,
@@ -734,7 +714,7 @@ If no branch matches, reply you are not relevant.
                         "baggage_unload_status": true,
                         "acu_connection_status": true,
                         "gpu_connection_status": true,
-                        "wheelchocks_installation_status": true,
+                        "wheels_chocks_installation_status": true,
                     }
                 }
             },
@@ -774,7 +754,7 @@ I am the flight tracker in charge of logging parameters during aircraft turnarou
                         "aircraft_direction": {"type": "string", "description": "Aircraft direction."},                       
                         "assigned_runway_id": {"type": "string", "description": "Assigned runway id."},         
                         "assigned_runway_length": {"type": "string", "description": "Assigned runway length."},   
-                        "wheelchocks_readiness_status": {"type": "string", "description": "Wheelchocks readiness status."},   
+                        "wheels_chocks_readiness_status": {"type": "string", "description": "Wheelchocks readiness status."},   
                         "acu_readiness_status": {"type": "string", "description": "ACU readiness status."},
                         "gpu_readiness_status": {"type": "string", "description": "GPU readiness status."},
                         "task_id": {"type": "string", "description": "Correlation token to echo back in response."},
@@ -787,7 +767,7 @@ I am the flight tracker in charge of logging parameters during aircraft turnarou
                         "baggage_unload_status": {"type": "string", "description": "Baggage unload status."},
                         "acu_connection_status": {"type": "string", "description": "ACU connection status."},
                         "gpu_connection_status": {"type": "string", "description": "GPU connection status."},
-                        "wheelchocks_installation_status": {"type": "string", "description": "Wheelchocks installation status."},
+                        "wheels_chocks_installation_status": {"type": "string", "description": "Wheelchocks installation status."},
                     }, 
                     "required": [] 
                 }

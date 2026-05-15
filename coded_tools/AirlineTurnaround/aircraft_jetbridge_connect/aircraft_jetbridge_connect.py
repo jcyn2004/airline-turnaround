@@ -47,8 +47,7 @@ class jetbridge_operator(CodedTool):
 
         :return: None in write mode or any of teh parameters in read mode
         """
-        
-        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
+
         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
         jetbridge_connection_status = 'retracted'
 
@@ -102,7 +101,7 @@ class jetbridge_operator(CodedTool):
         print("\n")
         print("\n")
          
-        # flight status is required to fulfill the request.
+        # gate id is required to fulfill the request.
         gate_id: str = args.get("gate_id", None)
         if not gate_id:
             print("No gate id provided. Trying to get it from sly_data")
@@ -139,7 +138,6 @@ class jetbridge_operator(CodedTool):
         if not gpu_connection_status:
             print("No gpu connection status provided. Trying to get it from sly_data")
             gpu_connection_status = sly_data.get("gpu_connection_status")
-            # sly_data["gate_id"] = gate_id
         if not gpu_connection_status:
             error = "Error: Please provide gpu connection status for the request."
             print(error)
@@ -156,7 +154,7 @@ class jetbridge_operator(CodedTool):
         if gpu_connection_status is not None: 
             gpu_connection_status = gpu_connection_status.lower() 
 
-        if (('connected' in acu_connection_status) & ('connected' in gpu_connection_status)): 
+        if ((acu_connection_status.strip().lower() == 'connected') & (gpu_connection_status.strip().lower() == 'connected')): 
             jetbridge_connection_status = 'connected'
 
             message = f"Flight {flight_number} with airplane type {aircraft_type} {flight_status} at gate {gate_id} has jetbridge installed. Its jetbridge installation status is {jetbridge_connection_status}."
@@ -172,9 +170,7 @@ class jetbridge_operator(CodedTool):
 
             sly_data["jetbridge_connection_status"] = jetbridge_connection_status
 
-        message = f"Flight {flight_number} with airplane type {aircraft_type} {flight_status} at gate {gate_id} has jetbridge installed. Its jetbridge installation status is {jetbridge_connection_status}."
 
-        # return message
         return jetbridge_connection_status
 
     async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
@@ -470,51 +466,17 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS = [
     "flight_status",
     "gate_id", 
     "gpu_connection_status", 
-    "jetbridge_connection_status"] 
-
-#     "acu_connection_status", 
-#     "acu_readiness_status",
-#     "aircraft_direction",
-#     "aircraft_landing_report",
-#     "aircraft_type",
-#     "assigned_runway_id",
-#     "assigned_runway_length",
-#     "baggage_unload_status", 
-#     "catering_loading_status", 
-#     "cleaning_cabin_status", 
-#     "clearance_landing_valid",
-#     "clearance_takeoff_valid", 
-#     "clearance_type",
-#     "crew_debrief_status", 
-#     "crew_exit_status", 
-#     "door_opening_status", 
-#     "engines_stop_status", 
-#     "flight_number",
-#     "flight_status",
-#     "fueling_status", 
-#     "gate_id",
-#     "gpu_connection_status", 
-#     "gpu_readiness_status",
-#     "ground_clearance_status",
-#     "ground_clearance_type",
-#     "ground_services_inquiry_type", 
-#     "ground_services_request_type",
-#     "inspection_maintenance_status", 
-#     "jetbridge_connection_status", 
-#     "jetbridge_status", 
-#     "lavatory_service_status", 
-#     "passenger_disembarkation_status", 
-#     "runway_length",
-#     "wheels_chocks_installation_status", 
-#     "wheels_chocks_readiness_status",
-# ]
+    "jetbridge_connection_status",
+    "wheels_chocks_installation_status"
+] 
 
 # Define which fields should be returned from the API
 FLIGHT_TURNAROUND_RETURN_FIELDS = [
     "acu_connection_status",
     "flight_status",
     "gpu_connection_status", 
-    "jetbridge_connection_status",
+    "jetbridge_connection_status", 
+    "wheels_chocks_installation_status"
 ]
 
 # =============================================================================

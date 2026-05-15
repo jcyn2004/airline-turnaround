@@ -79,11 +79,11 @@ The entry-point agent. It determines whether the inquiry is about GPU readiness 
 
 #### Input parameters
 
-| Parameter | Type | Required | Description |
-|---|---|:---:|---|
-| `aircraft_type` | string | ✅ | Aircraft model/type |
-| `gate_id` | string | ✅ | Gate where the aircraft is assigned |
-| `gpu_readiness_status` | string | ❌ | Current readiness status if already known |
+| Parameter              | Type   | Required  | Description                               |
+|------------------------|--------|:---------:|-------------------------------------------|
+| `aircraft_type`        | string |    ✅     | Aircraft model/type                       |
+| `gate_id`              | string |    ✅     | Gate where the aircraft is assigned       |
+| `gpu_readiness_status` | string |    ❌     | Current readiness status if already known |
 
 #### Orchestration flow
 
@@ -102,11 +102,11 @@ The instructions use numbered-prose style. The flow is nearly identical to `airc
 
 #### sly_data contract
 
-| Direction | Parameters |
-|---|---|
-| **To upstream** | `aircraft_type`, `gate_id`, `gpu_readiness_status` |
-| **To downstream** | `aircraft_type`, `gate_id`, `gpu_readiness_status` |
-| **From upstream** | `aircraft_type`, `gate_id`, `gpu_readiness_status` |
+| Direction           | Parameters                                         |
+|---------------------|----------------------------------------------------|
+| **To upstream**     | `aircraft_type`, `gate_id`, `gpu_readiness_status` |
+| **To downstream**   | `aircraft_type`, `gate_id`, `gpu_readiness_status` |
+| **From upstream**   | `aircraft_type`, `gate_id`, `gpu_readiness_status` |
 | **From downstream** | `aircraft_type`, `gate_id`, `gpu_readiness_status` |
 
 All four directions carry the same three fields — the same fully symmetric contract as `aircraft_ground_acu_setup`. `flight_number` and `flight_status` are absent.
@@ -127,10 +127,10 @@ Reads GPU readiness from `gate_equipments_base.csv`. It filters by `gate_id`, re
 
 #### Input parameters
 
-| Parameter | Type | Required | Source priority |
-|---|---|:---:|---|
-| `aircraft_type` | string | ✅ | `args` → `sly_data` |
-| `gate_id` | string | ✅ | `args` → `sly_data` |
+| Parameter       | Type   | Required  | Source priority     |
+|-----------------|--------|:---------:|---------------------|
+| `aircraft_type` | string |    ✅     | `args` → `sly_data` |
+| `gate_id`       | string |    ✅     | `args` → `sly_data` |
 
 #### Readiness lookup logic
 
@@ -171,12 +171,12 @@ The logic reads `aircraft_type`, `gate_id`, and `gpu_readiness_status` (using `a
 
 Notable differences from the active `gpu_operator` in `aircraft_ground_gpu_connect.py`:
 
-| Aspect | This inactive version | Active version (in `gpu_connect`) |
-|---|---|---|
-| `gpu_readiness_status` lookup priority | `args` → `sly_data` | `sly_data` → `args` |
-| Readiness condition | `('ready' in ...) \| ('available' in ...)` | same + `'no' not in ...` guard |
-| `NameError` risk | Yes — same uninitialized `gpu_connection_status` | Yes |
-| Comment on line 142 | `# acu_connection_status = 'pending'` (wrong name) | same residue |
+| Aspect                                 | This inactive version                              | Active version (in `gpu_connect`) |                                |
+|----------------------------------------|----------------------------------------------------|-----------------------------------|--------------------------------|
+| `gpu_readiness_status` lookup priority | `args` → `sly_data`                                | `sly_data` → `args`               |                                |
+| Readiness condition                    | `('ready' in ...) \                                | ('available' in ...)`             | same + `'no' not in ...` guard |
+| `NameError` risk                       | Yes — same uninitialized `gpu_connection_status`   | Yes                               |                                |
+| Comment on line 142                    | `# acu_connection_status = 'pending'` (wrong name) | same residue                      |                                |
 
 This class appears to be the earlier version of the GPU operator, preserved here before the `sly_data`-first priority and `'no' not in` guard were added to the active version. Safe to remove.
 
@@ -282,18 +282,10 @@ This network has no external tool dependencies. The `registries/aaosa_basic.hoco
 
 ## 10. Known Issues and Maintenance Notes
 
-| Issue | Location | Severity | Notes |
-|---|---|:---:|---|
-| `IndexError` if `gate_id` not in CSV | `aircraft_ground_gpu_setup.py` line 105 | Medium | `gpu_readiness_status.values[0]` raises `IndexError` if no rows match `gate_id`. No guard. Same issue as `acu_setup`. |
-| `gpu_setup` does not filter by `aircraft_type` | `aircraft_ground_gpu_setup.py` line 98 | Medium | DataFrame filtered only by `gate_id`. If a gate serves multiple aircraft types with different GPU readiness, the wrong row could be returned. Same issue as `acu_setup`. |
-| Inactive `gpu_operator` not registered in HOCON | `aircraft_ground_gpu_setup.py` lines 125–222 / HOCON tools list | Low | The operator is unreachable. Either register it or remove it. |
-| `file_path_log` defined but never used in `gpu_setup` | `aircraft_ground_gpu_setup.py` line 48 | Low | No log entry is written. Same as `acu_setup`. |
-| HOCON instructions omit explicit TrackerAPI call | `aircraft_ground_gpu_setup.hocon` step 4 | Low | Unlike `aircraft_ground_acu_setup` which explicitly calls TrackerAPI before the summary, this network's instructions jump straight to the summary. TrackerAPI call is available via aaosa but not directed. |
-| Step 3c "stop process here" makes step 4 unreachable on standard path | `aircraft_ground_gpu_setup.hocon` line 123 | Low | Summary step only reached if LLM does not follow the stop instruction. |
-| HOCON agent description typos | `aircraft_ground_gpu_setup.hocon` line 93 | Low | `"I set uo GOU"` should read `"I set up GPU"`. |
-| HOCON TrackerAPI description references stale fields | `aircraft_ground_gpu_setup.hocon` lines 202–203 | Low | References `engines_stop_status` and `wheels_chucks_installation_status` — neither is tracked. |
-| CSV path hardcoded to `aircraft_gate_selection` directory | `aircraft_ground_gpu_setup.py` line 47 | Low | Cross-module path dependency. Moving or renaming `aircraft_gate_selection` would break `gpu_setup`. |
-| Model selection history in comment | `aircraft_ground_gpu_setup.hocon` line 14 | Info | Comment shows previously tested models. Clean up for production. |
+| Issue                                            | Location                                 | Severity | Notes                                                                                                                                                                    |
+|--------------------------------------------------|------------------------------------------|:--------:|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `IndexError` if `gate_id` not in CSV             | `aircraft_ground_gpu_setup.py` line 105  |  Medium  | `gpu_readiness_status.values[0]` raises `IndexError` if no rows match `gate_id`. No guard. Same issue as `acu_setup`.                                                    |
+| `gpu_setup` does not filter by `aircraft_type`   | `aircraft_ground_gpu_setup.py` line 98   |  Medium  | DataFrame filtered only by `gate_id`. If a gate serves multiple aircraft types with different GPU readiness, the wrong row could be returned. Same issue as `acu_setup`. |
 
 ---
 
@@ -309,17 +301,17 @@ aircraft_ground_gpu_connect      ─── calls  → aircraft_ground_gpu_setup
 
 ### Comparison: `aircraft_ground_gpu_setup` vs. `aircraft_ground_acu_setup`
 
-| Aspect | `aircraft_ground_acu_setup` | `aircraft_ground_gpu_setup` |
-|---|---|---|
-| CSV column read | `air_conditioning_unit_readiness` | `ground_power_unit_readiness` |
-| Active coded tool | `acu_setup` | `gpu_setup` |
-| `'yes'` → `'ready'` translation | Yes | Yes |
-| `'no'` → `'not ready'` translation | Yes | Yes |
-| Inactive operator class | `acu_operator` | `gpu_operator` |
-| Inactive operator readiness condition | `'ready' \| 'available'` | `'ready' \| 'available'` (identical) |
-| Instructions: explicit TrackerAPI call | Yes (step 4) | No (omitted) |
-| TrackerAPI HOCON description artifact | `wheels_chucks_installation_status` | `wheels_chucks_installation_status` + `engines_stop_status` |
-| Agent description typo | No | Yes (`"set uo GOU"`) |
+| Aspect                                 | `aircraft_ground_acu_setup`         | `aircraft_ground_gpu_setup`                                 |            |                          |
+|----------------------------------------|-------------------------------------|-------------------------------------------------------------|------------|--------------------------|
+| CSV column read                        | `air_conditioning_unit_readiness`   | `ground_power_unit_readiness`                               |            |                          |
+| Active coded tool                      | `acu_setup`                         | `gpu_setup`                                                 |            |                          |
+| `'yes'` → `'ready'` translation        | Yes                                 | Yes                                                         |            |                          |
+| `'no'` → `'not ready'` translation     | Yes                                 | Yes                                                         |            |                          |
+| Inactive operator class                | `acu_operator`                      | `gpu_operator`                                              |            |                          |
+| Inactive operator readiness condition  | `'ready' \                          | 'available'`                                                | `'ready' \ | 'available'` (identical) |
+| Instructions: explicit TrackerAPI call | Yes (step 4)                        | No (omitted)                                                |            |                          |
+| TrackerAPI HOCON description artifact  | `wheels_chucks_installation_status` | `wheels_chucks_installation_status` + `engines_stop_status` |            |                          |
+| Agent description typo                 | No                                  | Yes (`"set uo GOU"`)                                        |            |                          |
 
 ---
 
@@ -327,11 +319,7 @@ aircraft_ground_gpu_connect      ─── calls  → aircraft_ground_gpu_setup
 
 - Add `IndexError` guard: if no row matches `gate_id`, return an informative error string rather than crashing
 - Add `aircraft_type` as a filter condition in the CSV lookup for correctness with multi-type gates
-- Add a log write call to `gpu_setup` (consistent with other operators in the system)
 - Make the CSV path configurable via a constructor parameter or shared constant rather than a hardcoded cross-module reference
-- Either register `gpu_operator` in the HOCON tools array (with the `NameError` fixed) or remove it as dead code
-- Fix the `"I set uo GOU"` typo in the agent description
-- Add the explicit TrackerAPI call before the summary step (mirroring `aircraft_ground_acu_setup`)
 
 ---
 

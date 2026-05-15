@@ -53,6 +53,32 @@ class gpu_setup(CodedTool):
         print("\n")
         print("\n")
 
+        # flight number is required to fulfill the request.
+        flight_number: str = args.get("flight_number", None)
+        if not flight_number:
+            print("No flight number provided. Trying to get it from sly_data")
+            flight_number = sly_data.get("flight_number")
+        if not flight_number:
+            error = "Error: Please provide a flight number for the request."
+            print(error)
+            return error  
+
+        # aircraft type is required to fulfill the request.
+        aircraft_type: str = args.get("aircraft_type", None)
+        if not aircraft_type:
+            print("No aircraft type provided. Trying to get it from sly_data")
+            aircraft_type = sly_data.get("aircraft_type")
+        if not aircraft_type:
+            error = "Error: Please provide an aircraft type for the request."
+            print(error)
+            return error  
+        
+        print("\n")
+        print("\n")
+        print("aircraft_type: ", aircraft_type)
+        print("\n")
+        print("\n")
+
         # aircraft type is required to fulfill the request.
         aircraft_type: str = args.get("aircraft_type", None)
         if not aircraft_type:
@@ -113,6 +139,14 @@ class gpu_setup(CodedTool):
             if gpu_readiness_status == 'no':
                 gpu_readiness_status = "not ready"
 
+            flight_label = flight_number if flight_number else "UNKNOWN"
+            message = f"GPU is {gpu_readiness_status} at gate {gate_id} for arrival of flight {flight_label} of aicraft type {aircraft_type}."
+
+            timenow = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+            line = timenow + ": " + message
+            with open(file_path_log, mode="a", encoding="utf-8") as f:  
+                f.write(line + "\n")   
+
         sly_data["gpu_readiness_status"] = gpu_readiness_status
         return gpu_readiness_status
 
@@ -121,106 +155,6 @@ class gpu_setup(CodedTool):
         Delegates to the synchronous invoke method because it's quick, non-blocking.
         """
         return self.invoke(args, sly_data)
-
-# class gpu_operator(CodedTool):
-#     """
-#     Read and return sly data in read mode, or write and update sly data in write. 
-#     """
-
-#     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
-#         """
-#         :param args: an empty dictionary (not used).
-
-#         :param sly_data: a dictionary with the following keys:
-#             - aircraft_type
-#             - gate_id 
-
-#         :return: None in write mode or any of teh parameters in read mode
-#         """
-        
-#         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
-#         # acu_connection_status = 'pending'
-
-#         print("\n")
-#         print("\n")
-#         print(" #################### GPU CONNECT OPERATOR - PARAMETERS #################### ")
-#         print("\n")
-#         print("\n")
-
-#         # aircraft type is required to fulfill the request.
-#         aircraft_type: str = args.get("aircraft_type", None)
-#         if not aircraft_type:
-#             print("No aircraft type provided. Trying to get it from sly_data")
-#             aircraft_type = sly_data.get("aircraft_type")
-#         if not aircraft_type:
-#             error = "Error: Please provide an aircraft type for the request."
-#             print(error)
-#             return error  
-        
-#         print("\n")
-#         print("\n")
-#         print("aircraft_type: ", aircraft_type)
-#         print("\n")
-#         print("\n")
-         
-#         # gate id is required to fulfill the request.
-#         gate_id: str = args.get("gate_id", None)
-#         if not gate_id:
-#             print("No gate id provided. Trying to get it from sly_data")
-#             gate_id = sly_data.get("gate_id")
-#         if not gate_id:
-#             error = "Error: Please provide a gate id for the request."
-#             print(error)
-#             return error  
-        
-#         print("\n")
-#         print("\n")
-#         print("gate_id: ", gate_id)
-#         print("\n")
-#         print("\n")
-
-#         # gpu readiness status is required to fulfill the request.
-#         gpu_readiness_status: str = args.get("gpu_readiness_status", None)
-#         if not gpu_readiness_status:
-#             print("No gpu readiness status provided. Trying to get it from sly_data")
-#             gpu_readiness_status = sly_data.get("gpu_readiness_status")
-#         if not gpu_readiness_status:
-#             error = "Error: Please provide a gpu readiness status for the request."
-#             print(error)
-#             return error  
-        
-#         print("\n")
-#         print("\n")
-#         print("gpu_readiness_status: ", gpu_readiness_status)
-#         print("\n")
-#         print("\n")
-
-#         if  (('ready' in gpu_readiness_status) | ('available' in gpu_readiness_status)): 
-#             gpu_connection_status = 'connected'
-
-#             message = f"Airplane type {aircraft_type} on blocks at gate {gate_id} is connected to gpu. Its gpu connection status is {gpu_connection_status}."
-#             print(message)
-#             print("\n")
-#             print("\n")
-#             print('gpu_connection_status is: ', gpu_connection_status)
-#             print("\n")
-#             print("\n")
-#             print(">>>>>>>>>>>>>>>>>>> DONE !!! >>>>>>>>>>>>>>>>>>")
-
-#             timenow = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-#             line = timenow + ": " + message
-#             with open(file_path_log, mode="a", encoding="utf-8") as f:  
-#                 f.write(line + "\n")   
-
-#             sly_data["gpu_connection_status"] = gpu_connection_status
-
-#         return gpu_connection_status
-
-#     async def async_invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
-#         """
-#         Delegates to the synchronous invoke method because it's quick, non-blocking.
-#         """
-#         return self.invoke(args, sly_data)
 
 #############################################################################
 # Tracker API for all parameters in the aircraft turnaround agentic system  #

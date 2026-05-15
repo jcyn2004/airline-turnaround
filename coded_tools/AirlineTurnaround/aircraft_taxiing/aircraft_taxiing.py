@@ -27,21 +27,10 @@ def _norm(s: Union[str, None]) -> str:
  
 # ---------- tool ----------
  
-# The code below is the version of class execute_aircraft_taxiing developed after 20260123 
-# to address inconsistent behavour of the previous version. 
- 
 class execute_aircraft_taxiing(CodedTool):
     """
     Read and return sly data in read mode, or write and update sly data in write. 
     """
-
-    print("\n")
-    print("\n")
-    print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-    print("EXECUTE AIRCRAFT TAXIING CALLED FOR AIRCRAFT TAXIING")
-    print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-    print("\n")
-    print("\n")
 
     def invoke(self, args: Dict[str, Any], sly_data: Dict[str, Any]) -> Union[Dict[str, Any], str]:
         """
@@ -61,28 +50,25 @@ class execute_aircraft_taxiing(CodedTool):
  
         :return: None in write mode or any of teh parameters in read mode
         """
- 
+
+        print("\n")
+        print("\n")
+        print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+        print("EXECUTE AIRCRAFT TAXIING CALLED FOR AIRCRAFT TAXIING")
+        print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+        print("\n")
+        print("\n")
+
         print("\n")
         print("\n")
         print("$$$$$$$$$$$$$$$$$$$$$$$$$$$ CALLED AIRCRAFT TAXIING  $$$$$$$$$$$$$$$$$$$$$$$$$$$")
         print("\n")
         print("\n")
  
-        # file_path_log = "/Users/971244/workspace/airline-turnaround/test_debug/airlineturnaround.txt"
         file_path_log = Path.cwd() / "test_debug" / "airlineturnaround.txt"
-        # door_opening_status = 'closed'
  
         # flight number is needed in particular. 
-        flight_number = _from_sly_or_args(sly_data, args, "flight_number")
- 
-        # flight_number: str = args.get("flight_number", None)
-        # if not flight_number:
-        #     print("No flight number provided. Trying to get it from sly_data")
-        #     flight_number = sly_data.get("flight_number")
-        # if not flight_number:
-        #     error = "Error: Please provide a flight number for the request."
-        #     print(error)
-        #     return error       
+        flight_number = _from_sly_or_args(sly_data, args, "flight_number")   
         
         print("\n")
         print("\n")
@@ -92,15 +78,6 @@ class execute_aircraft_taxiing(CodedTool):
  
         # aircraft type is required to fulfill the request.
         aircraft_type = _from_sly_or_args(sly_data, args, "aircraft_type") 
- 
-        # aircraft_type: str = args.get("aircraft_type", None)
-        # if not aircraft_type:
-        #     print("No aircraft type provided. Trying to get it from sly_data")
-        #     aircraft_type = sly_data.get("aircraft_type")
-        # if not aircraft_type:
-        #     error = "Error: Please provide an aircraft type for the request."
-        #     print(error)
-        #     return error  
         
         print("\n")
         print("\n")
@@ -128,17 +105,6 @@ class execute_aircraft_taxiing(CodedTool):
         # agents see the canonical form.
         sly_data["flight_status"] = flight_status
  
-        # flight_status: str = args.get("flight_status", None)
-        # if not flight_status:
-        #     print("No flight status provided. Trying to get it from sly_data")
-        #     flight_status = sly_data.get("flight_status")
-        # if not flight_status:
-        #     error = "Error: Please provide a flight status for the request."
-        #     print(error)
-        #     return error  
-        # if flight_status: 
-        #     flight_status = flight_status.lower().replace("_", " ").strip()
- 
         print("\n")
         print("\n")
         print("flight_status: ", flight_status)
@@ -147,15 +113,6 @@ class execute_aircraft_taxiing(CodedTool):
  
         # gate id is required to fulfill the request.
         gate_id = _from_sly_or_args(sly_data, args, "gate_id")  
- 
-        # gate_id: str = args.get("gate_id", None)
-        # if not gate_id:
-        #     print("No gate id provided. Trying to get it from sly_data")
-        #     gate_id = sly_data.get("gate_id")
-        # if not gate_id:
-        #     error = "Error: Please provide a gate id for the request."
-        #     print(error)
-        #     return error  
         
         print("\n")
         print("\n")
@@ -165,15 +122,6 @@ class execute_aircraft_taxiing(CodedTool):
  
         # assigned runway id is required to fulfill the request.
         assigned_runway_id = _from_sly_or_args(sly_data, args, "assigned_runway_id")  
- 
-        # assigned_runway_id: str = args.get("assigned_runway_id", None)
-        # if not assigned_runway_id:
-        #     print("No assigned runway id provided. Trying to get it from sly_data")
-        #     assigned_runway_id = sly_data.get("assigned_runway_id")
-        # if not assigned_runway_id:
-        #     error = "Error: Please provide assigned runway id for the request."
-        #     print(error)
-        #     return error  
         
         print("\n")
         print("\n")
@@ -183,15 +131,6 @@ class execute_aircraft_taxiing(CodedTool):
  
         # ground clearance type required to fulfill the request.
         ground_clearance_type = _from_sly_or_args(sly_data, args, "ground_clearance_type")  
- 
-        # ground_clearance_type: str = args.get("ground_clearance_type", None)
-        # if not ground_clearance_type:
-        #     print("No ground clearance type provided. Trying to get it from sly_data")
-        #     ground_clearance_type = sly_data.get("ground_clearance_type")
-        # if not ground_clearance_type:
-        #     error = "Error: Please provide ground clearance type for the request."
-        #     print(error)
-        #     return error  
         
         print("\n")
         print("\n")
@@ -211,17 +150,6 @@ class execute_aircraft_taxiing(CodedTool):
         print("\n")
  
         ground_clearance_status = ground_clearance_status.lower().replace("_", " ").strip()
- 
-        # original_string.lower()
- 
-        # ground_clearance_status: str = args.get("ground_clearance_status", None)
-        # if not ground_clearance_status:
-        #     print("No ground clearance status provided. Trying to get it from sly_data")
-        #     ground_clearance_status = sly_data.get("ground_clearance_status")
-        # if not ground_clearance_status:
-        #     error = "Error: Please provide ground clearance status for the request."
-        #     print(error)
-        #     return error  
         
         print("\n")
         print("\n")
@@ -231,15 +159,6 @@ class execute_aircraft_taxiing(CodedTool):
  
         # ground power unit readiness status required to fulfill the request.
         gpu_readiness_status = _from_sly_or_args(sly_data, args, "gpu_readiness_status")  
- 
-        # gpu_readiness_status: str = args.get("gpu_readiness_status", None)
-        # if not gpu_readiness_status:
-        #     print("No ground power unit readiness status provided. Trying to get it from sly_data")
-        #     gpu_readiness_status = sly_data.get("gpu_readiness_status")
-        # if not gpu_readiness_status:
-        #     error = "Error: Please provide ground power unit readiness status for the request."
-        #     print(error)
-        #     return error  
         
         print("\n")
         print("\n")
@@ -249,15 +168,6 @@ class execute_aircraft_taxiing(CodedTool):
  
         # wheels chocks readiness status required to fulfill the request.
         wheels_chocks_readiness_status = _from_sly_or_args(sly_data, args, "wheels_chocks_readiness_status")  
- 
-        # wheels_chocks_readiness_status: str = args.get("wheels_chocks_readiness_status", None)
-        # if not wheels_chocks_readiness_status:
-        #     print("No wheels chocks readiness status provided. Trying to get it from sly_data")
-        #     wheels_chocks_readiness_status = sly_data.get("wheels_chocks_readiness_status")
-        # if not wheels_chocks_readiness_status:
-        #     error = "Error: Please provide wheels chocks readiness status for the request."
-        #     print(error)
-        #     return error  
         
         print("\n")
         print("\n")
@@ -266,16 +176,7 @@ class execute_aircraft_taxiing(CodedTool):
         print("\n")
  
         # air conditioning unit readiness status required to fulfill the request.
-        acu_readiness_status = _from_sly_or_args(sly_data, args, "acu_readiness_status")  
- 
-        # acu_readiness_status: str = args.get("acu_readiness_status", None)
-        # if not acu_readiness_status:
-        #     print("No air conditioning unit readiness status provided. Trying to get it from sly_data")
-        #     acu_readiness_status = sly_data.get("acu_readiness_status")
-        # if not acu_readiness_status:
-        #     error = "Error: Please provide air conditioning unit readiness status for the request."
-        #     print(error)
-        #     return error  
+        acu_readiness_status = _from_sly_or_args(sly_data, args, "acu_readiness_status")   
         
         print("\n")
         print("\n")
@@ -286,7 +187,7 @@ class execute_aircraft_taxiing(CodedTool):
         if ((('land' in flight_status) | ('taxi' in flight_status)) & (('clear' in ground_clearance_status) | ('grant' in ground_clearance_status))): 
             flight_status = 'on blocks'
             sly_data["flight_status"] = flight_status
-            message = f"Flight {flight_number} with airplane type {aircraft_type} has taied to gate {gate_id}. The flight status is now {flight_status}." 
+            message = f"Flight {flight_number} with airplane type {aircraft_type} has taxied to gate {gate_id}. The flight status is now {flight_status}." 
             print(message)
             print("\n")
             print("\n")

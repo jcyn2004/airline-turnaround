@@ -78,11 +78,11 @@ The instructions define 21 numbered items (STEP 0 through STEP 20) for incoming 
 | 1    | Request landing clearance                 | `aircraft_crew_pilot` BRANCH A     | `clearance_type`, `assigned_runway_id`                                              |
 | 2    | Land the aircraft                         | `aircraft_crew_pilot` BRANCH B     | `flight_status = 'landed'`                                                          |
 | 3    | Gate assignment                           | `aircraft_gate_services`           | `gate_id`, `deplaning_equipment_type`                                               |
-| 4    | Ground services readiness                 | `aircraft_ground_operation`        | `wheelchocks_readiness_status`, `acu_readiness_status`, `gpu_readiness_status`      |
+| 4    | Ground services readiness                 | `aircraft_ground_operation`        | `wheels_chocks_readiness_status`, `acu_readiness_status`, `gpu_readiness_status`      |
 | 5    | Ground traffic clearance (taxi-in)        | `aircraft_crew_pilot` BRANCH C     | `ground_clearance_status`                                                           |
 | 6    | Taxi to gate                              | `aircraft_crew_pilot` BRANCH D     | `flight_status = 'on blocks'`                                                       |
 | 7    | Stop engines                              | `aircraft_crew_pilot` BRANCH E     | `engines_stop_status`                                                               |
-| 8    | Ground ramp services (chocks + ACU + GPU) | `aircraft_ground_operation`        | `wheelchocks_installation_status`, `acu_connection_status`, `gpu_connection_status` |
+| 8    | Ground ramp services (chocks + ACU + GPU) | `aircraft_ground_operation`        | `wheels_chocks_installation_status`, `acu_connection_status`, `gpu_connection_status` |
 | 9    | Connect deplaning equipment               | `aircraft_gate_services`           | `jetbridge_connection_status` or `stairtruck_connection_status`                     |
 | 10   | Open aircraft doors                       | `aircraft_crew_pilot` BRANCH G     | `door_opening_status`                                                               |
 | 11   | Passenger disembarkation                  | `aircraft_crew_pilot` BRANCH H     | `passenger_disembarkation_status`                                                   |
@@ -113,13 +113,13 @@ The entry-point agent. It receives the initial user request and drives all 20 st
 |----------------------------|--------|:--------:|--------------------------------------------------------|
 | Parameter                  | Type   | Required | Description                                            |
 |----------------------------|--------|:--------:|--------------------------------------------------------|
-| `flight_number`            | string | ✅       | Flight identifier                                      |
-| `aircraft_type`            | string | ✅       | Aircraft model/type                                    |
-| `aircraft_direction`       | string | ✅       | `incoming` or `departing`                              |
-| `flight_status`            | string | ❌       | Current flight status                                  |
-| `gate_id`                  | string | ❌       | Assigned gate                                          |
-| `deplaning_equipment_type` | string | ❌       | `jetway` or `stairtruck`                               |
-| `task_id`                  | string | ❌       | Correlation token for sub-agent routing                |
+| `flight_number`            | string |    ✅     | Flight identifier                                      |
+| `aircraft_type`            | string |    ✅     | Aircraft model/type                                    |
+| `aircraft_direction`       | string |    ✅     | `incoming` or `departing`                              |
+| `flight_status`            | string |    ❌     | Current flight status                                  |
+| `gate_id`                  | string |    ❌     | Assigned gate                                          |
+| `deplaning_equipment_type` | string |    ❌     | `jetway` or `stairtruck`                               |
+| `task_id`                  | string |    ❌     | Correlation token for sub-agent routing                |
 | *(full schema)*            |        |          | 20+ additional fields tracking all turnaround statuses |
 |----------------------------|--------|:--------:|--------------------------------------------------------|
 
@@ -182,7 +182,7 @@ INCORRECT: {"args": [{"flight_number": "AF84", ..., "instruction": "Clean the ai
 
 The sly_data allow blocks propagate 30 fields in all four directions — the largest in the system:
 
-`air_conditioning_unit_connection_status`, `air_conditioning_unit_readiness_status`, `aircraft_direction`, `aircraft_type`, `assigned_runway_id`, `assigned_runway_length`, `baggage_unload_status`, `cabin_cleaning_status`, `catering_loading_status`, `clearance_type`, `crew_debrief_status`, `crew_exit_status`, `deplaning_equipment_type`, `door_opening_status`, `engines_stop_status`, `flight_number`, `flight_status`, `fueling_status`, `gate_id`, `ground_power_unit_connection_status`, `ground_power_unit_readiness_status`, `ground_clearance_status`, `ground_clearance_type`, `inspection_maintenance_status`, `jetbridge_connection_status`, `lavatory_service_status`, `passenger_disembarkation_status`, `wheelchocks_installation_status`, `wheelchocks_readiness_status`, `acu_connection_status`, `acu_readiness_status`, `gpu_connection_status`, `gpu_readiness_status`, `task_id`
+`air_conditioning_unit_connection_status`, `air_conditioning_unit_readiness_status`, `aircraft_direction`, `aircraft_type`, `assigned_runway_id`, `assigned_runway_length`, `baggage_unload_status`, `cabin_cleaning_status`, `catering_loading_status`, `clearance_type`, `crew_debrief_status`, `crew_exit_status`, `deplaning_equipment_type`, `door_opening_status`, `engines_stop_status`, `flight_number`, `flight_status`, `fueling_status`, `gate_id`, `ground_power_unit_connection_status`, `ground_power_unit_readiness_status`, `ground_clearance_status`, `ground_clearance_type`, `inspection_maintenance_status`, `jetbridge_connection_status`, `lavatory_service_status`, `passenger_disembarkation_status`, `wheels_chocks_installation_status`, `wheels_chocks_readiness_status`, `acu_connection_status`, `acu_readiness_status`, `gpu_connection_status`, `gpu_readiness_status`, `task_id`
 
 > Note: The sly_data allow blocks use both `air_conditioning_unit_connection_status` / `air_conditioning_unit_readiness_status` (long-form names from older networks) and `acu_connection_status` / `acu_readiness_status` (short-form). These are different field names that represent the same concepts in different sub-networks.
 
@@ -226,7 +226,7 @@ The `TrackerConfig` dataclass in this file has **only** `tracked_fields` — no 
 
 #### Default tracked fields (30 fields)
 
-`acu_connection_status`, `acu_readiness_status`, `aircraft_direction`, `aircraft_landing_report`, `aircraft_type`, `assigned_runway_id`, `assigned_runway_length`, `baggage_unload_status`, `cabin_cleaning_status`, `catering_loading_status`, `clearance_type`, `crew_debrief_status`, `crew_exit_status`, `deplaning_equipment_type`, `door_opening_status`, `engines_stop_status`, `flight_number`, `flight_status`, `fueling_status`, `gate_id`, `gpu_connection_status`, `gpu_readiness_status`, `ground_clearance_status`, `ground_clearance_type`, `inspection_maintenance_status`, `jetbridge_connection_status`, `lavatory_service_status`, `stairtruck_connection_status`, `passenger_disembarkation_status`, `wheelchocks_installation_status`, `wheelchocks_readiness_status`
+`acu_connection_status`, `acu_readiness_status`, `aircraft_direction`, `aircraft_landing_report`, `aircraft_type`, `assigned_runway_id`, `assigned_runway_length`, `baggage_unload_status`, `cabin_cleaning_status`, `catering_loading_status`, `clearance_type`, `crew_debrief_status`, `crew_exit_status`, `deplaning_equipment_type`, `door_opening_status`, `engines_stop_status`, `flight_number`, `flight_status`, `fueling_status`, `gate_id`, `gpu_connection_status`, `gpu_readiness_status`, `ground_clearance_status`, `ground_clearance_type`, `inspection_maintenance_status`, `jetbridge_connection_status`, `lavatory_service_status`, `stairtruck_connection_status`, `passenger_disembarkation_status`, `wheels_chocks_installation_status`, `wheels_chocks_readiness_status`
 
 > Note: The HOCON TrackerAPI schema has `"required":` with no value assignment (line 875) — a syntax issue. Should be `"required": []`. Unlike other networks, the HOCON TrackerAPI `parameters` block also has no closing `"required"` key at all.
 
@@ -281,17 +281,14 @@ The `TrackerConfig` dataclass in this file has **only** `tracked_fields` — no 
 
 ## 9. Known Issues and Maintenance Notes
 
-|--------------------------------------------------------------------------------|--------------------------------------|:--------:|--------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Issue                                                                          | Location                             | Severity | Notes                                                                                                                                                  |
-|--------------------------------------------------------------------------------|--------------------------------------|:--------:|--------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Agent name mismatch with prior documentation                                   | `aircraft_turnaround.hocon` line 89  | Low      | Entry point is `aircraft_turnaround_manager`, not `aircraft_turnaround_agent`.                                                                         |
-| Prior documentation listed wrong model, wrong agent hierarchy, invented fields | Prior documentation                  | —        | See section 1. `landing_status`, `taxi_status`, `inspection_status`, `maintenance_status`, `debrief_status` do not exist.                              |
-| HOCON TrackerAPI `"required":` missing value assignment                        | `aircraft_turnaround.hocon` line 875 | Medium.  | `"required":` with no array value. Should be `"required": []`.                                                                                         |
-| `air_conditioning_unit_*` vs `acu_*` field name duality                        | sly_data allow blocks                | Medium   | Both long-form and short-form names for ACU fields appear in the sly_data contract. Sub-networks use different naming conventions.                     |
-| `print()` statements in TrackerAPI `_process_field` | `aircraft_turnaround.py` lines 257–269                          | Low      | Every read/write emits `print()` in addition to `logger.info()`. High-volume output for a 30-field tracker called on every step.                       |
-| STEP 9 TrackerAPI write must be selective                                      | `aircraft_turnaround.hocon` STEP 9   | Info     | Instructions explicitly warn: do NOT write both connection status fields simultaneously. Passing the wrong field persists a false `'connected'` value. |
-| STEP 2 response header validation                                              | `aircraft_turnaround.hocon` STEP 2   | Info     | Summary header check is a robust protection against the pilot sub-agent returning the wrong branch.                                                    |
-|--------------------------------------------------------------------------------|--------------------------------------|:--------:|--------------------------------------------------------------------------------------------------------------------------------------------------------|
+|--------------------------------------------------------------------------------|----------------------------------------|:--------:|--------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Issue                                                                          | Location                               | Severity | Notes                                                                                                                                                  |
+|--------------------------------------------------------------------------------|----------------------------------------|:--------:|--------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Prior documentation listed wrong model, wrong agent hierarchy, invented fields | Prior documentation                    |    —     | See section 1. `landing_status`, `taxi_status`, `inspection_status`, `maintenance_status`, `debrief_status` do not exist.                              |
+| `air_conditioning_unit_*` vs `acu_*` field name duality                        | sly_data allow blocks                  |  Medium  | Both long-form and short-form names for ACU fields appear in the sly_data contract. Sub-networks use different naming conventions.                     |
+| STEP 9 TrackerAPI write must be selective                                      | `aircraft_turnaround.hocon` STEP 9     |   Info   | Instructions explicitly warn: do NOT write both connection status fields simultaneously. Passing the wrong field persists a false `'connected'` value. |
+| STEP 2 response header validation                                              | `aircraft_turnaround.hocon` STEP 2     |   Info   | Summary header check is a robust protection against the pilot sub-agent returning the wrong branch.                                                    |
+|--------------------------------------------------------------------------------|----------------------------------------|:--------:|--------------------------------------------------------------------------------------------------------------------------------------------------------|
 
 ---
 
@@ -333,8 +330,6 @@ aircraft_turnaround
 
 - Add a departing aircraft step sequence (the instructions cover only `incoming` aircraft — a departing branch needs to be written)
 - Standardise `air_conditioning_unit_*` → `acu_*` and `ground_power_unit_*` → `gpu_*` field names across all sly_data allow blocks
-- Fix `"required":` in the TrackerAPI HOCON schema
-- Remove the `print()` calls from `TrackerAPI._process_field` for production — they produce very high-volume stdout for a 30-field tracker called 5+ times per turnaround
 - As the root orchestrator, any new service network added to the system must be registered under one of the four aggregation networks (`aircraft_crew_pilot`, `aircraft_gate_services`, `aircraft_ground_operation`, `aircraft_cabin_services`) — or a new aggregation network must be created if the category is new
 
 ---

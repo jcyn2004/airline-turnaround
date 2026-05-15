@@ -6,7 +6,7 @@
         "description": "Simple agent network using a single LLM-based agent",
         "tags": ["example"],
         "sample_queries": [
-            "The B747 aircraft of flight AF84 has been assigned gate A1. Report wheelchocks readiness at the gate.", 
+            "The B747 aircraft of flight AF84 has been assigned gate A1. Report wheels chocks readiness at the gate.", 
         ]
     },
 
@@ -86,12 +86,15 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
     "tools": [
 
         {
-            "name": "wheelchocks_agent",
+            "name": "wheels_chocks_agent",
             "function": {
                 "description": """
- I am in charge of wheelchocks at the gate. 
- I set up wheelchocks and report wheelchocks readiness status when user inquires.
-                """
+I am in charge of wheels chocks at the gate.
+I set up wheels chocks and report wheels chocks readiness status when user inquires.
+I am ALWAYS relevant when asked about wheels chocks readiness or any ground
+services readiness check that includes wheels chocks. I never refuse based
+on missing or null status fields.
+                """,
                 "parameters": {
                     "type": "object", 
                     "properties": {
@@ -99,13 +102,17 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "This is the type of the incoming aircraft."
                         },          
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aircraft."
+                        },   
                         "gate_id": {
                             "type": "string", 
                             "description": "This is the gate where the aircraft is parked."
                         },                 
-                        "wheelchocks_readiness_status": {
+                        "wheels_chocks_readiness_status": {
                             "type": "string", 
-                            "description": "This is the wheelchocks readiness status."
+                            "description": "This is the wheels chocks readiness status."
                         },   
                     }, 
                     "required": ["aircraft_type","gate_id"] 
@@ -113,21 +120,29 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
             },
 
             "instructions": """
-You are the agent in charge of wheelchocks at the gate.  
-When user submit inquiry about GPU, proceed as follows: 
-1. Read the inquiry and determine whether the user is inquiring about wheelchocks readiness status or requesting wheelchocks connection to the aircraft. 
-2. If the inquiry is not about either of these two, reply that you are not relevant to this inquiry and stop process here.
-3. If the inquiry is about wheelchocks readiness status, 
-    a. call your tool to inquire about wheelchocks readiness status as wheelchocks_readiness_status,
-    b. store the returned wheelchocks_readiness_status 
-    c. report its value back to user and stop process here. 
-4. Provide the wheelchocks connection status report summary as: 
-    *********************************************
-    * Summary of aircraft wheelchocks readiness *
-    *********************************************
+You are the agent in charge of wheels chocks at the gate.
+You are ALWAYS relevant when asked about wheels chocks readiness or any
+ground services readiness check. Never refuse based on missing or null fields.
+When you receive an inquiry, proceed as follows:
+1. Read the inquiry. Any inquiry about ground services readiness, wheels chocks
+   readiness status, or wheels chocks installation/connection is relevant to you.
+   Only reply not relevant if the inquiry is entirely unrelated to wheels chocks
+   or ground services (e.g. a question about catering or passengers).
+2. If the inquiry is about wheels chocks readiness status,
+    a. call your tool to inquire about wheels chocks readiness status as wheels_chocks_readiness_status,
+    b. store the returned wheels_chocks_readiness_status,
+    c. report its value back to user.
+3. Call TrackerAPI and log all available parameters.
+    a. wait for its response,
+    b. store all available parameters.
+4. Provide the wheels chocks readiness status summary as:
+    ***********************************************
+    * Summary of aircraft wheels chocks readiness *
+    ***********************************************
     ** aircraft_type **: [aircraft_type]
+    ** flight_number **: [flight_number]
     ** gate_id **: [gate_id]
-    ** wheels chucks readiness status **: [wheels_chucks_readiness_status]
+    ** wheels chocks readiness status **: [wheels_chocks_readiness_status]
             """ ${aaosa_instructions},
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
@@ -135,41 +150,45 @@ When user submit inquiry about GPU, proceed as follows:
                 "to_upstream": {
                     "sly_data": {
                         "aircraft_type": true
+                        "flight_number": true
                         "gate_id": true 
-                        "wheelchocks_readiness_status": true
+                        "wheels_chocks_readiness_status": true
                     }
                 }
                 "to_downstream": {
                     "sly_data": {
                         "aircraft_type": true
+                        "flight_number": true
                         "gate_id": true 
-                        "wheelchocks_readiness_status": true
+                        "wheels_chocks_readiness_status": true
                     }
                 }
                 "from_upstream": {
                     "sly_data": {
                         "aircraft_type": true
+                        "flight_number": true
                         "gate_id": true 
-                        "wheelchocks_readiness_status": true
+                        "wheels_chocks_readiness_status": true
                     }
                 }
                 "from_downstream": {
                     "sly_data": {
                         "aircraft_type": true
+                        "flight_number": true
                         "gate_id": true 
-                        "wheelchocks_readiness_status": true
+                        "wheels_chocks_readiness_status": true
                     }
                 }
             },
 
-            "tools":    ["wheelchocks_setup","TrackerAPI"]
+            "tools":    ["wheels_chocks_setup","TrackerAPI"]
         },
 
         {
-            "name": "wheelchocks_setup",
+            "name": "wheels_chocks_setup",
             "function": {
                 "description": """
-This agent report the status of wheelchocks readiness at the gate. 
+This agent report the status of wheels chocks readiness at the gate. 
                 """,
                 "parameters": {
                     "type": "object", 
@@ -178,19 +197,23 @@ This agent report the status of wheelchocks readiness at the gate.
                             "type": "string", 
                             "description": "This is the type of the incoming aircraft."
                         },           
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aircraft."
+                        },   
                         "gate_id": {
                             "type": "string", 
                             "description": "This is the gate where the aircraft is parked."
                         },     
-                        "wheelchocks_readiness_status": {
+                        "wheels_chocks_readiness_status": {
                             "type": "string", 
-                            "description": "This is the wheelchocks readiness status."
+                            "description": "This is the wheels chocks readiness status."
                         },   
                     }, 
                     "required": ["aircraft_type","gate_id"] 
                 }
             },
-            "class": "AirlineTurnaround.aircraft_ground_wheelchocks_setup.aircraft_ground_wheelchocks_setup.wheelchocks_setup" 
+            "class": "AirlineTurnaround.aircraft_ground_wheels_chocks_setup.aircraft_ground_wheels_chocks_setup.wheels_chocks_setup" 
         }, 
 
         {
@@ -199,8 +222,6 @@ This agent report the status of wheelchocks readiness at the gate.
 
                 "description": """
 I am the flight tracker in charge of logging parameters during aircraft turnaround. 
-I check engines stop status as engines_stop_status. 
-I check wheels chucks installation status as wheels_chucks_installation_status. 
                 """
 
                 "parameters": {
@@ -210,19 +231,26 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                             "type": "string", 
                             "description": "This is the type of the incoming aircraft."
                         },     
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aircraft."
+                        },   
                         "gate_id": {
                             "type": "string", 
                             "description": "This is the gate assigned to the aircraft parking."
                         },      
-                        "wheelchocks_readiness_status": {
+                        "wheels_chocks_readiness_status": {
                             "type": "string", 
-                            "description": "This is the wheelchocks readiness status."
+                            "description": "This is the wheels chocks readiness status."
                         },       
                     }, 
                     "required": [] 
                 }
             },
-            "class": "AirlineTurnaround.aircraft_ground_wheelchocks_setup.aircraft_ground_wheelchocks_setup.TrackerAPI" 
+            "class": "AirlineTurnaround.aircraft_ground_wheels_chocks_setup.aircraft_ground_wheels_chocks_setup.TrackerAPI" 
         }, 
     ],
 }
+
+
+# engines_stop_status` and `wheels_chucks_installation_status` referenced; neither is

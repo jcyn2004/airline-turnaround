@@ -127,23 +127,19 @@ When user submits inquiry, proceed as follows:
 2. Call TrackerAPI to get the latest value of flight status
     a. wait for its response 
     b. store flight status as flight_status
-3. If flight_status includes 'on blocks' then go to step 6.
+3. If flight_status includes 'on blocks' then go to step 5.
 4. If flight_status does not includes 'on blocks' 
     a. return to user that engines cannot be stopped while aircraft is not on blocks
     b. wait for their responses 
     c. Return to step 2.
-5. Call TrackerAPI
-    a. wait for its response 
-    b. store flight status as flight_status
-    c. if flight_status does not include 'on blocks', go back to step 4.
-6. If flight_status includes 'on blocks'  
+5. If flight_status includes 'on blocks'  
     a. call engines_stop_operator to stop the engines
     b. Wait for its response and save it as engines_stop_status
     c. Report engines_stop_status
-7. Call TrackerAPI to get the latest value of flight_status and engines_stop_status
+6. Call TrackerAPI to get the latest value of flight_status and engines_stop_status
     a. wait for its response 
     b. store flight status as flight_status, and store engines stop status as engines_stop_status
-8. Provide the engines stop status report summary as: 
+7. Provide the engines stop status report summary as: 
     ************************************
     * Summary of aircraft engines stop *
     ************************************
@@ -165,7 +161,6 @@ When user submits inquiry, proceed as follows:
                         "flight_status": true
                         "gate_id": true 
                         "engines_stop_status": true
-                        "assigned_runway_id": true
                     }
                 }
                 "from_downstream": {
@@ -175,7 +170,6 @@ When user submits inquiry, proceed as follows:
                         "flight_status": true
                         "gate_id": true 
                         "engines_stop_status": true
-                        "assigned_runway_id": true
                     }
                 }
                 "to_downstream": {
@@ -185,7 +179,6 @@ When user submits inquiry, proceed as follows:
                         "flight_status": true
                         "gate_id": true 
                         "engines_stop_status": true
-                        "assigned_runway_id": true
                     }
                 }
             },

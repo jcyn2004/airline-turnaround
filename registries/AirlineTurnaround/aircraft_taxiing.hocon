@@ -112,7 +112,7 @@ I also check that ACU, GPU, and wheelchocks are ready before taxiing.
                             "type": "string", 
                             "description": "Gate assigned to the aircraft parking."
                         },  
-                        "wheelchocks_readiness_status": {
+                        "wheels_chocks_readiness_status": {
                             "type": "string", 
                             "description": "Wheelchocks readiness status."
                         },   
@@ -163,7 +163,7 @@ STEP 3 — Resolve ground services readiness (ONE call, non-blocking)
   Call /AirlineTurnaround/aircraft_ground_readiness ONCE with:
     aircraft_type, gate_id.
   Wait. Extract acu_readiness_status, gpu_readiness_status,
-  wheelchocks_readiness_status.
+  wheels_chocks_readiness_status.
   Call TrackerAPI to store all three.
   Continue to STEP 4 regardless of readiness values.
   Report any unready items in the final summary only.
@@ -173,7 +173,7 @@ STEP 4 — Execute taxiing
     flight_number, aircraft_type, flight_status, gate_id,
     ground_clearance_type, ground_clearance_status,
     assigned_runway_id, acu_readiness_status,
-    gpu_readiness_status, wheelchocks_readiness_status.
+    gpu_readiness_status, wheels_chocks_readiness_status.
   Wait for the response from aircraft_taxiing_agent.
   CRITICAL: The response from aircraft_taxiing_agent is a plain string
   that IS the new flight_status value. Evaluate it directly:
@@ -201,7 +201,7 @@ RETURN SUMMARY:
   ** ground clearance status **: [ground_clearance_status]
   ** ACU readiness           **: [acu_readiness_status]
   ** GPU readiness           **: [gpu_readiness_status]
-  ** wheelchocks readiness   **: [wheelchocks_readiness_status]
+  ** wheelchocks readiness   **: [wheels_chocks_readiness_status]
   ** flight status           **: on blocks
             """,
 
@@ -211,13 +211,14 @@ RETURN SUMMARY:
                         "aircraft_type": true, 
                         "flight_number": true, 
                         "flight_status": true, 
+                        "aircraft_direction": true, 
                         "ground_clearance_type": true, 
                         "ground_clearance_status": true, 
                         "gate_id": true, 
                         "assigned_runway_id": true, 
                         "acu_readiness_status": true, 
                         "gpu_readiness_status": true, 
-                        "wheelchocks_readiness_status": true,  
+                        "wheels_chocks_readiness_status": true,  
                     }
                 }
                 "to_upstream": {
@@ -225,13 +226,14 @@ RETURN SUMMARY:
                         "aircraft_type": true, 
                         "flight_number": true, 
                         "flight_status": true, 
+                        "aircraft_direction": true, 
                         "ground_clearance_type": true, 
                         "ground_clearance_status": true, 
                         "gate_id": true, 
                         "assigned_runway_id": true, 
                         "acu_readiness_status": true, 
                         "gpu_readiness_status": true, 
-                        "wheelchocks_readiness_status": true,  
+                        "wheels_chocks_readiness_status": true,  
                     }
                 }
                 "from_downstream": {
@@ -245,7 +247,7 @@ RETURN SUMMARY:
                         "assigned_runway_id": true, 
                         "acu_readiness_status": true, 
                         "gpu_readiness_status": true, 
-                        "wheelchocks_readiness_status": true,  
+                        "wheels_chocks_readiness_status": true,  
                     }
                 }
                 "from_upstream": {
@@ -259,7 +261,7 @@ RETURN SUMMARY:
                         "assigned_runway_id": true, 
                         "acu_readiness_status": true, 
                         "gpu_readiness_status": true, 
-                        "wheelchocks_readiness_status": true,  
+                        "wheels_chocks_readiness_status": true,  
                     }
                 }
             },

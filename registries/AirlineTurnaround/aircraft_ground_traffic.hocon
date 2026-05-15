@@ -95,6 +95,41 @@ You coordinate ground traffic at the airport.
                 """
             },
 
+            "parameters": {
+                "type": "object", 
+                "properties": {
+                    "flight_number": {
+                        "type": "string", 
+                        "description": "This is the flight number of the incoming aicraft."
+                    },   
+                    "aircraft_type": {
+                        "type": "string", 
+                        "description": "This is the type of the incoming aircraft."
+                    },               
+                    "flight_status": {
+                        "type": "string", 
+                        "description": "This is the flight status"
+                    },     
+                    "assigned_runway_id": {
+                        "type": "string", 
+                        "description": "This is the runway assigned for either landing or takeoff"
+                    },         
+                    "gate_id": {
+                        "type": "string", 
+                        "description": "This is the gate id assigned to the aircraft"
+                    },   
+                    "ground_clearance_type": {
+                        "type": "string", 
+                        "description": "This is the ground clearance type of of the aircraft"
+                    },  
+                    "ground_clearance_status": {
+                        "type": "string", 
+                        "description": "This is the ground clearance status of the aircraft"
+                    },  
+                }, 
+                "required": ["flight_number", "aircraft_type","flight_status","assigned_runway_id","gate_id"] 
+            },
+
             "instructions": """
 You are the agent responsible to giving aircraft the ground traffic clearance to taxi in. 
 Only perform the tasks that fall under your responsibility. 
@@ -134,43 +169,7 @@ When you receive a user request for clearance to taxi in to the gate or to taxi 
     ** assigned runway id ** [assigned_runway_id]
     ** ground clearance type **: [ground_clearance_type]
     ** ground clearance status **: [ground_clearance_status]                 
-
             """ ${aaosa_instructions},
-
-            "parameters": {
-                "type": "object", 
-                "properties": {
-                    "flight_number": {
-                        "type": "string", 
-                        "description": "This is the flight number of the incoming aicraft."
-                    },   
-                    "aircraft_type": {
-                        "type": "string", 
-                        "description": "This is the type of the incoming aircraft."
-                    },               
-                    "flight_status": {
-                        "type": "string", 
-                        "description": "This is the flight status"
-                    },     
-                    "assigned_runway_id": {
-                        "type": "string", 
-                        "description": "This is the runway assigned for either landing or takeoff"
-                    },         
-                    "gate_id": {
-                        "type": "string", 
-                        "description": "This is the gate id assigned to the aircraft"
-                    },   
-                    "ground_clearance_type": {
-                        "type": "string", 
-                        "description": "This is the ground clearance type of of the aircraft"
-                    },  
-                    "ground_clearance_status": {
-                        "type": "string", 
-                        "description": "This is the ground clearance status of the aircraft"
-                    },  
-                }, 
-                "required": ["flight_number", "aircraft_type","flight_status","assigned_runway_id","gate_id"] 
-            },
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
             "allow": {

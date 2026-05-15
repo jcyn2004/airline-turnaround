@@ -254,9 +254,9 @@ class TrackerAPI(CodedTool):
         value = sly_data.get(field_name)
         if value is not None:
             logger.info(f"[READ]  {field_name}: '{value}' (source: sly_data)")
-            print("----------------------------------------------------------------")
-            print(f"[READ]  {field_name}: '{value}' (source: sly_data)")
-            print("----------------------------------------------------------------")
+            # print("----------------------------------------------------------------")
+            # print(f"[READ]  {field_name}: '{value}' (source: sly_data)")
+            # print("----------------------------------------------------------------")
             return value, DataSource.SLY_DATA
 
         # 2. Fall back to args and promote the value into sly_data
@@ -264,9 +264,9 @@ class TrackerAPI(CodedTool):
         if value is not None:
             sly_data[field_name] = value
             logger.info(f"[WRITE] {field_name}: '{value}' (source: args → sly_data)")
-            print("----------------------------------------------------------------")
-            print(f"[WRITE] {field_name}: '{value}' (source: args → sly_data)")
-            print("----------------------------------------------------------------")
+            # print("----------------------------------------------------------------")
+            # print(f"[WRITE] {field_name}: '{value}' (source: args → sly_data)")
+            # print("----------------------------------------------------------------")
             return value, DataSource.ARGS
 
         # 3. Not found anywhere
@@ -376,8 +376,8 @@ FLIGHT_TURNAROUND_TRACKED_FIELDS: List[str] = [
     "lavatory_service_status",
     "stairtruck_connection_status",
     "passenger_disembarkation_status",
-    "wheelchocks_installation_status",
-    "wheelchocks_readiness_status",
+    "wheels_chocks_installation_status",
+    "wheels_chocks_readiness_status",
 ]
 
 
@@ -427,7 +427,7 @@ if __name__ == "__main__":
 
     args2 = {
         "engines_stop_status": "stopped",
-        "wheelchocks_installation_status": "installed",
+        "wheels_chocks_installation_status": "installed",
     }
     # sly_data1 is already populated from Example 1 – pass it through
     result2 = tracker.invoke(args2, sly_data1)
@@ -435,7 +435,7 @@ if __name__ == "__main__":
 
     print("Agent (ramp services) reading its relevant fields:")
     print("  engines_stop_status          :", data2["engines_stop_status"])
-    print("  wheelchocks_installation_status:", data2["wheelchocks_installation_status"])
+    print("  wheels_chocks_installation_status:", data2["wheels_chocks_installation_status"])
     print("  flight_number                :", data2["flight_number"])  # carried over
     print("  gate_id                      :", data2["gate_id"])         # carried over
 

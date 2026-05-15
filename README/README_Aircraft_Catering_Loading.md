@@ -287,22 +287,13 @@ Load catering to the aircraft."
 ## 9. Known Issues and Maintenance Notes
 
 | Issue | Location | Notes |
-|---|---|---|
-| Agent name casing inconsistency | `aircraft_catering_loading.hocon` line 89 | Agent is named `Catering_loading_agent` (capital C, mixed case). All other network agents use all-lowercase snake_case. Should be renamed `catering_loading_agent` for consistency. |
-| `crew_exit_status` missing from summary block | `aircraft_catering_loading.hocon` agent instructions step 8 | The summary template lists `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `crew_exit_status`, `passenger_disembarkation_status`, `baggage_unload_status`, and `catering_loading_status` — but `crew_exit_status` is listed in the label column yet absent from the HOCON summary template on line 168 which jumps from `crew_exit_status` label directly to `passenger_disembarkation_status` value. Verify the rendered output includes all fields. |
-| Summary step mislabelled | `aircraft_catering_loading.hocon` agent instructions step 8 | Step 8 reads `"Provide the lavatory service status report summary"` — copy-paste artifact from another network. Should read `"catering loading status report summary"`. |
-| `passenger_disembarkation_status` not in TrackerAPI return fields | `aircraft_catering_loading.py` | The field is tracked but excluded from `FLIGHT_TURNAROUND_RETURN_FIELDS`. Calls to `TrackerAPI` will not return it; the orchestrator must already have it in `sly_data`. |
-| `catering_loading_status` absent from sly_data `to_downstream` / `from_upstream` | `aircraft_catering_loading.hocon` | Catering status propagates upstream only. Downstream networks will not receive it through sly_data unless their own `from_upstream` is updated. |
-| Hardcoded log path comment | `aircraft_catering_loading.py` → `catering_loading_operator.invoke` | Commented-out absolute path remains; active path uses `Path.cwd()`. |
-| Implicit tool selection for prerequisite resolution | `aircraft_catering_loading.hocon` instructions step 4 | Step 4 says "call your tools" without naming which tool resolves which prerequisite. The cabin cleaning network's explicit step-by-step approach is more reliable for LLM execution. |
+|-------|----------|-------|
+|       |          |       |
 
 ---
 
 ## 10. Extensibility Guidance
 
-- Make prerequisite resolution explicit in step 4 (name which tool handles each prerequisite), following the pattern established in `aircraft_cabin_cleaning`
-- Add `catering_loading_status` to the `from_upstream` and `to_downstream` sly_data blocks so downstream networks can consume it
-- Add `passenger_disembarkation_status` to `FLIGHT_TURNAROUND_RETURN_FIELDS` for completeness
 - Model intermediate statuses: `loading_started`, `loading_in_progress`, `loading_completed` (currently only `completed` or `pending` are returned by the operator)
 - Back `TrackerAPI` with a persistent store for multi-session traceability
 - Integrate catering inventory validation before the loading step

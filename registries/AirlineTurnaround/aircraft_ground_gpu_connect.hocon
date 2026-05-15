@@ -11,7 +11,7 @@
     },
 
     "llm_config": {
-        "model_name": "gpt-5.4-mini", #"gpt-4o", # "claude-haiku-4-5-20251001", #"claude-sonnet-4-6", #
+        "model_name": "gpt-5.4-mini", 
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -102,6 +102,10 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "This is the flight status."
                         },        
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },  
                         "gate_id": {
                             "type": "string", 
                             "description": "This is the gate where the aircraft is parked."
@@ -110,7 +114,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "type": "string", 
                             "description": "This is the status of engines stop."
                         },     
-                        "wheelchocks_installation_status": {
+                        "wheels_chocks_installation_status": {
                             "type": "string", 
                             "description": "This is the status of wheels chocks installation."
                         },         
@@ -139,21 +143,21 @@ When user submit inquiry to connect GPU, proceed as follows:
 3. If gpu_readiness_status is 'ready' or 'yes', find the following parameters from the inquiry: 
     a. flight status as flight_status with value such as 'on blocks', 
     b. engines stop status as engines_stop_status with value such as 'stopped' or 'running',
-    c. wheels chocks installation status as wheelchocks_installation_status with value such as 'installed' or 'not installed'.
-4. If flight_status is not 'on blocks' or engines_stop_status is not 'stopped' or wheelchocks_installation_status is not 'installed', 
+    c. wheels chocks installation status as wheels_chocks_installation_status with value such as 'installed' or 'not installed'.
+4. If flight_status is not 'on blocks' or engines_stop_status is not 'stopped' or wheels_chocks_installation_status is not 'installed', 
     a. call TrackerAPI
     a. wait for its response 
-    b. store engines_stop_status and wheels_chucks_installation_status and flight_status from the response 
-5. If flight_status is not 'on blocks' or engines_stop_status is not 'stopped' or wheelchocks_installation_status is not 'installed' or gpu_readiness_status is not 'ready' or 'yes'
-    a. return to user that gpu can not be connected unless flight_status is 'on blocks' and engines_stop_status is 'stopped' and wheelchocks_installation_status is 'installed' and gpu_readiness_status is 'ready' or 'yes', and report the current status of these parameters.
+    b. store engines_stop_status and wheels_chocks_installation_status and flight_status from the response 
+5. If flight_status is not 'on blocks' or engines_stop_status is not 'stopped' or wheels_chocks_installation_status is not 'installed' or gpu_readiness_status is not 'ready' or 'yes'
+    a. return to user that gpu can not be connected unless flight_status is 'on blocks' and engines_stop_status is 'stopped' and wheels_chocks_installation_status is 'installed' and gpu_readiness_status is 'ready' or 'yes', and report the current status of these parameters.
     b. stop process here.
-6. If flight_status is 'on blocks' and engines_stop_status is 'stopped' and wheels_chucks_installation_status is 'installed' and gpu_readiness_status is 'ready' or 'yes'
-    a. call your tools to connect gpu to aircraft
+6. If flight_status is 'on blocks' and engines_stop_status is 'stopped' and wheels_chocks_installation_status is 'installed' and gpu_readiness_status is 'ready' or 'yes'
+    a. call gpu_operator to connect gpu to aircraft
     b. Wait for response on gpu connection status and save it as gpu_connection_status
     c. Report gpu_connection_status back to user.
 7. Call TrackerAPI
     a. wait for its response 
-    b. store engines stop status as engines_stop_status, store wheels chucks installation status as wheels_chucks_installation_status, store gpu readiness status as gpu_readiness_status, store gpu connection status as gpu_connection_status
+    b. store engines stop status as engines_stop_status, store wheels chocks installation status as wheels_chocks_installation_status, store gpu readiness status as gpu_readiness_status, store gpu connection status as gpu_connection_status
 8. Provide the gpu connection status report summary as:
     ***********************************
     * Summary of aircraft gpu connect *
@@ -171,6 +175,10 @@ When user submit inquiry to connect GPU, proceed as follows:
                     "sly_data": {
                         "gpu_connection_status": true
                         "gpu_readiness_status": true
+                        "flight_number": true
+                        "aircraft_type": true
+                        "flight_status": true
+                        "gate_id": true
                     }
                 }
                 "to_downstream": {
@@ -180,7 +188,7 @@ When user submit inquiry to connect GPU, proceed as follows:
                         "flight_status": true
                         "gate_id": true 
                         "engines_stop_status": true
-                        "wheelchocks_installation_status": true
+                        "wheels_chocks_installation_status": true
                         "gpu_connection_status": true
                         "gpu_readiness_status": true
                     }
@@ -192,7 +200,7 @@ When user submit inquiry to connect GPU, proceed as follows:
                         "flight_status": true
                         "gate_id": true 
                         "engines_stop_status": true
-                        "wheelchocks_installation_status": true
+                        "wheels_chocks_installation_status": true
                         "gpu_connection_status": true
                         "gpu_readiness_status": true
                     }
@@ -204,7 +212,7 @@ When user submit inquiry to connect GPU, proceed as follows:
                         "flight_status": true
                         "gate_id": true 
                         "engines_stop_status": true
-                        "wheelchocks_installation_status": true
+                        "wheels_chocks_installation_status": true
                         "gpu_connection_status": true
                         "gpu_readiness_status": true
                     }
@@ -232,7 +240,11 @@ This agent connects gpu to the aircraft upon arrival at the gate.
                         "flight_status": {
                             "type": "string", 
                             "description": "This is the flight status."
-                        },        
+                        },      
+                        "flight_number": {
+                            "type": "string", 
+                            "description": "This is the flight number of the incoming aicraft."
+                        },    
                         "gate_id": {
                             "type": "string", 
                             "description": "This is the gate where the aircraft is parked."
@@ -259,7 +271,7 @@ This agent connects gpu to the aircraft upon arrival at the gate.
                 "description": """
 I am the flight tracker in charge of logging parameters during aircraft turnaround. 
 I check engines stop status as engines_stop_status. 
-I check wheels chucks installation status as wheels_chucks_installation_status. 
+I check wheels chocks installation status as wheels_chocks_installation_status. 
                 """
 
                 "parameters": {
@@ -285,11 +297,11 @@ I check wheels chucks installation status as wheels_chucks_installation_status.
                             "type": "string", 
                             "description": "This is the type of the inquiry received for grand services."
                         },         
-                        "wheelchocks_readiness_status": {
+                        "wheels_chocks_readiness_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks readiness status."
                         },   
-                        "wheelchocks_installation_status": {
+                        "wheels_chocks_installation_status": {
                             "type": "string", 
                             "description": "This is the wheels chocks installation status."
                         },   

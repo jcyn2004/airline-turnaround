@@ -64,13 +64,13 @@ cabin_services  (LLM Router — instruction-based routing)
 
 ## 4. Runtime Configuration
 
-|-------------------------|---------------|
-| Setting                 | Value         |
-|-------------------------|---------------|
-| LLM model               | `gpt-5.4-mini`|
-| `max_iterations`        | `3000`        |
-| `max_execution_seconds` | `300`         |
-|-------------------------|---------------|
+|-------------------------|----------------|
+| Setting                 | Value          |
+|-------------------------|----------------|
+| LLM model               | `gpt-5.4-mini` |
+| `max_iterations`        | `3000`         |
+| `max_execution_seconds` | `300`          |
+|-------------------------|----------------|
 
 
 > Note: These limits are significantly lower than every other network in the system, which uses `max_iterations: 40000` and `max_execution_seconds: 7200`. The cabin services network is expected to complete quickly — it makes one delegated call and returns a summary.
@@ -90,17 +90,17 @@ The single entry-point agent. It parses the `instruction` field, routes to the c
 |-----------------------------------|--------|:--------:|--------------------------------------------|
 | Parameter                         | Type   | Required | Description                                |
 |-----------------------------------|--------|:--------:|--------------------------------------------|
-| `aircraft_type`                   | string | ✅       | Aircraft model/type                        |
-| `gate_id`                         | string | ✅       | Gate where the aircraft is parked          |
-| `flight_number`                   | string | ❌       | Flight identifier                          |
-| `flight_status`                   | string | ❌       | Flight status                              |
-| `passenger_disembarkation_status` | string | ❌       | Must be `completed` before service         |
-| `crew_exit_status`                | string | ❌       | Must be `completed` before service         |
-| `baggage_unload_status`           | string | ❌       | Baggage unload state                       |
-| `instruction`                     | string | ❌       | **Routing discriminant** (see table below) |
-| `cabin_cleaning_status`           | string | ❌       | Set by leaf network                        |
-| `lavatory_service_status`         | string | ❌       | Set by leaf network                        |
-| `catering_loading_status`         | string | ❌       | Set by leaf network                        |
+| `aircraft_type`                   | string |    ✅     | Aircraft model/type                        |
+| `gate_id`                         | string |    ✅     | Gate where the aircraft is parked          |
+| `flight_number`                   | string |    ❌     | Flight identifier                          |
+| `flight_status`                   | string |    ❌     | Flight status                              |
+| `passenger_disembarkation_status` | string |    ❌     | Must be `completed` before service         |
+| `crew_exit_status`                | string |    ❌     | Must be `completed` before service         |
+| `baggage_unload_status`           | string |    ❌     | Baggage unload state                       |
+| `instruction`                     | string |    ❌     | **Routing discriminant** (see table below) |
+| `cabin_cleaning_status`           | string |    ❌     | Set by leaf network                        |
+| `lavatory_service_status`         | string |    ❌     | Set by leaf network                        |
+| `catering_loading_status`         | string |    ❌     | Set by leaf network                        |
 |-----------------------------------|--------|:--------:|--------------------------------------------|
 
 #### Instruction routing
@@ -178,8 +178,8 @@ Each branch follows the same 5-substep pattern:
 
 All four directions carry the same 7-field set:
 
-| Direction | Fields |
-|---|---|
+| Direction           | Fields                                                                                                                                      |
+|---------------------|---------------------------------------------------------------------------------------------------------------------------------------------|
 | All four directions | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `catering_loading_status`, `cabin_cleaning_status`, `lavatory_service_status` |
 
 > Note: `passenger_disembarkation_status`, `crew_exit_status`, and `baggage_unload_status` are in the agent parameter schema but are **absent from all four sly_data allow blocks**. These prerequisite status fields must be passed by the caller as explicit named parameters — they will not flow through sly_data from this network.
@@ -216,7 +216,7 @@ The TrackerAPI in `aircraft_cabin_services.py` uses **args-first** resolution �
 
 **Return fields:** Identical to tracked fields (all 7 returned).
 
-> Note: The TrackerAPI HOCON schema exposes only 5 fields (`aircraft_type`, `gate_id`, `wheelchocks_installation_status`, `gpu_connection_status`, `acu_connection_status`) — a minimal and mismatched schema. None of the three cabin service status fields appear in the HOCON TrackerAPI schema, yet they are what this network primarily needs to track. The Python config is correct; the HOCON schema is stale.
+> Note: The TrackerAPI HOCON schema exposes only 5 fields (`aircraft_type`, `gate_id`, `wheels_chocks_installation_status`, `gpu_connection_status`, `acu_connection_status`) — a minimal and mismatched schema. None of the three cabin service status fields appear in the HOCON TrackerAPI schema, yet they are what this network primarily needs to track. The Python config is correct; the HOCON schema is stale.
 
 > Note: The HOCON `TrackerAPI` definition correctly includes `"required": []`.
 
@@ -253,16 +253,8 @@ The crew has exited the aircraft. Perform aircraft cabin cleaning."
 ## 8. Known Issues and Maintenance Notes
 
 | Issue | Location | Severity | Notes |
-|---|---|:---:|---|
-| **TrackerAPI class path points to wrong module** | `aircraft_cabin_services.hocon` line 344 | **High** | `AirlineTurnaround.aircraft_ground_rampservices.aircraft_ground_rampservices.TrackerAPI` references a non-existent or unrelated module. The TrackerAPI in `aircraft_cabin_services.py` is the expected implementation. Fix: `AirlineTurnaround.aircraft_cabin_services.aircraft_cabin_services.TrackerAPI`. |
-| HOCON TrackerAPI schema does not expose cabin service status fields | `aircraft_cabin_services.hocon` lines 317–341 | **High** | Schema exposes `wheelchocks_installation_status`, `gpu_connection_status`, `acu_connection_status` — none relevant to this network. Missing: `cabin_cleaning_status`, `lavatory_service_status`, `catering_loading_status`. The Python tracked fields are correct; only the HOCON schema is wrong. |
-| `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status` absent from sly_data allow blocks | `aircraft_cabin_services.hocon` lines 226–271 | Medium | These prerequisite status fields are in the agent parameter schema and are needed by the leaf networks, but are not propagated in any sly_data direction. They must be passed as explicit named parameters by the caller. |
-| Commented-out ground readiness instructions (lines 283–304) | `aircraft_cabin_services.hocon` | Low | Three iterations of abandoned `acu_readiness_status`, `gpu_readiness_status`, `wheelchocks_readiness_status` instructions that clearly belong to a ground readiness network. Dead development content. |
-| Commented-out `execute_aircraft_landing` class (~140 lines) | `aircraft_cabin_services.py` lines 28–143 | Low | The entire `execute_aircraft_landing` class from `aircraft_landing.py` was pasted into this file and then commented out. Dead code that should be removed. |
-| TrackerAPI uses args-first resolution | `aircraft_cabin_services.py` lines 326–345 | Low | Older-generation args-first pattern. If a field is already in sly_data from a previous call, a new `args` value will overwrite it. Most networks in the system use sly_data-first. |
-| Summary field label inconsistencies across branches | `aircraft_cabin_services.hocon` instructions | Low | Lavatory summary uses `flight_number` (underscore); cabin cleaning and catering use `flight number` (space). The extra `** cabin cleaning summary **:` header line is absent from the other two branches. |
-| `max_iterations: 3000` and `max_execution_seconds: 300` | `aircraft_cabin_services.hocon` lines 18–19 | Low | Significantly lower than all other networks (40000 / 7200). If a leaf network is slow to respond, this network may time out prematurely. |
-| Unused imports: `fcntl`, `asyncio`, `random`, `os`, `platform` | `aircraft_cabin_services.py` lines 7–12 | Low | All unused. `fcntl` is Unix-only and will fail on Windows. Same issue as `aircraft_landing.py`. |
+|-------|----------|:--------:|-------|
+|       |          |          |       |
 
 ---
 

@@ -86,16 +86,18 @@ The entry-point agent. It uses the `CRITICAL: sequential executor` / `STEP` patt
 
 #### Input parameters
 
-| Parameter | Type | Required | Description |
-|---|---|:---:|---|
-| `flight_number` | string | ✅ | Flight identifier |
-| `aircraft_type` | string | ✅ | Aircraft model/type |
-| `gate_id` | string | ✅ | Gate where the aircraft is parked |
-| `passenger_disembarkation_status` | string | ✅ | Expected: contains `completed` |
-| `crew_exit_status` | string | ✅ | Expected: contains `completed` or `exited` |
-| `baggage_unload_status` | string | ✅ | Expected: contains `completed` or `unloaded` |
-| `flight_status` | string | ❌ | Flight status (expected: contains `on blocks` or `block`) |
-| `fueling_status` | string | ❌ | Current or previous fueling status |
+|-----------------------------------|--------|:--------:|-----------------------------------------------------------|
+| Parameter                         | Type   | Required | Description                                               |
+|-----------------------------------|--------|:--------:|-----------------------------------------------------------|
+| `flight_number`                   | string | ✅       | Flight identifier                                         |
+| `aircraft_type`                   | string | ✅       | Aircraft model/type                                       |
+| `gate_id`                         | string | ✅       | Gate where the aircraft is parked                         |
+| `passenger_disembarkation_status` | string | ✅       | Expected: contains `completed`                            |
+| `crew_exit_status`                | string | ✅       | Expected: contains `completed` or `exited`                |
+| `baggage_unload_status`           | string | ✅       | Expected: contains `completed` or `unloaded`              |
+| `flight_status`                   | string | ❌       | Flight status (expected: contains `on blocks` or `block`) |
+| `fueling_status`                  | string | ❌       | Current or previous fueling status                        |
+|-----------------------------------|--------|:--------:|-----------------------------------------------------------|
 
 > Note: `flight_status` is not declared `required` in the HOCON schema, but the orchestrator will stop in Step 2 if it does not contain `on blocks` or `block`. It is functionally required for the workflow to proceed.
 
@@ -119,12 +121,14 @@ The entry-point agent. It uses the `CRITICAL: sequential executor` / `STEP` patt
 
 #### sly_data contract
 
-| Direction | Parameters |
-|---|---|
-| **To upstream** | `fueling_status` |
-| **To downstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status`, `fueling_status` |
-| **From upstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status` |
-| **From downstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status` |
+|---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Direction           | Parameters                                                                                                                                                     |
+|---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **To upstream**     | `fueling_status`                                                                                                                                               |
+| **To downstream**   | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status`, `fueling_status` |
+| **From upstream**   | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status`                   |
+| **From downstream** | `flight_number`, `aircraft_type`, `flight_status`, `gate_id`, `passenger_disembarkation_status`, `crew_exit_status`, `baggage_unload_status`                   |
+|---------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
 
 > Note: `fueling_status` propagates in `to_upstream` and `to_downstream`, but is absent from `from_upstream` and `from_downstream`. Upstream networks pushing context into this network do not send `fueling_status` — it is generated here and only flows outward.
 
@@ -147,25 +151,29 @@ Performs the fueling completion check. It validates all required parameters, eva
 
 #### Input parameters
 
-| Parameter | Type | Required | Source priority |
-|---|---|:---:|---|
-| `flight_number` | string | ✅ | `sly_data` → `args` |
-| `aircraft_type` | string | ✅ | `sly_data` → `args` |
-| `flight_status` | string | ✅ | `sly_data` → `args` |
-| `gate_id` | string | ✅ | `sly_data` → `args` |
-| `passenger_disembarkation_status` | string | ✅ | `sly_data` → `args` |
-| `crew_exit_status` | string | ✅ | `sly_data` → `args` |
-| `baggage_unload_status` | string | ✅ | `sly_data` → `args` |
+|-----------------------------------|--------|:--------:|---------------------|
+| Parameter                         | Type   | Required | Source priority     |
+|-----------------------------------|--------|:--------:|---------------------|
+| `flight_number`                   | string | ✅       | `sly_data` → `args` |
+| `aircraft_type`                   | string | ✅       | `sly_data` → `args` |
+| `flight_status`                   | string | ✅       | `sly_data` → `args` |
+| `gate_id`                         | string | ✅       | `sly_data` → `args` |
+| `passenger_disembarkation_status` | string | ✅       | `sly_data` → `args` |
+| `crew_exit_status`                | string | ✅       | `sly_data` → `args` |
+| `baggage_unload_status`           | string | ✅       | `sly_data` → `args` |
+|-----------------------------------|--------|:--------:|---------------------|
 
 #### Fueling logic
 
 `fueling_status` is set to `completed` when **all three** of the following conditions are true (case-insensitive, after stripping whitespace):
 
-| Field | Accepted values |
-|---|---|
-| `passenger_disembarkation_status` | `completed`, `done` |
-| `crew_exit_status` | `completed`, `exited` |
-| `baggage_unload_status` | `completed`, `unloaded` |
+|-----------------------------------|-------------------------|
+| Field                             | Accepted values         |
+|-----------------------------------|-------------------------|
+| `passenger_disembarkation_status` | `completed`, `done`     |
+| `crew_exit_status`                | `completed`, `exited`   |
+| `baggage_unload_status`           | `completed`, `unloaded` |
+|-----------------------------------|-------------------------|
 
 If any condition fails, the operator returns an **explicit error string** with details:
 
@@ -221,11 +229,13 @@ The default configuration for this network is:
 
 These tools are in the `tools` array but are not explicitly called in the sequential instruction steps. They are available for autonomous aaosa-mode dispatch:
 
-| Tool path | Nominal purpose |
-|---|---|
-| `/AirlineTurnaround/aircraft_disembark` | Complete passenger disembarkation |
-| `/AirlineTurnaround/aircraft_crew_exit` | Complete crew exit |
-| `/AirlineTurnaround/aircraft_baggage_unload` | Complete baggage unloading |
+|----------------------------------------------|-----------------------------------|
+| Tool path                                    | Nominal purpose                   |
+|----------------------------------------------|-----------------------------------|
+| `/AirlineTurnaround/aircraft_disembark`      | Complete passenger disembarkation |
+| `/AirlineTurnaround/aircraft_crew_exit`      | Complete crew exit                |
+| `/AirlineTurnaround/aircraft_baggage_unload` | Complete baggage unloading        |
+|----------------------------------------------|-----------------------------------|
 
 ---
 
@@ -293,7 +303,6 @@ Perform the fueling of the aircraft."
 
 | Issue | Location | Notes |
 |---|---|---|
-| Agent name mismatch with prior documentation | `aircraft_fueling.hocon` line 90 | Agent is `fueling_agent`, not `aircraft_fueling_agent` as previously documented. |
 | Previous doc described wrong prerequisites | Prior documentation | Old doc listed engines stopped, chocks installed, and `requested_fuel_quantity`/`actual_fuel_quantity` as parameters. None of these exist in the actual implementation. Actual prerequisites are passenger disembarkation, crew exit, baggage unload. |
 | `fueling_operator` uses sly_data-first resolution | `aircraft_fueling.py` line 68 | All other operators use `_from_args_or_sly` (args first). This operator uses `_from_sly_or_args` (sly_data first). Stale sly_data values will take precedence over fresher args values. |
 | External tools in `tools` array not called by sequential instructions | `aircraft_fueling.hocon` instructions + line 226 | The three external tools are available for aaosa dispatch but Step 3 instructs a hard stop rather than delegation when prerequisites are unmet. The agent's behavior on encountering unmet prerequisites may therefore vary depending on whether aaosa mode overrides the sequential executor instructions. |
