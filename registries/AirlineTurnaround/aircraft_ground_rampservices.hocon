@@ -223,52 +223,44 @@ SINGLE-TASK DISPATCH (if only one task is requested):
             "allow": {
                 "to_upstream": {
                     "sly_data": {
-                        "flight_number": true, 
-                        "aircraft_type": true, 
-                        "gate_id": true, 
-                        "gpu_connection_status": true, 
-                        "acu_connection_status": true, 
-                        "wheels_chocks_installation_status": true, 
+                        "wheels_chocks_installation_status": true,
+                        "acu_connection_status": true,
+                        "gpu_connection_status": true,
                     }
                 },
                 "from_upstream": {
                     "sly_data": {
-                        "flight_number": true, 
-                        "aircraft_type": true, 
-                        "gate_id": true, 
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "gate_id": true,
                         "flight_status": true,
                         "engines_stop_status": true,
-                        "gpu_connection_status": true, 
-                        "acu_connection_status": true, 
-                        "wheels_chocks_installation_status": true,
                         "wheels_chocks_readiness_status": true,
                         "acu_readiness_status": true,
                         "gpu_readiness_status": true,
-                    }
-                },
-                "from_downstream": {
-                    "sly_data": {
-                        "flight_number": true, 
-                        "aircraft_type": true, 
-                        "gate_id": true, 
-                        "gpu_connection_status": true, 
-                        "acu_connection_status": true, 
-                        "wheels_chocks_installation_status": true, 
                     }
                 },
                 "to_downstream": {
                     "sly_data": {
-                        "flight_number": true, 
-                        "aircraft_type": true, 
-                        "gate_id": true, 
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "gate_id": true,
                         "flight_status": true,
                         "engines_stop_status": true,
-                        "gpu_connection_status": true, 
-                        "acu_connection_status": true, 
-                        "wheels_chocks_installation_status": true,
                         "wheels_chocks_readiness_status": true,
                         "acu_readiness_status": true,
                         "gpu_readiness_status": true,
+                        "wheels_chocks_installation_status": true,
+                    }
+                },
+                "from_downstream": {
+                    "sly_data": {
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "gate_id": true,
+                        "wheels_chocks_installation_status": true,
+                        "acu_connection_status": true,
+                        "gpu_connection_status": true,
                     }
                 }
             },
