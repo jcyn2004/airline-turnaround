@@ -183,61 +183,46 @@ When user submits inquiry, proceed as follows:
     ** crew exit status              **: completed
             """ ${aaosa_instructions},
 
-            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
+            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks.
             "allow": {
                 "to_upstream": {
                     "sly_data": {
                         "crew_exit_status": true
-                        "flight_status": true
-                        "door_opening_status": true 
-                        "jetbridge_connection_status": true
-                    }
-                }
-                "to_downstream": {
-                    "sly_data": {
-                        "crew_exit_status": true
-                        "flight_status": true
-                        "door_opening_status": true
-                        "jetbridge_connection_status": true
                     }
                 }
                 "from_upstream": {
                     "sly_data": {
                         "flight_number": true
                         "aircraft_type": true
+                        "gate_id": true
                         "flight_status": true
-                        "gate_id": true 
+                        "deplaning_equipment_type": true
                         "jetbridge_connection_status": true
                         "stairtruck_connection_status": true
-                        "deplaning_equipment_type": true
-                        "door_opening_status": true 
-                        "crew_exit_status": true
-                    }
-                }
-                "from_downstream": {
-                    "sly_data": {
-                        "flight_number": true
-                        "aircraft_type": true
-                        "flight_status": true
-                        "gate_id": true 
-                        "jetbridge_connection_status": true
-                        "stairtruck_connection_status": true
-                        "deplaning_equipment_type": true
-                        "door_opening_status": true 
-                        "crew_exit_status": true
+                        "door_opening_status": true
                     }
                 }
                 "to_downstream": {
                     "sly_data": {
                         "flight_number": true
                         "aircraft_type": true
+                        "gate_id": true
                         "flight_status": true
-                        "gate_id": true 
+                        "deplaning_equipment_type": true
                         "jetbridge_connection_status": true
                         "stairtruck_connection_status": true
-                        "deplaning_equipment_type": true
-                        "door_opening_status": true 
-                        "crew_exit_status": true
+                        "door_opening_status": true
+                    }
+                }
+                "from_downstream": {
+                    "sly_data": {
+                        "flight_number": true
+                        "aircraft_type": true
+                        "gate_id": true
+                        "flight_status": true
+                        "door_opening_status": true
+                        "jetbridge_connection_status": true
+                        "stairtruck_connection_status": true
                     }
                 }
             },

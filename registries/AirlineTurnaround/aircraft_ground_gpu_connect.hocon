@@ -169,51 +169,39 @@ When user submit inquiry to connect GPU, proceed as follows:
     ** gpu connection status **: [gpu_connection_status]
             """ ${aaosa_instructions},    
 
-            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
+            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks.
             "allow": {
                 "to_upstream": {
                     "sly_data": {
                         "gpu_connection_status": true
-                        "gpu_readiness_status": true
-                        "flight_number": true
-                        "aircraft_type": true
-                        "flight_status": true
-                        "gate_id": true
-                    }
-                }
-                "to_downstream": {
-                    "sly_data": {
-                        "flight_number": true
-                        "aircraft_type": true
-                        "flight_status": true
-                        "gate_id": true 
-                        "engines_stop_status": true
-                        "wheels_chocks_installation_status": true
-                        "gpu_connection_status": true
-                        "gpu_readiness_status": true
                     }
                 }
                 "from_upstream": {
                     "sly_data": {
                         "flight_number": true
                         "aircraft_type": true
+                        "gate_id": true
                         "flight_status": true
-                        "gate_id": true 
                         "engines_stop_status": true
                         "wheels_chocks_installation_status": true
-                        "gpu_connection_status": true
                         "gpu_readiness_status": true
+                    }
+                }
+                "to_downstream": {
+                    "sly_data": {
+                        "flight_number": true
+                        "aircraft_type": true
+                        "gate_id": true
+                        "flight_status": true
+                        "engines_stop_status": true
+                        "wheels_chocks_installation_status": true
                     }
                 }
                 "from_downstream": {
                     "sly_data": {
                         "flight_number": true
                         "aircraft_type": true
-                        "flight_status": true
-                        "gate_id": true 
-                        "engines_stop_status": true
-                        "wheels_chocks_installation_status": true
-                        "gpu_connection_status": true
+                        "gate_id": true
                         "gpu_readiness_status": true
                     }
                 }

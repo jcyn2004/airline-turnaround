@@ -145,28 +145,38 @@ RETURN SUMMARY:
   ** deplaning equipment score          **: [deplaning_equipment_score]
             """ ,
 
-            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
+            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks.
             "allow": {
                 "to_upstream": {
                     "sly_data": {
-                        "gate_id": true, 
-                        "flight_number": true, 
-                        "aircraft_type": true, 
-                        "deplaning_equipment_type": true, 
-                        "deplaning_equipment_id": true, 
-                        "deplaning_equipment_score": true, 
-                        "deplaning_equipment_readiness_time": true
+                        "gate_id": true,
+                        "deplaning_equipment_type": true,
+                        "deplaning_equipment_id": true,
+                        "deplaning_equipment_readiness_time": true,
+                        "deplaning_equipment_score": true,
                     }
                 }
                 "from_upstream": {
                     "sly_data": {
-                        "gate_id": true, 
-                        "flight_number": true, 
-                        "aircraft_type": true, 
-                        "deplaning_equipment_type": true, 
-                        "deplaning_equipment_id": true, 
-                        "deplaning_equipment_score": true, 
-                        "deplaning_equipment_readiness_time": true
+                        "flight_number": true,
+                        "aircraft_type": true,
+                    }
+                }
+                "to_downstream": {
+                    "sly_data": {
+                        "flight_number": true,
+                        "aircraft_type": true,
+                    }
+                }
+                "from_downstream": {
+                    "sly_data": {
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "gate_id": true,
+                        "deplaning_equipment_type": true,
+                        "deplaning_equipment_id": true,
+                        "deplaning_equipment_readiness_time": true,
+                        "deplaning_equipment_score": true,
                     }
                 }
             },

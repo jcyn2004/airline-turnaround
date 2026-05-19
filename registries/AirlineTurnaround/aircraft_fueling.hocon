@@ -180,22 +180,10 @@ RETURN SUMMARY:
   ** fueling status summary           **: [fueling_status]
             """,
 
-            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
+            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks.
             "allow": {
                 "to_upstream": {
                     "sly_data": {
-                        "fueling_status": true
-                    }
-                },
-                "to_downstream": {
-                    "sly_data": {
-                        "flight_number": true,
-                        "aircraft_type": true,
-                        "flight_status": true,
-                        "gate_id": true,
-                        "passenger_disembarkation_status": true,
-                        "crew_exit_status": true,
-                        "baggage_unload_status": true,
                         "fueling_status": true
                     }
                 },
@@ -203,8 +191,19 @@ RETURN SUMMARY:
                     "sly_data": {
                         "flight_number": true,
                         "aircraft_type": true,
-                        "flight_status": true,
                         "gate_id": true,
+                        "flight_status": true,
+                        "passenger_disembarkation_status": true,
+                        "crew_exit_status": true,
+                        "baggage_unload_status": true
+                    }
+                },
+                "to_downstream": {
+                    "sly_data": {
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "gate_id": true,
+                        "flight_status": true,
                         "passenger_disembarkation_status": true,
                         "crew_exit_status": true,
                         "baggage_unload_status": true
@@ -214,11 +213,12 @@ RETURN SUMMARY:
                     "sly_data": {
                         "flight_number": true,
                         "aircraft_type": true,
-                        "flight_status": true,
                         "gate_id": true,
+                        "flight_status": true,
                         "passenger_disembarkation_status": true,
                         "crew_exit_status": true,
-                        "baggage_unload_status": true
+                        "baggage_unload_status": true,
+                        "fueling_status": true
                     }
                 }
             },

@@ -179,7 +179,7 @@ When user submits inquiry, proceed as follows:
     ** lavatory service status **: [lavatory_service_status]
             """ ${aaosa_instructions}, 
 
-            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks. 
+            # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks.
             "allow": {
                 "to_upstream": {
                     "sly_data": {
@@ -190,8 +190,19 @@ When user submits inquiry, proceed as follows:
                     "sly_data": {
                         "flight_number": true
                         "aircraft_type": true
+                        "gate_id": true
                         "flight_status": true
-                        "gate_id": true 
+                        "passenger_disembarkation_status": true
+                        "crew_exit_status": true
+                        "baggage_unload_status": true
+                    }
+                }
+                "to_downstream": {
+                    "sly_data": {
+                        "flight_number": true
+                        "aircraft_type": true
+                        "gate_id": true
+                        "flight_status": true
                         "passenger_disembarkation_status": true
                         "crew_exit_status": true
                         "baggage_unload_status": true
@@ -201,20 +212,8 @@ When user submits inquiry, proceed as follows:
                     "sly_data": {
                         "flight_number": true
                         "aircraft_type": true
+                        "gate_id": true
                         "flight_status": true
-                        "gate_id": true 
-                        "passenger_disembarkation_status": true
-                        "crew_exit_status": true
-                        "baggage_unload_status": true 
-                        "lavatory_service_status": true
-                    }
-                }
-                "to_downstream": {
-                    "sly_data": {
-                        "flight_number": true
-                        "aircraft_type": true
-                        "flight_status": true
-                        "gate_id": true 
                         "passenger_disembarkation_status": true
                         "crew_exit_status": true
                         "baggage_unload_status": true

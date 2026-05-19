@@ -181,39 +181,33 @@ as the status value and continue to the next step. Never abort early.
             "allow": {
                 "to_upstream": {
                     "sly_data": {
-                        "aircraft_type": true, 
-                        "gate_id": true, 
-                        "gpu_readiness_status": true, 
-                        "acu_readiness_status": true, 
-                        "wheels_chocks_readiness_status": true, 
+                        "wheels_chocks_readiness_status": true,
+                        "acu_readiness_status": true,
+                        "gpu_readiness_status": true,
                     }
                 },
                 "from_upstream": {
                     "sly_data": {
-                        "aircraft_type": true, 
                         "flight_number": true,
-                        "gate_id": true, 
-                        "gpu_readiness_status": true, 
-                        "acu_readiness_status": true, 
-                        "wheels_chocks_readiness_status": true, 
-                    }
-                },
-                "from_downstream": {
-                    "sly_data": {
-                        "aircraft_type": true, 
-                        "gate_id": true, 
-                        "gpu_readiness_status": true, 
-                        "acu_readiness_status": true, 
-                        "wheels_chocks_readiness_status": true, 
+                        "aircraft_type": true,
+                        "gate_id": true,
                     }
                 },
                 "to_downstream": {
                     "sly_data": {
-                        "aircraft_type": true, 
-                        "gate_id": true, 
-                        "gpu_readiness_status": true, 
-                        "acu_readiness_status": true, 
-                        "wheels_chocks_readiness_status": true, 
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "gate_id": true,
+                    }
+                },
+                "from_downstream": {
+                    "sly_data": {
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "gate_id": true,
+                        "wheels_chocks_readiness_status": true,
+                        "acu_readiness_status": true,
+                        "gpu_readiness_status": true,
                     }
                 }
             },

@@ -206,62 +206,46 @@ RETURN SUMMARY:
             """,
 
             "allow": {
-                "to_downstream": {
-                    "sly_data": {
-                        "aircraft_type": true, 
-                        "flight_number": true, 
-                        "flight_status": true, 
-                        "aircraft_direction": true, 
-                        "ground_clearance_type": true, 
-                        "ground_clearance_status": true, 
-                        "gate_id": true, 
-                        "assigned_runway_id": true, 
-                        "acu_readiness_status": true, 
-                        "gpu_readiness_status": true, 
-                        "wheels_chocks_readiness_status": true,  
-                    }
-                }
                 "to_upstream": {
                     "sly_data": {
-                        "aircraft_type": true, 
-                        "flight_number": true, 
-                        "flight_status": true, 
-                        "aircraft_direction": true, 
-                        "ground_clearance_type": true, 
-                        "ground_clearance_status": true, 
-                        "gate_id": true, 
-                        "assigned_runway_id": true, 
-                        "acu_readiness_status": true, 
-                        "gpu_readiness_status": true, 
-                        "wheels_chocks_readiness_status": true,  
-                    }
-                }
-                "from_downstream": {
-                    "sly_data": {
-                        "aircraft_type": true, 
-                        "flight_number": true, 
-                        "flight_status": true, 
-                        "ground_clearance_type": true, 
-                        "ground_clearance_status": true, 
-                        "gate_id": true, 
-                        "assigned_runway_id": true, 
-                        "acu_readiness_status": true, 
-                        "gpu_readiness_status": true, 
-                        "wheels_chocks_readiness_status": true,  
+                        "flight_status": true,
                     }
                 }
                 "from_upstream": {
                     "sly_data": {
-                        "aircraft_type": true, 
-                        "flight_number": true, 
-                        "flight_status": true, 
-                        "ground_clearance_type": true, 
-                        "ground_clearance_status": true, 
-                        "gate_id": true, 
-                        "assigned_runway_id": true, 
-                        "acu_readiness_status": true, 
-                        "gpu_readiness_status": true, 
-                        "wheels_chocks_readiness_status": true,  
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "gate_id": true,
+                        "flight_status": true,
+                        "assigned_runway_id": true,
+                        "ground_clearance_type": true,
+                        "ground_clearance_status": true,
+                        "acu_readiness_status": true,
+                        "gpu_readiness_status": true,
+                        "wheels_chocks_readiness_status": true,
+                    }
+                }
+                "to_downstream": {
+                    "sly_data": {
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "gate_id": true,
+                        "flight_status": true,
+                        "assigned_runway_id": true,
+                        "ground_clearance_type": true,
+                        "ground_clearance_status": true,
+                    }
+                }
+                "from_downstream": {
+                    "sly_data": {
+                        "flight_number": true,
+                        "aircraft_type": true,
+                        "gate_id": true,
+                        "ground_clearance_type": true,
+                        "ground_clearance_status": true,
+                        "acu_readiness_status": true,
+                        "gpu_readiness_status": true,
+                        "wheels_chocks_readiness_status": true,
                     }
                 }
             },
