@@ -10,9 +10,6 @@ from enum import Enum
 from dataclasses import dataclass
 from pathlib import Path
 
-
-###`fcntl`, `asyncio`, `random`, `os`, `platform` removed since not used in the code.
-
 def _from_args_or_sly(args: Dict[str, Any], sly: Dict[str, Any], key: str) -> Any:
     """Prefer args[key]; fallback to sly_data[key]."""
     v = args.get(key)

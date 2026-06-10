@@ -11,7 +11,7 @@
     },
 
     "llm_config": {
-        "model_name": "gpt-5.4-mini",
+model_name = "gpt-5.4-mini" # "claude-sonnet-4-6" # "claude-haiku-4-5"
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -161,10 +161,12 @@ When user submits inquiry, proceed as follows:
 7. If passenger_disembarkation_status is 'completed', and crew_exit_status includes 'completed', and baggage_unload_status includes 'completed'
     a. call lavatory_service_operator to service lavatories on aircraft
     b. Wait for its response and save it as lavatory_service_status
-    c. Report lavatory_service_status
-8. Call TrackerAPI
-    a. wait for its response 
-    b. store lavatory_service_status as lavatory_service_status
+    c. VALIDATION: lavatory_service_status MUST contain 'completed'.
+       If it does not, retry once. If still not 'completed' after retry, report failure and stop.
+    d. Report lavatory_service_status
+8. Call TrackerAPI with lavatory_service_status=[value confirmed in step 7b] to store the result.
+    a. Pass lavatory_service_status explicitly as the confirmed value — do NOT read it back from TrackerAPI.
+    b. Wait for its response.
 9. Provide the lavatory service status report summary as: 
     ****************************************
     * Summary of aircraft lavatory service *

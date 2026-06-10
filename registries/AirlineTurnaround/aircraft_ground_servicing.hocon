@@ -13,7 +13,7 @@
     },
 
     "llm_config": {
-        "model_name": "gpt-5.4-mini", #"gpt-4o", # "claude-haiku-4-5-20251001", #"claude-sonnet-4-6", #
+model_name = "gpt-5.4-mini" # "claude-sonnet-4-6" # "claude-haiku-4-5" #"gpt-4o", # "claude-haiku-4-5-20251001", #"claude-sonnet-4-6", #
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600

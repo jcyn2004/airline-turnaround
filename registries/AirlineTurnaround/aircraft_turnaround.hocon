@@ -11,7 +11,7 @@
     },
 
     "llm_config": {
-        "model_name": "gpt-5.4-mini",
+model_name = "gpt-5.4-mini" # "claude-sonnet-4-6" # "claude-haiku-4-5"
     },
     "max_iterations": 40000,
     "max_execution_seconds": 7200,
@@ -403,14 +403,26 @@ STEP 6 - Taxi the aircraft to the gate
   - Extract and store: flight_status='on blocks'.
 
 STEP 7 - Stop engines
+  - PREREQUISITE CHECK: Before calling any sub-agent, verify that flight_status
+    in your working context contains 'on blocks'.
+    If flight_status does NOT contain 'on blocks', you have NOT completed STEP 6.
+    Go back and execute STEP 6 (taxi to gate) before proceeding here.
+    Do NOT call aircraft_crew_pilot for engine stop with any flight_status
+    other than 'on blocks' — the sub-agent will reject it and the step will fail.
   - Call /AirlineTurnaround/aircraft_crew_pilot with:
-      flight_number, aircraft_type, flight_status, gate_id,
+      flight_number, aircraft_type, flight_status='on blocks', gate_id,
       task_id='STEP_7_STOP_ENGINES',
       and the explicit instruction: "Stop the aircraft engines."
   - Wait for response.
   - Verify the response echoes task_id='STEP_7_STOP_ENGINES'.
     If it does not, discard and retry once before reporting a failure.
   - Extract and store: engines_stop_status.
+  - VALIDATION: engines_stop_status MUST contain 'stopped'.
+    If not, retry ONCE with the same parameters.
+    If still not 'stopped' after retry, stop and report:
+      "STEP 7 FAILED: engines could not be stopped.
+       Raw response: [engines_stop_status]"
+  - Do NOT proceed to STEP 8 until engines_stop_status contains 'stopped'.
 
 STEP 8 - Ground ramp services (wheelchocks install + ACU connect + GPU connect)
   - Call /AirlineTurnaround/aircraft_ground_rampservices directly with named parameters:
@@ -420,6 +432,25 @@ STEP 8 - Ground ramp services (wheelchocks install + ACU connect + GPU connect)
   - Do NOT route this through aircraft_ground_operation.
   - Wait for response.
   - Extract and store: wheels_chocks_installation_status, acu_connection_status, gpu_connection_status.
+  - VALIDATION — wheelchocks: wheels_chocks_installation_status MUST contain 'installed'.
+    If not, retry ONCE with the same parameters.
+    If still not 'installed' after retry, stop and report:
+      "STEP 8 FAILED: wheelchocks installation did not complete.
+       Raw response: [wheels_chocks_installation_status]"
+  - VALIDATION — ACU: acu_connection_status MUST contain 'connected'.
+    If not, retry ONCE with the same parameters.
+    If still not 'connected' after retry, stop and report:
+      "STEP 8 FAILED: ACU could not be connected.
+       Raw response: [acu_connection_status]"
+  - VALIDATION — GPU: gpu_connection_status MUST contain 'connected'.
+    If not, retry ONCE with the same parameters.
+    If still not 'connected' after retry, stop and report:
+      "STEP 8 FAILED: GPU could not be connected.
+       Raw response: [gpu_connection_status]"
+  - Do NOT proceed to STEP 9 until all three statuses are confirmed:
+      wheels_chocks_installation_status contains 'installed'
+      acu_connection_status contains 'connected'
+      gpu_connection_status contains 'connected'
 
 STEP 9 - Connect deplaning equipment (jetbridge or stairtruck)
   - Check deplaning_equipment_type from your working context (set at STEP 3):
@@ -430,6 +461,7 @@ STEP 9 - Connect deplaning equipment (jetbridge or stairtruck)
       flight_number, aircraft_type, flight_status, gate_id,
       acu_connection_status, gpu_connection_status,
       wheels_chocks_installation_status, deplaning_equipment_type,
+      task_id='STEP_9_CONNECT_DEPLANING_EQUIPMENT',
       instruction=<determined above>
   - ALL parameters MUST be passed as named key-value pairs.
   - Wait for response.
@@ -574,6 +606,7 @@ STEP 15 - Cabin cleaning
       flight_number, aircraft_type, flight_status, gate_id,
       passenger_disembarkation_status, crew_exit_status,
       baggage_unload_status,
+      task_id='STEP_15_CABIN_CLEANING',
       instruction='Clean the aircraft cabin.'
   - ALL parameters MUST be passed as named key-value pairs.
     Do NOT pass them as a positional list or as a single instruction string.
@@ -601,6 +634,7 @@ STEP 16 - Lavatory servicing
       flight_number, aircraft_type, flight_status, gate_id,
       passenger_disembarkation_status, crew_exit_status,
       baggage_unload_status,
+      task_id='STEP_16_LAVATORY_SERVICE',
       instruction='Service the aircraft lavatory.'
   - ALL parameters MUST be passed as named key-value pairs.
     Do NOT pass them as a positional list or as a single instruction string.
@@ -608,6 +642,12 @@ STEP 16 - Lavatory servicing
     omitting them causes lavatory_service_status to return None.
   - Wait for response.
   - Extract and store: lavatory_service_status.
+  - VALIDATION: lavatory_service_status MUST contain 'completed'.
+    If not, retry ONCE with the same parameters.
+    If still not 'completed' after retry, stop and report:
+      "STEP 16 FAILED: lavatory service did not complete.
+       Raw response: [lavatory_service_status]"
+  - Do NOT proceed to STEP 17 unless lavatory_service_status contains 'completed'.
 
 STEP 17 - Catering loading
   - CRITICAL: Parameters MUST be passed as individual named key-value pairs —
@@ -618,11 +658,19 @@ STEP 17 - Catering loading
       flight_number, aircraft_type, flight_status, gate_id,
       passenger_disembarkation_status, crew_exit_status,
       baggage_unload_status,
+      task_id='STEP_17_CATERING_LOADING',
       instruction='Load catering supplies.'
   - ALL parameters MUST be passed as named key-value pairs.
     Do NOT pass them as a positional list or as a single instruction string.
   - Wait for response.
   - Extract and store: catering_loading_status.
+  - VALIDATION: catering_loading_status MUST contain 'completed'.
+    If the sub-agent returns 'not relevant' or catering_loading_status is missing or
+    does not contain 'completed', retry ONCE with the same parameters.
+    If still not 'completed' after retry, stop and report:
+      "STEP 17 FAILED: catering loading did not complete.
+       Raw response: [catering_loading_status]"
+  - Do NOT proceed to STEP 18 unless catering_loading_status contains 'completed'.
 
 STEP 18 - Inspection and maintenance
   - Call /AirlineTurnaround/aircraft_ground_operation with named parameters:

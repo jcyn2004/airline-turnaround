@@ -12,7 +12,7 @@
     },
 
     "llm_config": {
-        "model_name": "gpt-5.4-mini", #"gpt-4o", # "claude-haiku-4-5-20251001", #"claude-sonnet-4-6", #
+model_name = "gpt-5.4-mini" # "claude-sonnet-4-6" # "claude-haiku-4-5" #"gpt-4o", # "claude-haiku-4-5-20251001", #"claude-sonnet-4-6", #
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -158,7 +158,15 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                         "deplaning_equipment_score": {
                             "type": "string", 
                             "description": "This is the score of deplaning equipment computed by a deterministic tool. "
-                        },    
+                        },
+                        "task_id": {
+                            "type": "string",
+                            "description": "Routing token. STEP_3_GATE_ASSIGNMENT → BRANCH A. STEP_9_CONNECT_DEPLANING_EQUIPMENT → BRANCH B. Must be echoed back in every return summary."
+                        },
+                        "instruction": {
+                            "type": "string",
+                            "description": "Explicit instruction from the caller. Used as fallback routing when task_id is absent."
+                        },
                     }, 
                     "required": ["aircraft_type","flight_number"] 
                 }
@@ -173,13 +181,19 @@ branch, execute every step in order. Do NOT return until you reach
 the RETURN SUMMARY of the matched branch.
 
 ─────────────────────────────────────────────────────────────
-ROUTING — read the full inquiry and match PRIMARY INTENT.
+ROUTING — check task_id FIRST, then instruction, then inquiry text.
 ─────────────────────────────────────────────────────────────
-If the inquiry is not about gate assignment or jetbridge connection,
-reply you are not relevant and stop.
+STEP 0 — Routing (mandatory, always executed first):
+  If task_id contains 'GATE_ASSIGNMENT'             → BRANCH A. NEVER return not relevant.
+  If task_id contains 'CONNECT_DEPLANING_EQUIPMENT' → BRANCH B. NEVER return not relevant.
+  If task_id is absent or does not match, fall back to instruction/inquiry text:
+    instruction or inquiry contains 'assign', 'select', 'gate'  → BRANCH A
+    instruction or inquiry contains 'connect', 'jetbridge', 'stairtruck' → BRANCH B
+  If no match at all, reply you are not relevant and stop.
+  A task_id is an explicit dispatch — NEVER return not relevant when task_id is present.
 
 BRANCH A — Gate assignment
-  Triggers: inquiry asks to assign a gate, select a gate, or find
+  Triggers: task_id contains 'GATE_ASSIGNMENT', OR inquiry asks to assign a gate, select a gate, or find
   a parking gate for the aircraft.
 
   STEP 1 — Execute gate assignment
@@ -203,13 +217,16 @@ BRANCH A — Gate assignment
     ** deplaning equipment score          **: [deplaning_equipment_score]
 
 BRANCH B — Jetbridge or stairtruck connection
-  Triggers: inquiry asks to connect the jetbridge or stairtruck, or
+  Triggers: task_id contains 'CONNECT_DEPLANING_EQUIPMENT', OR inquiry asks to connect the jetbridge or stairtruck, or
   the instruction contains "Connect the jetbridge" or
   "Connect the stairtruck", or the instruction is "Connect the
   deplaning equipment."
+  CRITICAL: If task_id contains 'CONNECT_DEPLANING_EQUIPMENT', execute this branch immediately.
+  Do NOT fall through to BRANCH A. Do NOT return not relevant.
 
   STEP 1 — Determine deplaning equipment type
-    Read deplaning_equipment_type from sly_data via TrackerAPI.
+    First check deplaning_equipment_type from the incoming parameters.
+    If not present, read deplaning_equipment_type from sly_data via TrackerAPI.
     If deplaning_equipment_type contains 'jetway' or 'jetbridge':
       Go to STEP 2A.
     If deplaning_equipment_type contains 'stairtruck' or 'stair':
@@ -238,6 +255,7 @@ BRANCH B — Jetbridge or stairtruck connection
     ***********************************
     * Summary of jetbridge connection *
     ***********************************
+    ** task_id                        **: [task_id]
     ** flight_status                  **: [flight_status]
     ** acu_connection_status          **: [acu_connection_status]
     ** gpu_connection_status          **: [gpu_connection_status]
@@ -248,6 +266,7 @@ BRANCH B — Jetbridge or stairtruck connection
     ************************************
     * Summary of stairtruck connection *
     ************************************
+    ** task_id                        **: [task_id]
     ** flight_status                  **: [flight_status]
     ** acu_connection_status          **: [acu_connection_status]
     ** gpu_connection_status          **: [gpu_connection_status]

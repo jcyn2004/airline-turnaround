@@ -13,7 +13,7 @@
     },
 
     "llm_config": {
-        "model_name": "gpt-5.4-mini", #"gpt-4o", # "claude-haiku-4-5-20251001", #"claude-sonnet-4-6", #
+model_name = "gpt-5.4-mini" # "claude-sonnet-4-6" # "claude-haiku-4-5" #"gpt-4o", # "claude-haiku-4-5-20251001", #"claude-sonnet-4-6", #
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -105,13 +105,17 @@ You may receive parameters in two formats. Before doing anything else, check the
 If you receive FORMAT B, extract the object inside args[0] and treat it exactly as FORMAT A.
 Do NOT process args as a list — unwrap it and work with the inner object's fields directly.
 
-CRITICAL — INSTRUCTION ROUTING:
-You will receive an "instruction" field that determines which branch to execute.
-Read the instruction field FIRST and route immediately:
+CRITICAL — ROUTING (task_id FIRST, then instruction):
+Check task_id BEFORE reading the instruction or inquiry text. Route immediately:
+  task_id contains 'CABIN_CLEANING'   → execute step 3 (cabin cleaning). NEVER return not relevant.
+  task_id contains 'LAVATORY_SERVICE' → execute step 4 (lavatory service). NEVER return not relevant.
+  task_id contains 'CATERING_LOADING' → execute step 5 (catering loading). NEVER return not relevant.
+If task_id is not present or does not match, fall back to the instruction field:
   instruction contains 'clean'    → execute step 3 (cabin cleaning)
   instruction contains 'lavatory' → execute step 4 (lavatory service)
   instruction contains 'catering' → execute step 5 (catering loading)
-Do NOT ask for clarification if the instruction field is present — route and execute directly.
+Do NOT ask for clarification if task_id or instruction field is present — route and execute directly.
+Do NOT return 'not relevant' when task_id is present. A task_id is an explicit dispatch — always execute.
 
 When user submits inquiry for cabin services, proceed as follows:
 1. Read the inquiry and determine if it is about cabin services such as lavatory service, cabin cleaning, and catering loading.
@@ -120,55 +124,67 @@ When user submits inquiry for cabin services, proceed as follows:
 2. If you can not fulfill the inquiry and your down-chain agents can not provide the information you need to fulfill the inquiry, return to user that you can not fulfill the inquiry due to insufficient information and stop process here. 
 3. If the inquiry is about cabin cleaning 
     a. call the relevant down-chain agent to request cabin cleaning 
-    b. wait for the response 
-    c. Call TrackerAPI 
-        i. wait for its response 
-        ii.store all the available parameters.
-    d. Provide the aircraft cabin cleaning summary as:
+    b. wait for the response and extract cabin_cleaning_status
+    c. VALIDATION: cabin_cleaning_status MUST contain 'completed'.
+       If not, retry once with the same parameters.
+       If still not 'completed' after retry, report failure and stop.
+    d. Call TrackerAPI with cabin_cleaning_status=[confirmed value from step 3b] to store the result.
+       Do NOT read cabin_cleaning_status back from TrackerAPI — pass the confirmed value explicitly.
+       Wait for its response.
+    e. Provide the aircraft cabin cleaning summary as:
         **************************************
         * Summary of aircraft cabin cleaning *
         **************************************
+        ** task_id **: [task_id]
         ** cabin cleaning summary **: 
         ** flight number **: [flight_number]
         ** aircraft type **: [aircraft_type]    
         ** flight status **: [flight_status]
         ** gate id **: [gate_id]
         ** cabin cleaning status **: [cabin_cleaning_status]
-    e. stop process here.
+    f. stop process here.
 
 4. If the inquiry is about lavatory service 
     a. call the relevant down-chain agent to request lavatory service 
-    b. wait for the response 
-    c. Call TrackerAPI 
-        i. wait for its response 
-        ii.store all the available parameters.
-    d. Provide the aircraft lavatory service summary as:
+    b. wait for the response and extract lavatory_service_status
+    c. VALIDATION: lavatory_service_status MUST contain 'completed'.
+       If not, retry once with the same parameters.
+       If still not 'completed' after retry, report failure and stop.
+    d. Call TrackerAPI with lavatory_service_status=[confirmed value from step 4b] to store the result.
+       Do NOT read lavatory_service_status back from TrackerAPI — pass the confirmed value explicitly.
+       Wait for its response.
+    e. Provide the aircraft lavatory service summary as:
         ****************************************
         * Summary of aircraft lavatory service *
         ****************************************
+        ** task_id **: [task_id]
         ** flight number **: [flight_number]
         ** aircraft_type **: [aircraft_type]
         ** flight_status **: [flight_status]
         ** gate_id **: [gate_id]
         ** lavatory service status **: [lavatory_service_status]
-    e. stop process here.
+    f. stop process here.
 
 5. If the inquiry is about catering loading 
     a. call the relevant down-chain agent to request catering loading 
-    b. wait for the response 
-    c. Call TrackerAPI 
-        i. wait for its response 
-        ii.store all the available parameters.
-    d. Provide the aircraft catering loading summary as:
+    b. wait for the response and extract catering_loading_status
+    c. VALIDATION: catering_loading_status MUST contain 'completed'.
+       If not, retry once with the same parameters.
+       If still not 'completed' after retry, report failure and stop.
+    d. Call TrackerAPI with catering_loading_status=[confirmed value from step 5b] to store the result.
+       Do NOT read catering_loading_status back from TrackerAPI — pass the confirmed value explicitly.
+       Wait for its response.
+    e. Provide the aircraft catering loading summary as:
         ****************************************
         * Summary of aircraft catering loading *
         ****************************************
+        ** task_id **: [task_id]
         ** flight number **: [flight_number]
         ** aircraft type **: [aircraft_type]
         ** flight status **: [flight_status]
         ** gate id **: [gate_id]
         ** catering loading service summary **: [catering_loading_status]
-    e. stop process here.
+    f. stop process here.
             """ ${aaosa_instructions},   
 
             "parameters": {
@@ -201,6 +217,10 @@ When user submits inquiry for cabin services, proceed as follows:
                     "baggage_unload_status": {
                         "type": "string",
                         "description": "This is the baggage unload status."
+                    },
+                    "task_id": {
+                        "type": "string",
+                        "description": "Correlation token supplied by the caller. Routing: STEP_15_CABIN_CLEANING → cabin cleaning, STEP_16_LAVATORY_SERVICE → lavatory service, STEP_17_CATERING_LOADING → catering loading. Must be echoed back unchanged in every response summary."
                     },
                     "instruction": {
                         "type": "string",
