@@ -275,4 +275,10 @@ coded_tools/AirlineTurnaround/aircraft_cleaning_procedure/url_provider.py
 coded_tools/AirlineTurnaround/aircraft_cleaning_procedure/webpage_reader.py
 registries/AirlineTurnaround/aircraft_cleaning_procedure.hocon
 
+# debug codes
+debug_code.py
+patch_debug.py
+patch_debug_old1.py
+patch_debug_old2.py
+
 
