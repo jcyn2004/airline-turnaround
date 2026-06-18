@@ -16,7 +16,7 @@ The class docstring in the Python file explicitly states: *"Mirrors jetbridge_op
 
 The network combines:
 
-- An LLM-based orchestration agent (`stairtruck_connect_agent`) using the `CRITICAL: sequential executor` / `STEP` pattern
+- An LLM-based orchestration agent (`aircraft_stairtruck_connect_agent`) using the `CRITICAL: sequential executor` / `STEP` pattern
 - One coded execution tool (`stairtruck_operator`) implemented in Python
 - A shared state manager (`TrackerAPI`) also implemented in Python
 - Two external tool references (`aircraft_ground_acu_connect`, `aircraft_ground_gpu_connect`) resolved from the shared registry `registries/aaosa_basic.hocon`
@@ -41,7 +41,7 @@ registries/aaosa_basic.hocon         # Shared registry (aircraft_ground_acu_conn
 User / Caller
    │
    ▼
-stairtruck_connect_agent  (LLM Orchestrator — STEP pattern)
+aircraft_stairtruck_connect_agent  (LLM Orchestrator — STEP pattern)
    │
    ├── TrackerAPI                                        (Coded tool: read/write turnaround state via sly_data)
    │
@@ -78,7 +78,7 @@ Identical to `aircraft_jetbridge_connect`:
 
 ## 5. Components
 
-### 5.1 stairtruck_connect_agent (LLM Orchestrator)
+### 5.1 aircraft_stairtruck_connect_agent (LLM Orchestrator)
 
 The entry-point agent. It reads all parameters from TrackerAPI, validates flight status and equipment prerequisites, resolves ACU/GPU via external networks if needed, calls the stairtruck operator, persists the result, and returns the summary.
 
@@ -295,7 +295,7 @@ and wheelchocks have been installed. Connect the stairtruck."
 
 | Aspect                                              | `aircraft_jetbridge_connect`  | `aircraft_stairtruck_connect`                                               |
 |-----------------------------------------------------|-------------------------------|-----------------------------------------------------------------------------|
-| Entry agent name                                    | `jetbridge_connect_agent`     | `stairtruck_connect_agent`                                                  |
+| Entry agent name                                    | `jetbridge_connect_agent`     | `aircraft_stairtruck_connect_agent`                                                  |
 | Operator name                                       | `jetbridge_operator`          | `stairtruck_operator`                                                       |
 | Output status field                                 | `jetbridge_connection_status` | `stairtruck_connection_status`                                              |
 | Initial status value                                | `'retracted'`                 | `'retracted'`                                                               |

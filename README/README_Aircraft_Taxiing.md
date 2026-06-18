@@ -14,7 +14,7 @@
 
 The network combines:
 
-- `aircraft_taxi_manager` — LLM orchestrator; entry point, coordinates all four steps
+- `aircraft_taxi_agent` — LLM orchestrator; entry point, coordinates all four steps
 - `aircraft_taxiing_agent` — HOCON name for the coded class `execute_aircraft_taxiing`
 - `execute_aircraft_taxiing` — coded tool; normalises flight_status and sets `'on blocks'` on successful taxiing
 - `TrackerAPI` — coded tool with extended `_normalise_field` logic for flight_status canonicalisation
@@ -22,7 +22,7 @@ The network combines:
 
 A comment in the Python file (line 30) dates the current implementation to post-20260123, noting it addresses "inconsistent behaviour of the previous version."
 
-> **Important note on previous documentation:** The old doc described a flat `aircraft_taxiing_agent` → `taxiing_operator` structure. The actual entry point is `aircraft_taxi_manager`. There is no `taxiing_operator`, no `taxi_status` field, no `assigned_route`, and no conflict detection. The network's core innovation is `flight_status` normalisation, which the old doc did not mention at all.
+> **Important note on previous documentation:** The old doc described a flat `aircraft_taxiing_agent` → `taxiing_operator` structure. The actual entry point is `aircraft_taxi_agent`. There is no `taxiing_operator`, no `taxi_status` field, no `assigned_route`, and no conflict detection. The network's core innovation is `flight_status` normalisation, which the old doc did not mention at all.
 
 ---
 
@@ -42,7 +42,7 @@ registries/aaosa_basic.hocon        # Shared registry (aircraft_ground_traffic, 
 User / Caller
    │
    ▼
-aircraft_taxi_manager  (LLM Orchestrator — STEP pattern — entry point)
+aircraft_taxi_agent  (LLM Orchestrator — STEP pattern — entry point)
    │
    ├── TrackerAPI                                      (Coded tool: normalising sly_data-first state management)
    │
@@ -70,11 +70,11 @@ aircraft_taxi_manager  (LLM Orchestrator — STEP pattern — entry point)
 
 ## 5. Components
 
-### 5.1 aircraft_taxi_manager (LLM Orchestrator — Entry Point)
+### 5.1 aircraft_taxi_agent (LLM Orchestrator — Entry Point)
 
 The top-level agent. It verifies flight status, obtains ground clearance, checks ground equipment readiness, then delegates the actual taxiing to `aircraft_taxiing_agent` (the coded tool).
 
-> Note: The true entry point is `aircraft_taxi_manager`. `aircraft_taxiing_agent` in the HOCON is the name given to the coded tool `execute_aircraft_taxiing` — not an LLM orchestrator. The previous documentation called the orchestrator `aircraft_taxiing_agent`, which now names the coded tool.
+> Note: The true entry point is `aircraft_taxi_agent`. `aircraft_taxiing_agent` in the HOCON is the name given to the coded tool `execute_aircraft_taxiing` — not an LLM orchestrator. The previous documentation called the orchestrator `aircraft_taxiing_agent`, which now names the coded tool.
 
 #### Input parameters
 
@@ -215,9 +215,9 @@ The docstring explains: *"the taxiing coded tool sets flight_status='on blocks' 
 
 **Return fields:** Identical to tracked fields (all 11 returned).
 
-> Note: The TrackerAPI HOCON schema includes `wheels_chocks_installation_status`, which is not declared on the `aircraft_taxi_manager` or `aircraft_taxiing_agent` parameter schemas and is not present in any sly_data allow block.
+> Note: The TrackerAPI HOCON schema includes `wheels_chocks_installation_status`, which is not declared on the `aircraft_taxi_agent` or `aircraft_taxiing_agent` parameter schemas and is not present in any sly_data allow block.
 
-> Note: `aircraft_direction` appears in the `aircraft_taxi_manager` `to_downstream` and `to_upstream` sly_data allow blocks but is absent from the TrackerAPI parameter schema and from all agent parameter schemas — no producer is defined in this network.
+> Note: `aircraft_direction` appears in the `aircraft_taxi_agent` `to_downstream` and `to_upstream` sly_data allow blocks but is absent from the TrackerAPI parameter schema and from all agent parameter schemas — no producer is defined in this network.
 
 > Note: Class-level `print()` statements at lines 369–375 execute at **import time** — banner `"TRACKER API CALLED FOR AIRCRAFT TAXIING"` prints once on module load.
 
@@ -240,7 +240,7 @@ All locations in this network use the single field name `wheels_chocks_readiness
 
 | Location                                                                | Field name used                  |
 |-------------------------------------------------------------------------|----------------------------------|
-| `aircraft_taxi_manager` agent schema                                    | `wheels_chocks_readiness_status` |
+| `aircraft_taxi_agent` agent schema                                    | `wheels_chocks_readiness_status` |
 | `aircraft_taxiing_agent` (`execute_aircraft_taxiing`) schema `required` | `wheels_chocks_readiness_status` |
 | TrackerAPI Python tracked/return fields                                 | `wheels_chocks_readiness_status` |
 | TrackerAPI HOCON schema                                                 | `wheels_chocks_readiness_status` |
@@ -298,10 +298,10 @@ are ready. Please taxi the plane to gate A1."
 
 | Issue                                                                                             | Location                                                          | Severity | Notes                                                                                                                                                                |
 |---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|:--------:|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Agent name mismatch with prior documentation                                                      | `aircraft_taxiing.hocon` lines 88, 278                            |   Low    | Entry point is `aircraft_taxi_manager`; prior doc called the orchestrator `aircraft_taxiing_agent`. That name now refers to the coded tool wrapper.                  |
+| Agent name mismatch with prior documentation                                                      | `aircraft_taxiing.hocon` lines 88, 278                            |   Low    | Entry point is `aircraft_taxi_agent`; prior doc called the orchestrator `aircraft_taxiing_agent`. That name now refers to the coded tool wrapper.                  |
 | Class-level `print()` in `execute_aircraft_taxiing`                                               | `aircraft_taxiing.py` lines 38–44                                 |   Low    | Executes at import time, not per invocation. Banner prints once on module load.                                                                                      |
 | Class-level `print()` in `TrackerAPI`                                                             | `aircraft_taxiing.py` lines 369–375                               |   Low    | Same issue — prints at module load.                                                                                                                                  |
-| `aircraft_direction` allowed in manager sly_data but no producer defined                          | `aircraft_taxiing.hocon` lines 214, 229                           |   Low    | Field appears in `to_downstream`/`to_upstream` allow blocks of `aircraft_taxi_manager` but is not in any agent or TrackerAPI parameter schema.                       |
+| `aircraft_direction` allowed in manager sly_data but no producer defined                          | `aircraft_taxiing.hocon` lines 214, 229                           |   Low    | Field appears in `to_downstream`/`to_upstream` allow blocks of `aircraft_taxi_agent` but is not in any agent or TrackerAPI parameter schema.                       |
 | `wheels_chocks_installation_status` on TrackerAPI but nowhere else                                | `aircraft_taxiing.hocon` line 317                                 |   Low    | Tracked by TrackerAPI parameter schema but absent from agent parameter schemas and from all sly_data allow blocks.                                                   |
 | Ground equipment readiness is non-blocking (by design)                                            | `aircraft_taxiing.hocon` STEP 3                                   |   Info   | ACU/GPU/chocks not-ready does not prevent taxiing. This is a documented design decision. Consider whether it aligns with operational requirements.                   |
 | `'block'` substring in STEP 1 and normalisation                                                   | `aircraft_taxiing.hocon` line 150; `aircraft_taxiing.py` line 125 |   Low    | Matches `"unblocked"`, `"roadblock"`, etc. The canonical normalisation mitigates most risk by mapping first-match.                                                   |
@@ -313,7 +313,7 @@ are ready. Please taxi the plane to gate A1."
 
 | Aspect                        | Old documentation        | Actual implementation                                            |
 |-------------------------------|--------------------------|------------------------------------------------------------------|
-| Entry-point agent name        | `aircraft_taxiing_agent` | `aircraft_taxi_manager`                                          |
+| Entry-point agent name        | `aircraft_taxiing_agent` | `aircraft_taxi_agent`                                          |
 | Coded tool name               | `taxiing_operator`       | `execute_aircraft_taxiing`                                       |
 | Output field                  | `taxi_status`            | `flight_status` (updated to `'on blocks'`)                       |
 | Conflict detection            | Described                | Does not exist                                                   |

@@ -40,7 +40,7 @@ registries/aaosa_basic.hocon # Shared registry (all leaf networks)
 aircraft_turnaround_manager  (caller — STEPs 1, 2, 5, 6, 7, 10, 11, 13, 14)
    │
    ▼
-flight_crew_agent  (LLM 9-branch Orchestrator — task_id-first routing)
+aircraft_crew_pilot  (LLM 9-branch Orchestrator — task_id-first routing)
    │
    ├── TrackerAPI                                        (Coded tool: normalising, evicting sly_data manager)
    │
@@ -86,7 +86,7 @@ This is why every task_id-driven branch uses `task_id`-priority routing, and why
 
 ## 6. Components
 
-### 6.1 flight_crew_agent (LLM 9-Branch Orchestrator)
+### 6.1 aircraft_crew_pilot (LLM 9-Branch Orchestrator)
 
 The single entry-point agent handling all nine turnaround steps delegated by `aircraft_turnaround_manager`.
 

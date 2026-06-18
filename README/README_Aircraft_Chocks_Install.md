@@ -38,7 +38,7 @@ registries/aaosa_basic.hocon         # Shared registry (included but no external
 User / Caller
    │
    ▼
-wheels_chocks_agent  (LLM Orchestrator)
+aircraft_wheels_chocks_agent  (LLM Orchestrator)
    │
    ├── TrackerAPI                  (Coded tool: read/write turnaround state via sly_data)
    │
@@ -67,7 +67,7 @@ wheels_chocks_agent  (LLM Orchestrator)
 
 ## 5. Components
 
-### 5.1 wheels_chocks_agent (LLM Orchestrator)
+### 5.1 aircraft_wheels_chocks_agent (LLM Orchestrator)
 
 The entry-point agent. It reads flight state, enforces the on-blocks prerequisite, calls the operator, and returns the summary.
 

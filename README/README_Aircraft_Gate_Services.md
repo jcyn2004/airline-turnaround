@@ -13,7 +13,7 @@
 `aircraft_gate_services` is one of the four aggregation networks called directly by `aircraft_turnaround_manager`. It handles the two gate-related steps in the turnaround sequence — STEP 3 (gate assignment) and STEP 9 (deplaning equipment connection). Each call executes exactly one branch determined by the primary intent of the inquiry.
 
 The network combines:
-- `gate_crew_agent` — a single LLM routing agent with two branches and two sub-paths in BRANCH B
+- `aircraft_gate_services` — a single LLM routing agent with two branches and two sub-paths in BRANCH B
 - `TrackerAPI` — standard sly_data-first coded state manager
 - Three external leaf networks resolved from `registries/aaosa_basic.hocon`
 
@@ -37,7 +37,7 @@ registries/aaosa_basic.hocon     # Shared registry (leaf networks)
 aircraft_turnaround_manager  (caller — STEPs 3 and 9)
    |
    v
-gate_crew_agent  (LLM Router — primary-intent routing)
+aircraft_gate_services  (LLM Router — primary-intent routing)
    |
    |-- TrackerAPI                                        (Coded tool: sly_data-first state management)
    |
@@ -64,7 +64,7 @@ gate_crew_agent  (LLM Router — primary-intent routing)
 
 ## 5. Components
 
-### 5.1 gate_crew_agent (LLM Router)
+### 5.1 aircraft_gate_services (LLM Router)
 
 The single entry-point agent. It reads the full inquiry and matches PRIMARY INTENT to determine which branch executes.
 
@@ -288,7 +288,7 @@ and wheelchocks have been installed. Connect the jet bridge."
 
 | Aspect                | `aircraft_gate_services`                              | `aircraft_cabin_services`   | `aircraft_ground_operation`                    |
 |-----------------------|-------------------------------------------------------|-----------------------------|------------------------------------------------|
-| Entry agent name      | `gate_crew_agent`                                     | `cabin_services`            | *(not yet documented)*                         |
+| Entry agent name      | `aircraft_gate_services`                                     | `cabin_services`            | *(not yet documented)*                         |
 | Routing discriminant  | Primary intent of inquiry                             | `instruction`               | `instruction`                                  |
 | Number of branches    | 2 (A: assignment; B: connection with 2A/2B sub-paths) | 3 (clean/lavatory/catering) | 3+ (readiness/ramp/baggage/inspection/fueling) |
 | TrackerAPI usage      | Yes — used to resolve `deplaning_equipment_type`      | No                          | Yes — multiple steps                           |

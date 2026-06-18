@@ -14,7 +14,7 @@
 
 The network combines:
 
-- An LLM-based orchestration agent (`jetbridge_connect_agent`) using the modern `CRITICAL: sequential executor` / `STEP` pattern
+- An LLM-based orchestration agent (`aircraft_jetbridge_connect_agent`) using the modern `CRITICAL: sequential executor` / `STEP` pattern
 - One coded execution tool (`jetbridge_operator`) implemented in Python
 - A shared state manager (`TrackerAPI`) also implemented in Python
 - Two external tool references (`aircraft_ground_acu_connect`, `aircraft_ground_gpu_connect`) resolved from the shared registry `registries/aaosa_basic.hocon`
@@ -37,7 +37,7 @@ registries/aaosa_basic.hocon        # Shared registry (aircraft_ground_acu_conne
 User / Caller
    │
    ▼
-jetbridge_connect_agent  (LLM Orchestrator — STEP pattern)
+aircraft_jetbridge_connect_agent  (LLM Orchestrator — STEP pattern)
    │
    ├── TrackerAPI                                         (Coded tool: read/write turnaround state via sly_data)
    │
@@ -72,11 +72,11 @@ jetbridge_connect_agent  (LLM Orchestrator — STEP pattern)
 
 ## 5. Components
 
-### 5.1 jetbridge_connect_agent (LLM Orchestrator)
+### 5.1 aircraft_jetbridge_connect_agent (LLM Orchestrator)
 
 The entry-point agent. It reads all parameters from TrackerAPI, validates flight status and equipment prerequisites, resolves ACU/GPU via external networks if needed, calls the jetbridge operator, persists the result, and returns the summary.
 
-> Note: The agent is named `jetbridge_connect_agent` in the HOCON. The previous documentation referred to it as `aircraft_jetbridge_connect_agent`.
+> Note: The agent is named `aircraft_jetbridge_connect_agent` in the HOCON. The previous documentation referred to it as `aircraft_aircraft_jetbridge_connect_agent`.
 
 #### Input parameters
 

@@ -41,7 +41,7 @@ registries/aaosa_basic.hocon         # Shared registry (aircraft_jetbridge_conne
 User / Caller
    │
    ▼
-crew_debrief_agent  (LLM Orchestrator)
+aircraft_crew_debrief_agent  (LLM Orchestrator)
    │
    ├── TrackerAPI                                       (Coded tool: read/write turnaround state via sly_data)
    │
@@ -78,7 +78,7 @@ crew_debrief_agent  (LLM Orchestrator)
 
 ## 5. Components
 
-### 5.1 crew_debrief_agent (LLM Orchestrator)
+### 5.1 aircraft_crew_debrief_agent (LLM Orchestrator)
 
 The entry-point agent. It parses the user inquiry, enforces equipment-access prerequisites, delegates prerequisite resolution to external networks, executes the debrief, and returns the final summary.
 

@@ -15,7 +15,7 @@
     },
 
     "llm_config": {
-model_name = "gpt-5.4-mini" # "claude-sonnet-4-6" # "claude-haiku-4-5"
+        model_name = "gpt-5.4-mini"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
     },
     "max_iterations": 40000,
     "max_execution_seconds": 7200,
@@ -90,7 +90,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
     "tools": [
 
         {
-            "name": "flight_crew_agent",
+            "name": "aircraft_crew_pilot",
             "function": {
                 "description": """
 I am in charge of operating the aircraft in all phases of flight including:
@@ -189,6 +189,13 @@ the matched branch.
 
 MANDATORY ECHO RULE: Every response MUST include:
   ** task_id **: [echo unchanged, or NONE if not provided]
+
+RESPONSE FORMAT — STRICT:
+  Return ONLY the structured RETURN SUMMARY block defined at the end of each branch.
+  Do NOT add explanatory prose, markdown headers (##, **), bullet points,
+  emoji, or conversational text before or after the summary block.
+  The summary block starts with the *** banner line and ends with the last ** field **.
+  Nothing else should appear in your response.
 
 ─────────────────────────────────────────────────────────────
 ROUTING — read the full inquiry and match PRIMARY INTENT.
@@ -494,11 +501,9 @@ BRANCH G — Open the aircraft door  (cabin crew — under pilot authority)
 BRANCH H — Disembark passengers  (cabin crew — under pilot authority)
   ROUTING PRIORITY: Check task_id FIRST before reading the inquiry text.
   Triggers (ANY of — evaluated in this order):
-  1. task_id = 'STEP_11_PAX_DISEMBARKATION' → USE THIS BRANCH IMMEDIATELY. 
-     Do NOT evaluate BRANCH I or any other branch.
-  2. task_id contains 'PAX_DISEMBARKATION' → USE THIS BRANCH IMMEDIATELY
-  3. instruction contains 'disembark passengers' or 'passenger disembarkation'
-  4. inquiry asks to disembark passengers
+  1. task_id contains 'PAX_DISEMBARKATION' → USE THIS BRANCH IMMEDIATELY
+  2. instruction contains 'disembark passengers' or 'passenger disembarkation'
+  3. inquiry asks to disembark passengers
   NOTE: When task_id='STEP_11_PAX_DISEMBARKATION' is present, this branch
   MUST execute. It is never irrelevant when this task_id is present.
   CRITICAL: Once you match BRANCH H, execute ONLY the steps below.
@@ -562,9 +567,6 @@ BRANCH I — Crew debrief  (cabin crew — under pilot authority)
   MUST execute. It is never irrelevant when this task_id is present.
 
   STEP 1 — Resolve and verify prerequisites
-    CRITICAL: If task_id contains 'PAX_DISEMBARKATION', you are in the
-    wrong branch. Stop immediately and re-evaluate routing from BRANCH H.
-    Do NOT proceed with BRANCH I when task_id contains 'PAX_DISEMBARKATION'.
     Call TrackerAPI with flight_number, aircraft_type, flight_status,
     gate_id, door_opening_status, passenger_disembarkation_status,
     baggage_unload_status, jetbridge_connection_status,

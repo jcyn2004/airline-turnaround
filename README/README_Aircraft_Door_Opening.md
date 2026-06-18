@@ -39,7 +39,7 @@ registries/aaosa_basic.hocon         # Shared registry (aircraft_jetbridge_conne
 User / Caller  (or upstream network: aircraft_disembark, aircraft_baggage_unload, etc.)
    │
    ▼
-door_opening_agent  (LLM Orchestrator)
+aircraft_door_opening_agent  (LLM Orchestrator)
    │
    ├── TrackerAPI                                       (Coded tool: read/write turnaround state via sly_data)
    │
@@ -74,7 +74,7 @@ door_opening_agent  (LLM Orchestrator)
 
 ## 5. Components
 
-### 5.1 door_opening_agent (LLM Orchestrator)
+### 5.1 aircraft_door_opening_agent (LLM Orchestrator)
 
 The entry-point agent. It resolves prerequisites sequentially, enforces the on-blocks gate, connects the appropriate deplaning equipment if needed (one attempt only), opens the door, and returns the summary.
 

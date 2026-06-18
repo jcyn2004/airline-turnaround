@@ -12,7 +12,7 @@
     },
 
     "llm_config": {
-model_name = "gpt-5.4-mini" # "claude-sonnet-4-6" # "claude-haiku-4-5"
+        model_name = "gpt-5.4-mini"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
     },
     "max_iterations": 50000,
     "max_execution_seconds": 7200,
@@ -87,7 +87,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
     "tools": [
 
         {
-            "name": "ground_rampservices",
+            "name": "aircraft_ground_rampservices",
             "function": {
                 "description": """
 I perform ALL ground ramp services during aircraft turnaround, including
@@ -167,6 +167,13 @@ services" or similar), execute the FULL SEQUENCE below.
 If the inquiry is for a single specific task only, execute only that task.
 
 FULL SEQUENCE (execute in this exact order, waiting after each step):
+RESPONSE FORMAT — STRICT:
+  Return ONLY the structured RETURN SUMMARY block defined at the end of the instructions.
+  Do NOT add explanatory prose, markdown headers (##, **), bullet points,
+  emoji, or conversational text before or after the summary block.
+  The summary block starts with the *** banner line and ends with the last ** field **.
+  Nothing else should appear in your response.
+
 CRITICAL: Execute ALL three steps unconditionally. Status fields in args
 will be null — this is expected and normal. Each step produces the status
 the next step conceptually depends on. Do NOT check or validate prior step

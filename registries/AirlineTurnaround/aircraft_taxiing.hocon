@@ -10,7 +10,7 @@
     },
 
     "llm_config": {
-model_name = "gpt-5.4-mini" # "claude-sonnet-4-6" # "claude-haiku-4-5"
+        model_name = "gpt-5.4-mini"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
     },
     "max_iterations": 40000,
     "max_execution_seconds": 7200,
@@ -85,7 +85,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
     "tools": [
 
         {
-            "name": "aircraft_taxi_manager",
+            "name": "aircraft_taxi_agent",
             "function": {
                 "description": """
 I am in charge of aircraft taxi in to or out of the gate at the airport.

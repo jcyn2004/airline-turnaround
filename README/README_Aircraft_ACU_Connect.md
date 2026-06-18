@@ -37,7 +37,7 @@ registries/aaosa_basic.hocon     # Shared registry (aircraft_engines_stop, aircr
 User / Caller
    │
    ▼
-acu_connect_agent  (LLM Orchestrator)
+aircraft_acu_connect_agent  (LLM Orchestrator)
    │
    ├── TrackerAPI                        (Coded tool: read/write turnaround state via sly_data)
    │
@@ -73,7 +73,7 @@ These bounds accommodate multi-step retry loops (e.g., engines stop → re-check
 
 ## 5. Components
 
-### 5.1 acu_connect_agent (LLM Orchestrator)
+### 5.1 aircraft_acu_connect_agent (LLM Orchestrator)
 
 The entry-point agent. It parses the user inquiry, enforces prerequisites, delegates operational actions, and returns the final summary.
 

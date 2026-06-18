@@ -42,7 +42,7 @@ registries/aaosa_basic.hocon     # Shared registry (leaf service networks)
 aircraft_turnaround_manager  (caller — STEPS 15, 16, 17)
    │
    ▼
-cabin_services  (LLM Router — instruction-based routing)
+aircraft_cabin_services  (LLM Router — instruction-based routing)
    │
    ├── TrackerAPI                                       (Coded tool: read/write cabin service statuses)
    │
@@ -79,7 +79,7 @@ cabin_services  (LLM Router — instruction-based routing)
 
 ## 5. Components
 
-### 5.1 cabin_services (LLM Router)
+### 5.1 aircraft_cabin_services (LLM Router)
 
 The single entry-point agent. It parses the `instruction` field, routes to the correct leaf network, calls TrackerAPI to persist the result, and returns a formatted summary.
 

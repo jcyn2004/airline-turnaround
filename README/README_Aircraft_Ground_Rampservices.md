@@ -1,8 +1,8 @@
 # Aircraft Ground Ramp Services
 ## Agentic AI Network – README
 
-> **Configuration file:** `aircraft_ground_rampservices.hocon`
-> **Implementation file:** `aircraft_ground_rampservices.py`
+> **Configuration file:** `aircraft_aircraft_ground_rampservices.hocon`
+> **Implementation file:** `aircraft_aircraft_ground_rampservices.py`
 > **Framework:** neuro-san (aaosa)
 > **Primary use case:** Execute all three ground ramp services in sequence — wheels chocks installation, ACU connection, and GPU connection — for an aircraft on blocks at the gate, after engines are stopped. Returns `wheels_chocks_installation_status`, `acu_connection_status`, and `gpu_connection_status` to the caller.
 
@@ -10,11 +10,11 @@
 
 ## 1. Overview
 
-`aircraft_ground_rampservices` is a **ramp services orchestrator** in the **AirlineTurnaround** agentic system. It sits between `aircraft_ground_operation` (its upstream router) and the three individual ground service networks (`aircraft_ground_wheels_chocks_install`, `aircraft_ground_acu_connect`, `aircraft_ground_gpu_connect`), bundling all three ramp operations into a single sequenced workflow.
+`aircraft_aircraft_ground_rampservices` is a **ramp services orchestrator** in the **AirlineTurnaround** agentic system. It sits between `aircraft_ground_operation` (its upstream router) and the three individual ground service networks (`aircraft_ground_wheels_chocks_install`, `aircraft_ground_acu_connect`, `aircraft_ground_gpu_connect`), bundling all three ramp operations into a single sequenced workflow.
 
 The network combines:
 
-- An LLM-based orchestration agent (`ground_rampservices`) that executes the three-step ramp sequence or dispatches a single task
+- An LLM-based orchestration agent (`aircraft_ground_rampservices`) that executes the three-step ramp sequence or dispatches a single task
 - A shared state manager (`TrackerAPI`) implemented in Python
 
 This network is called by `aircraft_ground_operation` at STEP 8 of the turnaround workflow, after ground readiness has been confirmed (STEP 4). It is a **mid-level orchestrator** — neither a leaf service nor a top-level manager. Its role is to abstract the three ramp operations behind a single call, so that upstream agents do not need to know the internals of each individual connection sub-network.
@@ -26,8 +26,8 @@ Two configuration values are set to the system-wide typical bounds: `max_iterati
 ## 2. Repository Structure
 
 ```
-aircraft_ground_rampservices.hocon   # Agent network configuration
-aircraft_ground_rampservices.py      # TrackerAPI implementation (sly_data-first)
+aircraft_aircraft_ground_rampservices.hocon   # Agent network configuration
+aircraft_aircraft_ground_rampservices.py      # TrackerAPI implementation (sly_data-first)
 registries/aaosa_basic.hocon         # Shared registry
 ```
 
@@ -39,7 +39,7 @@ registries/aaosa_basic.hocon         # Shared registry
 aircraft_ground_operation  (Upstream caller — BRANCH B, STEP 8)
    │
    ▼
-ground_rampservices  (LLM Orchestrator)
+aircraft_ground_rampservices  (LLM Orchestrator)
    │
    ├── TrackerAPI                                                  (Coded tool: sly_data-first state management)
    │
@@ -76,7 +76,7 @@ ground_rampservices  (LLM Orchestrator)
 
 ## 5. Components
 
-### 5.1 ground_rampservices (LLM Orchestrator)
+### 5.1 aircraft_ground_rampservices (LLM Orchestrator)
 
 The entry-point agent. It detects whether a full ramp sequence or single-task dispatch is needed, executes the appropriate flow, and returns the ramp services summary.
 
@@ -164,7 +164,7 @@ If only one task is requested, the agent calls only the relevant downstream netw
 
 ### 5.2 TrackerAPI (Coded Tool)
 
-**Class:** `AirlineTurnaround.aircraft_ground_rampservices.aircraft_ground_rampservices.TrackerAPI`
+**Class:** `AirlineTurnaround.aircraft_aircraft_ground_rampservices.aircraft_aircraft_ground_rampservices.TrackerAPI`
 
 Standard `sly_data`-first implementation. Called three times during the full-sequence workflow — once after each ramp service step to persist the resulting status into `sly_data`.
 
@@ -263,21 +263,21 @@ and wheels chocks have been installed. Connect gpu."
 
 | Issue                                                                           | Location                                          | Severity | Notes                                                                                                                                                                                  |
 |---------------------------------------------------------------------------------|---------------------------------------------------|:--------:|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Unconditional progression through all three steps                               | `aircraft_ground_rampservices.hocon` instructions |  Medium  | The instructions direct the agent to proceed through STEP 2 and STEP 3 regardless of the prior step's status value. A failure in STEP 1 will not halt subsequent attempts.             |
-| STEP 1 call target contains a stray space in the instructions                   | `aircraft_ground_rampservices.hocon` (STEP 1)     |  Medium  | The STEP 1 directive reads `aircraft_ground_wheels chocks_install` (with a space) while the registered tool name is `aircraft_ground_wheels_chocks_install`. LLM tolerance varies.     |
-| Single-task dispatch does not call TrackerAPI                                   | `aircraft_ground_rampservices.hocon` instructions |   Low    | The single-task dispatch path reports the result but does not explicitly direct a TrackerAPI log call, unlike the full-sequence path where TrackerAPI is called after each step.       |
-| Context detection relies on keyword matching for "execute ground ramp services" | `aircraft_ground_rampservices.hocon` instructions |   Low    | The full-sequence trigger includes an instruction string match. If upstream callers use different phrasing, the agent may fall into single-task dispatch mode instead of full sequence.|
+| Unconditional progression through all three steps                               | `aircraft_aircraft_ground_rampservices.hocon` instructions |  Medium  | The instructions direct the agent to proceed through STEP 2 and STEP 3 regardless of the prior step's status value. A failure in STEP 1 will not halt subsequent attempts.             |
+| STEP 1 call target contains a stray space in the instructions                   | `aircraft_aircraft_ground_rampservices.hocon` (STEP 1)     |  Medium  | The STEP 1 directive reads `aircraft_ground_wheels chocks_install` (with a space) while the registered tool name is `aircraft_ground_wheels_chocks_install`. LLM tolerance varies.     |
+| Single-task dispatch does not call TrackerAPI                                   | `aircraft_aircraft_ground_rampservices.hocon` instructions |   Low    | The single-task dispatch path reports the result but does not explicitly direct a TrackerAPI log call, unlike the full-sequence path where TrackerAPI is called after each step.       |
+| Context detection relies on keyword matching for "execute ground ramp services" | `aircraft_aircraft_ground_rampservices.hocon` instructions |   Low    | The full-sequence trigger includes an instruction string match. If upstream callers use different phrasing, the agent may fall into single-task dispatch mode instead of full sequence.|
 
 ---
 
 ## 10. Relationship to Other Networks
 
-`aircraft_ground_rampservices` is the BRANCH B target of `aircraft_ground_operation`, and itself orchestrates three leaf-level connection networks:
+`aircraft_aircraft_ground_rampservices` is the BRANCH B target of `aircraft_ground_operation`, and itself orchestrates three leaf-level connection networks:
 
 ```
 aircraft_ground_operation
    │
-   └── BRANCH B ──► aircraft_ground_rampservices  (this network)
+   └── BRANCH B ──► aircraft_aircraft_ground_rampservices  (this network)
                          │
                          ├── STEP 1 ──► aircraft_ground_wheels_chocks_install
                          │

@@ -14,7 +14,7 @@
 
 The network combines:
 
-- An LLM-based orchestration agent (`wheels_chocks_agent`) that interprets intent and drives the workflow
+- An LLM-based orchestration agent (`aircraft_ground_wheels_chocks_install_agent`) that interprets intent and drives the workflow
 - One coded execution tool (`wheels_chocks_operator`) implemented in Python
 - A shared state manager (`TrackerAPI`) also implemented in Python
 - One external tool reference (`/AirlineTurnaround/aircraft_ground_wheels_chocks_setup`) resolved from the shared registry `registries/aaosa_basic.hocon`
@@ -39,7 +39,7 @@ registries/aaosa_basic.hocon                  # Shared registry (/AirlineTurnaro
 User / Caller
    │
    ▼
-wheels_chocks_agent  (LLM Orchestrator)
+aircraft_ground_wheels_chocks_install_agent  (LLM Orchestrator)
    │
    ├── /AirlineTurnaround/aircraft_ground_wheels_chocks_setup  (External tool: verify readiness — called FIRST)
    │
@@ -74,7 +74,7 @@ wheels_chocks_agent  (LLM Orchestrator)
 
 ## 5. Components
 
-### 5.1 wheels_chocks_agent (LLM Orchestrator)
+### 5.1 aircraft_ground_wheels_chocks_install_agent (LLM Orchestrator)
 
 The entry-point agent. It first verifies wheels chocks readiness, then checks the two safety prerequisites, calls the operator, persists the result, and returns the summary.
 
@@ -217,7 +217,7 @@ Standard sly_data-first implementation. Called in step 4 to read missing prerequ
 
 The Python file `aircraft_ground_wheels_chocks_install.py` contains only active code — there is no commented-out `wheels_chocks_setup` class in the current implementation. The readiness check is fully delegated to the external `aircraft_ground_wheels_chocks_setup` network, which lives in its own HOCON (`aircraft_ground_wheels_chocks_setup.hocon`) and Python file.
 
-The HOCON file's `tools` list for `wheels_chocks_agent` contains only the three active down-chain references: `wheels_chocks_operator`, `/AirlineTurnaround/aircraft_ground_wheels_chocks_setup`, and `TrackerAPI`.
+The HOCON file's `tools` list for `aircraft_ground_wheels_chocks_install_agent` contains only the three active down-chain references: `wheels_chocks_operator`, `/AirlineTurnaround/aircraft_ground_wheels_chocks_setup`, and `TrackerAPI`.
 
 ---
 
