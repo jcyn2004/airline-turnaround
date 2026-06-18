@@ -14,7 +14,7 @@
 
 The network combines:
 
-- An LLM-based orchestration agent (`lavatory_service_agent`) that interprets intent and drives the workflow
+- An LLM-based orchestration agent (`aircraft_lavatory_service_agent`) that interprets intent and drives the workflow
 - One coded execution tool (`lavatory_service_operator`) implemented in Python
 - A shared state manager (`TrackerAPI`) also implemented in Python
 - Three external tool references (`aircraft_disembark`, `aircraft_crew_exit`, `aircraft_baggage_unload`) resolved from the shared registry `registries/aaosa_basic.hocon`
@@ -39,7 +39,7 @@ registries/aaosa_basic.hocon       # Shared registry (aircraft_disembark, aircra
 User / Caller
    │
    ▼
-lavatory_service_agent  (LLM Orchestrator)
+aircraft_lavatory_service_agent  (LLM Orchestrator)
    │
    ├── TrackerAPI                                    (Coded tool: read/write turnaround state via sly_data)
    │
@@ -74,11 +74,11 @@ lavatory_service_agent  (LLM Orchestrator)
 
 ## 5. Components
 
-### 5.1 lavatory_service_agent (LLM Orchestrator)
+### 5.1 aircraft_lavatory_service_agent (LLM Orchestrator)
 
 The entry-point agent. It reads available parameters via TrackerAPI, resolves the three human-clearance prerequisites by delegating to external networks as needed, calls the operator, persists the result, and returns the summary.
 
-> Note: The agent is named `lavatory_service_agent` in the HOCON. The previous documentation referred to it as `aircraft_lavatory_service_agent`.
+> Note: The agent is named `aircraft_lavatory_service_agent` in the HOCON. The previous documentation referred to it as `aircraft_aircraft_lavatory_service_agent`.
 
 #### Input parameters
 

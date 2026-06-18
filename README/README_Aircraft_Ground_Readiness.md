@@ -1,8 +1,8 @@
 # Aircraft Ground Readiness
 ## Agentic AI Network – README
 
-> **Configuration file:** `aircraft_ground_readiness.hocon`
-> **Implementation file:** `aircraft_ground_readiness.py`
+> **Configuration file:** `aircraft_aircraft_ground_readiness.hocon`
+> **Implementation file:** `aircraft_aircraft_ground_readiness.py`
 > **Framework:** neuro-san (aaosa)
 > **Primary use case:** Check and report the combined readiness of all three ground service equipment types — ACU, GPU, and wheel chocks — at an assigned gate in a single call, by delegating to three dedicated setup networks.
 
@@ -10,11 +10,11 @@
 
 ## 1. Overview
 
-`aircraft_ground_readiness` is a **readiness aggregator** in the **AirlineTurnaround** agentic system. It sits above the three individual setup networks (`aircraft_ground_acu_setup`, `aircraft_ground_gpu_setup`, `aircraft_ground_wheels_chocks_setup`) and provides a single-call interface that always returns all three readiness statuses together.
+`aircraft_aircraft_ground_readiness` is a **readiness aggregator** in the **AirlineTurnaround** agentic system. It sits above the three individual setup networks (`aircraft_ground_acu_setup`, `aircraft_ground_gpu_setup`, `aircraft_ground_wheels_chocks_setup`) and provides a single-call interface that always returns all three readiness statuses together.
 
 The network combines:
 
-- An LLM-based aggregation agent (`ground_readiness`) that calls all three setup networks in sequence
+- An LLM-based aggregation agent (`aircraft_ground_readiness`) that calls all three setup networks in sequence
 - A shared state manager (`TrackerAPI`) also implemented in Python
 - Three external tool references resolved from the shared registry `registries/aaosa_basic.hocon`
 
@@ -27,8 +27,8 @@ Configuration values are aligned with the system-wide standard: `max_iterations 
 ## 2. Repository Structure
 
 ```
-registries/AirlineTurnaround/aircraft_ground_readiness.hocon                                  # Agent network configuration
-coded_tools/AirlineTurnaround/aircraft_ground_readiness/aircraft_ground_readiness.py          # TrackerAPI implementation (sly_data-first)
+registries/AirlineTurnaround/aircraft_aircraft_ground_readiness.hocon                                  # Agent network configuration
+coded_tools/AirlineTurnaround/aircraft_aircraft_ground_readiness/aircraft_aircraft_ground_readiness.py          # TrackerAPI implementation (sly_data-first)
 registries/aaosa_basic.hocon                                                                  # Shared registry (aircraft_ground_acu_setup, aircraft_ground_gpu_setup, aircraft_ground_wheels_chocks_setup)
 ```
 
@@ -40,7 +40,7 @@ registries/aaosa_basic.hocon                                                    
 User / Caller  (or upstream orchestrator)
    │
    ▼
-ground_readiness  (LLM Aggregation Agent)
+aircraft_ground_readiness  (LLM Aggregation Agent)
    │
    ├── TrackerAPI                                              (Coded tool: sly_data-first state management)
    │
@@ -76,7 +76,7 @@ ground_readiness  (LLM Aggregation Agent)
 
 ## 5. Components
 
-### 5.1 ground_readiness (LLM Aggregation Agent)
+### 5.1 aircraft_ground_readiness (LLM Aggregation Agent)
 
 The entry-point agent. It validates inputs, calls each setup network in order, persists each result, and returns the combined summary.
 
@@ -129,7 +129,7 @@ The instructions use explicit `STEP` labels:
 
 ### 5.2 TrackerAPI (Coded Tool)
 
-**Class:** `AirlineTurnaround.aircraft_ground_readiness.aircraft_ground_readiness.TrackerAPI`
+**Class:** `AirlineTurnaround.aircraft_aircraft_ground_readiness.aircraft_aircraft_ground_readiness.TrackerAPI`
 
 Standard `sly_data`-first implementation. Called three times during the workflow — once after each equipment readiness check to persist the returned status — and potentially once in Step 1 to retrieve missing inputs.
 
@@ -216,13 +216,13 @@ These tools are resolved at runtime from `registries/aaosa_basic.hocon`:
 
 | Issue                                                            | Location                                              | Severity | Notes                                                                                                                                                                                     |
 |------------------------------------------------------------------|-------------------------------------------------------|:--------:|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Interactive user-wait in Step 1                                  | `aircraft_ground_readiness.hocon` Step 1 instructions |   Low    | "If still missing, ask the user and wait" — same automated-context risk as `aircraft_engines_stop`.                                                                                       |
+| Interactive user-wait in Step 1                                  | `aircraft_aircraft_ground_readiness.hocon` Step 1 instructions |   Low    | "If still missing, ask the user and wait" — same automated-context risk as `aircraft_engines_stop`.                                                                                       |
 
 ---
 
 ## 10. Relationship to Other Networks
 
-`aircraft_ground_readiness` sits at the top of the equipment readiness sub-system:
+`aircraft_aircraft_ground_readiness` sits at the top of the equipment readiness sub-system:
 
 ```
 aircraft_gate_selection             ─── writes availability  →  gate_equipments_base.csv
@@ -231,7 +231,7 @@ aircraft_ground_acu_setup           ←── reads ACU readiness  ────�
 aircraft_ground_gpu_setup           ←── reads GPU readiness  ────┤
 aircraft_ground_wheels_chocks_setup ← reads chocks readiness ────┘
          │
-         └── aircraft_ground_readiness  ─── aggregates all three, single call interface
+         └── aircraft_aircraft_ground_readiness  ─── aggregates all three, single call interface
 ```
 
 | Network                               | Role                                                                            |
@@ -239,7 +239,7 @@ aircraft_ground_wheels_chocks_setup ← reads chocks readiness ────┘
 | `aircraft_ground_acu_setup`           | Leaf — reads `air_conditioning_unit_readiness` from CSV                         |
 | `aircraft_ground_gpu_setup`           | Leaf — reads `ground_power_unit_readiness` from CSV                             |
 | `aircraft_ground_wheels_chocks_setup` | Leaf — reads `wheels_chocks_readiness` from CSV                                 |
-| `aircraft_ground_readiness`           | Aggregator — calls all three, returns combined result                           |
+| `aircraft_aircraft_ground_readiness`           | Aggregator — calls all three, returns combined result                           |
 | `aircraft_ground_acu_connect`         | Consumer — calls `aircraft_ground_acu_setup` directly (not via this aggregator) |
 | `aircraft_ground_gpu_connect`         | Consumer — calls `aircraft_ground_gpu_setup` directly (not via this aggregator) |
 
@@ -247,7 +247,7 @@ aircraft_ground_wheels_chocks_setup ← reads chocks readiness ────┘
 
 ## 11. Extensibility Guidance
 
-- The three setup networks (`aircraft_ground_acu_setup`, `aircraft_ground_gpu_setup`, `aircraft_ground_wheels_chocks_setup`) follow a common CSV-reading pattern. New equipment readiness checks can be added by implementing a similar leaf network and registering it both in `aaosa_basic.hocon` and in the `tools` list of the `ground_readiness` agent.
+- The three setup networks (`aircraft_ground_acu_setup`, `aircraft_ground_gpu_setup`, `aircraft_ground_wheels_chocks_setup`) follow a common CSV-reading pattern. New equipment readiness checks can be added by implementing a similar leaf network and registering it both in `aaosa_basic.hocon` and in the `tools` list of the `aircraft_ground_readiness` agent.
 
 ---
 

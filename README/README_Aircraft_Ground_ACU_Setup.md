@@ -41,7 +41,7 @@ registries/aaosa_basic.hocon         # Shared registry (no external tools used)
 aircraft_ground_acu_connect   (Upstream caller)
    │
    ▼
-acu_agent  (LLM Orchestrator)
+aircraft_ground_acu_setup_agent  (LLM Orchestrator)
    │
    ├── acu_setup       (Coded tool: read ACU readiness from gate_equipments_base.csv)
    │

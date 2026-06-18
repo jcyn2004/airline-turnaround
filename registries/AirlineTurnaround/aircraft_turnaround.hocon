@@ -11,7 +11,7 @@
     },
 
     "llm_config": {
-model_name = "gpt-5.4-mini" # "claude-sonnet-4-6" # "claude-haiku-4-5"
+        model_name = "gemini-3.1-pro" # "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6" "gpt-5.4-mini"  "gpt-4.1-mini"
     },
     "max_iterations": 40000,
     "max_execution_seconds": 7200,
@@ -260,6 +260,22 @@ STEP 0 - Validate inputs
     STEP 1 without any confirmation prompt.
   - Only proceed once all three are confirmed.
 
+GLOBAL RESTART GUARD — applies from STEP 1 through STEP 20:
+  After completing any step N, you MUST proceed directly to STEP N+1.
+  NEVER re-read or re-evaluate the original user input mid-sequence.
+  NEVER restart from STEP 0 after any step has been completed.
+  Before executing any step, check your working context:
+    - If gate_id is already stored    → STEP 3 is done. Do NOT re-execute STEP 3.
+    - If flight_status='on blocks'    → STEPs 1-6 are done. Do NOT re-execute them.
+    - If engines_stop_status='stopped'→ STEP 7 is done. Do NOT re-execute it.
+    - If cabin_cleaning_status='completed' → STEP 15 is done. Proceed to STEP 16.
+    - If lavatory_service_status='completed' → STEP 16 is done. Proceed to STEP 17.
+    - If catering_loading_status='completed' → STEP 17 is done. Proceed to STEP 18.
+  If you find yourself about to execute a step whose outputs are already stored
+  in your working context, SKIP it and advance to the next incomplete step.
+  A restart loop is a critical failure — detecting one and self-correcting is
+  preferable to completing the turnaround incorrectly.
+
 For INCOMING aircraft, execute the following steps in strict sequence:
 
 STEP 1 - Request air traffic clearance for landing
@@ -317,7 +333,8 @@ STEP 2 - Land the aircraft
 
 STEP 3 - Gate assignment
   - Call /AirlineTurnaround/aircraft_gate_services with:
-      flight_number, aircraft_type.
+      flight_number, aircraft_type,
+      task_id='STEP_3_GATE_ASSIGNMENT'.
   - Wait for response.
   - Extract and store: gate_id, deplaning_equipment_type.
   - VALIDATION: gate_id MUST be a gate identifier (e.g. 'A1', 'B12').
@@ -671,6 +688,7 @@ STEP 17 - Catering loading
       "STEP 17 FAILED: catering loading did not complete.
        Raw response: [catering_loading_status]"
   - Do NOT proceed to STEP 18 unless catering_loading_status contains 'completed'.
+
 
 STEP 18 - Inspection and maintenance
   - Call /AirlineTurnaround/aircraft_ground_operation with named parameters:

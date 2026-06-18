@@ -39,7 +39,7 @@ registries/aaosa_basic.hocon         # Shared registry (aircraft_jetbridge_conne
 User / Caller
    │
    ▼
-baggage_unload_agent  (LLM Orchestrator)
+aicraft_baggage_unload_agent  (LLM Orchestrator)
    │
    ├── TrackerAPI                              (Coded tool: read/write turnaround state via sly_data)
    │
@@ -75,7 +75,7 @@ baggage_unload_agent  (LLM Orchestrator)
 
 ## 5. Components
 
-### 5.1 baggage_unload_agent (LLM Orchestrator)
+### 5.1 aicraft_baggage_unload_agent (LLM Orchestrator)
 
 The entry-point agent. It parses the user inquiry, enforces prerequisites for the correct equipment type, delegates operational actions, and returns the final summary.
 

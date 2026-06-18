@@ -43,7 +43,7 @@ registries/aaosa_basic.hocon         # Shared registry (no external tools used)
 User / Caller
    │
    ▼
-gate_selection_agent  (LLM Orchestrator)
+aircraft_gate_selection_agent (LLM Orchestrator)
    │
    ├── deplaning_path_selector    (Coded tool: CSV-based gate + equipment selection)
    │
@@ -74,7 +74,7 @@ gate_selection_agent  (LLM Orchestrator)
 
 ## 5. Components
 
-### 5.1 gate_selection_agent (LLM Orchestrator)
+### 5.1 aircraft_gate_selection_agent(LLM Orchestrator)
 
 The entry-point agent. It resolves the required identity parameters, calls `deplaning_path_selector`, stores the results, and returns the summary.
 

@@ -12,7 +12,7 @@
     },
 
     "llm_config": {
-model_name = "gpt-5.4-mini" # "claude-sonnet-4-6" # "claude-haiku-4-5"  "gpt-4.1-mini"
+        model_name = "gemini-3.1-pro" # "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6" "gpt-5.4-mini"  "gpt-4.1-mini"
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -88,7 +88,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
     "tools": [
 
         {
-            "name": "air_traffic_orchestrator",
+            "name": "aircraft_traffic_control_agent",
             "function": {
                 "description": """
 You are the air traffic orchestrator. 
@@ -99,6 +99,13 @@ You share clearance details with the user as needed.
             },
 
             "instructions": """
+RESPONSE FORMAT — STRICT:
+  Return ONLY the structured RETURN SUMMARY block defined at the end of the instructions.
+  Do NOT add explanatory prose, markdown headers (##, **), bullet points,
+  emoji, or conversational text before or after the summary block.
+  The summary block starts with the *** banner line and ends with the last ** field **.
+  Nothing else should appear in your response.
+
 You are the top-level agent responsible for giving clearance for aircraft landing or takeoff. 
 In that role to provide users with clearance details when asked. 
 Only perform the tasks that fall under your responsibility. 

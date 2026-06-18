@@ -14,7 +14,7 @@
 
 The network combines:
 
-- An LLM-based routing agent (`servicing_crew_agent`) that reads the `instruction` field, selects the correct branch, and executes it
+- An LLM-based routing agent (`aircraft_ground_servicing_agent`) that reads the `instruction` field, selects the correct branch, and executes it
 - A shared state manager (`TrackerAPI`) also implemented in Python
 - Three external tool references (`aircraft_baggage_unload`, `aircraft_inspection_maintenance`, `aircraft_fueling`) resolved from the shared registry `registries/aaosa_basic.hocon`
 
@@ -38,7 +38,7 @@ registries/aaosa_basic.hocon         # Shared registry (aircraft_baggage_unload,
 User / Caller  (or upstream orchestrator)
    │  instruction = 'baggage' | 'inspection' | 'fuel'
    ▼
-servicing_crew_agent  (LLM Branch Router)
+aircraft_ground_servicing_agent  (LLM Branch Router)
    │
    ├── TrackerAPI                                          (Coded tool: args-first state management)
    │
@@ -73,7 +73,7 @@ servicing_crew_agent  (LLM Branch Router)
 
 ## 5. Components
 
-### 5.1 servicing_crew_agent (LLM Branch Router)
+### 5.1 aircraft_ground_servicing_agent (LLM Branch Router)
 
 The entry-point agent. It reads the `instruction` field, matches it to a branch, and executes that branch's single service step plus validation and summary.
 

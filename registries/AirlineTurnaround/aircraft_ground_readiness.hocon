@@ -10,7 +10,7 @@
     },
 
     "llm_config": {
-model_name = "gpt-5.4-mini" # "claude-sonnet-4-6" # "claude-haiku-4-5"
+        model_name = "gpt-5.4-mini"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
     },
     "max_iterations": 50000,
     "max_execution_seconds": 7200,
@@ -85,7 +85,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
     "tools": [
 
         {
-            "name": "ground_readiness",
+            "name": "aircraft_ground_readiness",
             "function": {
                 "description": """
 I check and report all ground services readiness statuses at the gate:

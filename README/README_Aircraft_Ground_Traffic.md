@@ -15,7 +15,7 @@
 
 The network combines:
 
-- `ground_traffic_orchestrator` — LLM agent; entry point, parses requests, enforces flight-status prerequisites, delegates clearance
+- `aircraft_ground_traffic_agent` — LLM agent; entry point, parses requests, enforces flight-status prerequisites, delegates clearance
 - `ground_traffic_controller` — LLM agent; second-tier router, delegates to the execution tool
 - `ground_clearance_agent` — thin LLM wrapper over the coded tool
 - `execute_ground_clearance` — the actual clearance logic, implemented in Python; the only class registered for execution
@@ -43,7 +43,7 @@ registries/aaosa_basic.hocon             # Shared registry (no external tools us
 User / Caller
    │
    ▼
-ground_traffic_orchestrator  (LLM Agent — entry point)
+aircraft_ground_traffic_agent  (LLM Agent — entry point)
    │
    ├── TrackerAPI             (Coded tool: read/write turnaround state via sly_data)
    │
@@ -77,11 +77,11 @@ ground_traffic_orchestrator  (LLM Agent — entry point)
 
 ## 5. Components
 
-### 5.1 ground_traffic_orchestrator (LLM Agent — Entry Point)
+### 5.1 aircraft_ground_traffic_agent (LLM Agent — Entry Point)
 
 Parses taxi requests, resolves all parameters, enforces the flight-status prerequisite, and delegates to `ground_traffic_controller`.
 
-> Note: The agent is named `ground_traffic_orchestrator` in the HOCON. The previous documentation referred to it as `aircraft_ground_traffic_agent`, which does not match the actual runtime tool name.
+> Note: The agent is named `aircraft_ground_traffic_agent` in the HOCON. The previous documentation referred to it as `aircraft_ground_traffic_agent`, which does not match the actual runtime tool name.
 
 > Note: In the HOCON, this tool's `parameters` block (lines 98–131) is placed **before** the `instructions` block (lines 133–172), consistent with the convention used in other networks.
 

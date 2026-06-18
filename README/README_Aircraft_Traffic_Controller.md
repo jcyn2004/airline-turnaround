@@ -15,7 +15,7 @@
 
 The network combines:
 
-- `air_traffic_orchestrator` — LLM entry point; validates parameters, coordinates TrackerAPI, delegates to the controller
+- `aircraft_traffic_control_agent` — LLM entry point; validates parameters, coordinates TrackerAPI, delegates to the controller
 - `aircraft_traffic_controller` — LLM routing agent; delegates all execution to the coded tool
 - `air_clearance_agent` — HOCON name for the coded class `execute_air_clearance`
 - `execute_air_clearance` — the actual clearance logic; reads CSVs, selects runway, returns a typed `ClearanceDict`
@@ -46,7 +46,7 @@ registries/aaosa_basic.hocon                              # Included via `includ
 User / Caller
    │
    ▼
-air_traffic_orchestrator  (LLM Agent — entry point)
+aircraft_traffic_control_agent  (LLM Agent — entry point)
    │
    ├── TrackerAPI                    (Coded tool: read/write state via sly_data)
    │
@@ -78,17 +78,17 @@ air_traffic_orchestrator  (LLM Agent — entry point)
 
 > Note: The HOCON contains commented-out prior tested values: `max_iterations` was `3000` and `max_execution_seconds` was `600` (lines 17–18).
 
-> Note: The `commondefs` block is present in this HOCON (lines 20–86), defining `instructions_prefix`, `aaosa_instructions`, `aaosa_call`, and `aaosa_command` locally. Both `air_traffic_orchestrator` and `aircraft_traffic_controller` instructions reference `${aaosa_instructions}` (lines 134, 266). The HOCON also begins with `include "registries/aaosa_basic.hocon"` (line 2), so substitutions can come from either source.
+> Note: The `commondefs` block is present in this HOCON (lines 20–86), defining `instructions_prefix`, `aaosa_instructions`, `aaosa_call`, and `aaosa_command` locally. Both `aircraft_traffic_control_agent` and `aircraft_traffic_controller` instructions reference `${aaosa_instructions}` (lines 134, 266). The HOCON also begins with `include "registries/aaosa_basic.hocon"` (line 2), so substitutions can come from either source.
 
 ---
 
 ## 5. Components
 
-### 5.1 air_traffic_orchestrator (LLM Orchestrator — Entry Point)
+### 5.1 aircraft_traffic_control_agent (LLM Orchestrator — Entry Point)
 
 Validates the three required inputs, reads state from TrackerAPI, delegates to `aircraft_traffic_controller`, then logs state again and returns the clearance summary.
 
-> Note: The HOCON tool name is `air_traffic_orchestrator`. The previous documentation used `Air Traffic Orchestrator` as a label but did not call it by the runtime HOCON name.
+> Note: The HOCON tool name is `aircraft_traffic_control_agent`. The previous documentation used `Air Traffic Orchestrator` as a label but did not call it by the runtime HOCON name.
 
 #### Input parameters
 

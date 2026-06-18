@@ -39,7 +39,7 @@ registries/aaosa_basic.hocon         # Shared registry (aircraft_disembark, airc
 User / Caller
    |
    v
-catering_loading_agent  (LLM Orchestrator)
+aircraft_catering_loading_agent  (LLM Orchestrator)
    |
    |-- TrackerAPI                                   (Coded tool: read/write turnaround state via sly_data)
    |
@@ -77,7 +77,7 @@ catering_loading_agent  (LLM Orchestrator)
 
 ## 5. Components
 
-### 5.1 catering_loading_agent (LLM Orchestrator)
+### 5.1 aircraft_catering_loading_agent (LLM Orchestrator)
 
 The entry-point agent. It parses the user inquiry, enforces a flight-status precondition and human-clearance prerequisites, delegates resolution to external networks as needed, executes catering loading, and returns the final summary.
 

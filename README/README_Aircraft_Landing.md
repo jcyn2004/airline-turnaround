@@ -15,7 +15,7 @@
 
 The network combines:
 
-- `flight_operation_agent` — LLM orchestrator; entry point, coordinates the full landing workflow
+- `aircraft_landing_front_agent` — LLM orchestrator; entry point, coordinates the full landing workflow
 - `aircraft_pilot` — LLM agent; validates clearance before instructing landing
 - `aircraft_landing_agent` — LLM wrapper name for the coded tool `execute_aircraft_landing`
 - `execute_aircraft_landing` — coded tool; sets `flight_status = 'landed'` when clearance is confirmed
@@ -44,7 +44,7 @@ registries/aaosa_basic.hocon        # Shared registry (/AirlineTurnaround/aircra
 User / Caller
    │
    ▼
-flight_operation_agent  (LLM Orchestrator — entry point)
+aircraft_landing_front_agent  (LLM Orchestrator — entry point)
    │
    ├── TrackerAPI                                          (Coded tool: read/write state via sly_data)
    │
@@ -75,11 +75,11 @@ flight_operation_agent  (LLM Orchestrator — entry point)
 
 ## 5. Components
 
-### 5.1 flight_operation_agent (LLM Orchestrator — Entry Point)
+### 5.1 aircraft_landing_front_agent (LLM Orchestrator — Entry Point)
 
 The top-level agent. It resolves all parameters, requests clearance from the external traffic controller if needed, then delegates to `aircraft_pilot` to execute the landing.
 
-> Note: The true entry point is `flight_operation_agent`, not `aircraft_landing_agent` as the previous documentation stated. `aircraft_landing_agent` in this network is the HOCON name for the coded tool `execute_aircraft_landing`.
+> Note: The true entry point is `aircraft_landing_front_agent`, not `aircraft_landing_agent` as the previous documentation stated. `aircraft_landing_agent` in this network is the HOCON name for the coded tool `execute_aircraft_landing`.
 
 #### Input parameters
 
@@ -154,7 +154,7 @@ A role-based agent that enforces the clearance-before-landing safety policy. Its
 **HOCON name:** `aircraft_landing_agent`
 **Python class:** `AirlineTurnaround.aircraft_landing.aircraft_landing.execute_aircraft_landing`
 
-> Note: The HOCON wraps `execute_aircraft_landing` under the name `aircraft_landing_agent`. This naming creates potential confusion with `flight_operation_agent` (the true orchestrator), which the previous documentation called `aircraft_landing_agent`. The coded class name `execute_aircraft_landing` is the authoritative identifier.
+> Note: The HOCON wraps `execute_aircraft_landing` under the name `aircraft_landing_agent`. This naming creates potential confusion with `aircraft_landing_front_agent` (the true orchestrator), which the previous documentation called `aircraft_landing_agent`. The coded class name `execute_aircraft_landing` is the authoritative identifier.
 
 The coded tool confirms landing clearance conditions and, if met, sets `flight_status = 'landed'` in sly_data. It also loads two CSV files (aircraft_base and runway_base) but never uses them — the paths are assigned to local variables and passed nowhere.
 
@@ -275,7 +275,7 @@ that has a length of 2350 meters. It is a B747."
 
 | Issue                                                  | Location                                               |   Severity   | Notes                                                                                                                                                                                                                                                                                                                                              |
 |--------------------------------------------------------|--------------------------------------------------------|:------------:|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Agent hierarchy name confusion                         | `aircraft_landing.hocon` lines 90, 275                 |    Medium    | `aircraft_landing_agent` in the HOCON is a coded-tool wrapper, not the orchestrator. The true entry point is `flight_operation_agent`. Previous documentation called the orchestrator `aircraft_landing_agent`, which matches the coded wrapper's name — not the orchestrator.                                                                     |
+| Agent hierarchy name confusion                         | `aircraft_landing.hocon` lines 90, 275                 |    Medium    | `aircraft_landing_agent` in the HOCON is a coded-tool wrapper, not the orchestrator. The true entry point is `aircraft_landing_front_agent`. Previous documentation called the orchestrator `aircraft_landing_agent`, which matches the coded wrapper's name — not the orchestrator.                                                                     |
 | CSV files declared but never used                      | `aircraft_landing.py` lines 38–39                      |    Medium    | `aircraft_base` and `runway_base` paths are assigned but never read. The operator makes no runway compatibility check.                                                                                                                                                                                                                             |
 | `'land' in clearance_type` is overly broad             | `aircraft_landing.py` line 97                          |    Medium    | Matches `"no landing"`, `"Iceland"`, etc. Use exact matching or require both `'clear'` and `'landing'` as co-present substrings.                                                                                                                                                                                                                   |
 | `flight_status is None` branch unreachable             | `aircraft_landing.py` line 97                          |     Low      | `if clearance_type and flight_status:` (line 93) is `False` when `flight_status is None`, so the inner `or (flight_status is None)` on line 97 is never reached.                                                                                                                                                                                   |
@@ -287,8 +287,8 @@ that has a length of 2350 meters. It is a B747."
 
 | Aspect                                             | Old documentation               | Actual implementation                                                                  |
 |----------------------------------------------------|---------------------------------|----------------------------------------------------------------------------------------|
-| Top-level agent name                               | `aircraft_landing_agent`        | `flight_operation_agent`                                                               |
-| Number of LLM agents                               | 1                               | 3 (`flight_operation_agent`, `aircraft_pilot`, `aircraft_landing_agent`)               |
+| Top-level agent name                               | `aircraft_landing_agent`        | `aircraft_landing_front_agent`                                                               |
+| Number of LLM agents                               | 1                               | 3 (`aircraft_landing_front_agent`, `aircraft_pilot`, `aircraft_landing_agent`)               |
 | Coded tool name                                    | `landing_operator`              | `execute_aircraft_landing`                                                             |
 | Primary prerequisite                               | `aircraft_direction = incoming` | `clearance_type` contains `'clear'` or `'land'`, `flight_status` contains `'approach'` |
 | Fields `landing_status`, `clearance_pending`, etc. | ✅ Present                       | ❌ Do not exist                                                                         |

@@ -14,7 +14,7 @@
 
 The network combines:
 
-- An LLM-based orchestration agent (`acu_agent`) that interprets intent and drives the workflow
+- An LLM-based orchestration agent (`aircraft_ground_acu_connect_agent`) that interprets intent and drives the workflow
 - One coded execution tool (`acu_operator`) implemented in Python
 - A shared state manager (`TrackerAPI`) also implemented in Python
 - One external tool reference (`/AirlineTurnaround/aircraft_ground_acu_setup`) resolved from the shared registry `registries/aaosa_basic.hocon`
@@ -39,7 +39,7 @@ registries/aaosa_basic.hocon         # Shared registry (/AirlineTurnaround/aircr
 User / Caller
    │
    ▼
-acu_agent  (LLM Orchestrator)
+aircraft_ground_acu_connect_agent  (LLM Orchestrator)
    │
    ├── /AirlineTurnaround/aircraft_ground_acu_setup   (External tool: verify ACU readiness — called FIRST)
    │
@@ -74,7 +74,7 @@ acu_agent  (LLM Orchestrator)
 
 ## 5. Components
 
-### 5.1 acu_agent (LLM Orchestrator)
+### 5.1 aircraft_ground_acu_connect_agent (LLM Orchestrator)
 
 The entry-point agent. It first verifies ACU readiness via an external network, then checks the three safety prerequisites, calls the operator, persists the result, and returns the summary.
 

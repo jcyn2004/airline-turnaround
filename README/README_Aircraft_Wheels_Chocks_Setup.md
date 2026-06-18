@@ -18,11 +18,11 @@
 
 The network combines:
 
-- An LLM-based orchestration agent (`wheels_chocks_agent`) that handles wheels chocks readiness inquiries
+- An LLM-based orchestration agent (`aircraft_ground_wheels_chocks_setup_agent`) that handles wheels chocks readiness inquiries
 - One active coded tool (`wheels_chocks_setup`) that reads wheels chocks readiness from `gate_equipments_base.csv`
 - A shared state manager (`TrackerAPI`) also implemented in Python
 
-The HOCON registers exactly three tools: `wheels_chocks_agent`, `wheels_chocks_setup`, and `TrackerAPI`. No operator class is registered in this HOCON.
+The HOCON registers exactly three tools: `aircraft_ground_wheels_chocks_setup_agent`, `wheels_chocks_setup`, and `TrackerAPI`. No operator class is registered in this HOCON.
 
 ---
 
@@ -44,7 +44,7 @@ aircraft_ground_wheels_chocks_install   (Caller 1)
 aircraft_ground_readiness               (Caller 2)
    │
    ▼
-wheels_chocks_agent  (LLM Orchestrator)
+aircraft_ground_wheels_chocks_setup_agent  (LLM Orchestrator)
    │
    ├── wheels_chocks_setup     (Coded tool: read wheels chocks readiness from gate_equipments_base.csv)
    │
@@ -77,7 +77,7 @@ wheels_chocks_agent  (LLM Orchestrator)
 
 ## 5. Components
 
-### 5.1 wheels_chocks_agent (LLM Orchestrator)
+### 5.1 aircraft_ground_wheels_chocks_setup_agent (LLM Orchestrator)
 
 The entry-point agent. It handles inquiries about wheels chocks readiness and ground services readiness checks. The agent is configured to be **ALWAYS relevant** for wheels chocks readiness or any ground services readiness check that includes wheels chocks, and never refuses based on missing or null status fields.
 

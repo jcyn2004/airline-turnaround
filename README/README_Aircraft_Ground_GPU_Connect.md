@@ -39,7 +39,7 @@ registries/aaosa_basic.hocon         # Shared registry (/AirlineTurnaround/aircr
 User / Caller
    │
    ▼
-gpu_agent  (LLM Orchestrator)
+aircraft_ground_gpu_connect_agent  (LLM Orchestrator)
    │
    ├── /AirlineTurnaround/aircraft_ground_gpu_setup   (External tool: verify GPU readiness — called FIRST)
    │

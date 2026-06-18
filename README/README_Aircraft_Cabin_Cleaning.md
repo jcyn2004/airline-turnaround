@@ -39,7 +39,7 @@ registries/aaosa_basic.hocon         # Shared registry (aircraft_disembark, airc
 User / Caller
    │
    ▼
-cabin_cleaning_agent  (LLM Orchestrator)
+aircraft_cabin_cleaning_agent  (LLM Orchestrator)
    │
    ├── TrackerAPI                                   (Coded tool: read/write turnaround state via sly_data)
    │
@@ -76,7 +76,7 @@ cabin_cleaning_agent  (LLM Orchestrator)
 
 ## 5. Components
 
-### 5.1 cabin_cleaning_agent (LLM Orchestrator)
+### 5.1 aircraft_cabin_cleaning_agent (LLM Orchestrator)
 
 The entry-point agent. It parses the user inquiry, enforces all human-clearance prerequisites, delegates resolution to external networks as needed, executes cleaning, and returns the final summary.
 

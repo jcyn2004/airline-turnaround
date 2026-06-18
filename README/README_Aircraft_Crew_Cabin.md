@@ -40,7 +40,7 @@ registries/aaosa_basic.hocon # Shared registry (leaf operation networks)
 aircraft_crew_pilot  (caller — routes BRANCHes G, H, I here)
    │
    ▼
-cabin_crew_agent  (LLM Router — task_id-first branch selection)
+aircraft_crew_cabin_agent  (LLM Router — task_id-first branch selection)
    │
    ├── TrackerAPI                                       (Coded tool: sly_data-first state management)
    │
@@ -69,7 +69,7 @@ cabin_crew_agent  (LLM Router — task_id-first branch selection)
 
 ## 5. Components
 
-### 5.1 cabin_crew_agent (LLM Router)
+### 5.1 aircraft_crew_cabin_agent (LLM Router)
 
 The single entry-point agent. It reads the `task_id` field first, matches a branch, executes all steps for that branch in order, and returns the summary. It must not evaluate or execute steps from any other branch once a match is found.
 

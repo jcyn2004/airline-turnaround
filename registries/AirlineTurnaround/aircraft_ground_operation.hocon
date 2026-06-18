@@ -14,7 +14,7 @@
     },
 
     "llm_config": {
-model_name = "gpt-5.4-mini" # "claude-sonnet-4-6" # "claude-haiku-4-5"
+        model_name = "gpt-5.4-mini"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
     },
     "max_iterations": 40000,
     "max_execution_seconds": 7200,
@@ -89,7 +89,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
     "tools": [
 
         {
-            "name": "ground_operation_agent",
+            "name": "aircraft_ground_operation",
             "function": {
                 "description": """
 I am the orchestrator for ALL ground operations during aircraft turnaround.
@@ -212,6 +212,13 @@ The specific ground operation to perform. Used to route to the correct sub-agent
             "instructions": """
 You are the orchestrator for all ground operations during aircraft turnaround.
 You route incoming calls to the correct sub-agent based on the instruction field.
+
+RESPONSE FORMAT — STRICT:
+  Return ONLY the structured RETURN SUMMARY block defined at the end of the instructions.
+  Do NOT add explanatory prose, markdown headers (##, **), bullet points,
+  emoji, or conversational text before or after the summary block.
+  The summary block starts with the *** banner line and ends with the last ** field **.
+  Nothing else should appear in your response.
 
 CRITICAL: You are a pass-through router. Read the instruction field FIRST,
 route to exactly ONE sub-agent, pass ALL received parameters through unchanged,

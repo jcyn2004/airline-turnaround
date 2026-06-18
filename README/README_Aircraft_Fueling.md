@@ -41,7 +41,7 @@ registries/aaosa_basic.hocon         # Shared registry (aircraft_disembark, airc
 User / Caller
    │
    ▼
-fueling_agent  (LLM Orchestrator)
+aircraft_fueling_agent  (LLM Orchestrator)
    │
    ├── TrackerAPI                                   (Coded tool: read/write turnaround state via sly_data)
    │
@@ -78,7 +78,7 @@ fueling_agent  (LLM Orchestrator)
 
 ## 5. Components
 
-### 5.1 fueling_agent (LLM Orchestrator)
+### 5.1 aircraft_fueling_agent (LLM Orchestrator)
 
 The entry-point agent. It uses the `CRITICAL: sequential executor` / `STEP` pattern. It reads prerequisites, performs a hard-abort if any are unmet, calls the operator, validates the result, and returns the summary.
 

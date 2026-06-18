@@ -38,7 +38,7 @@ registries/aaosa_basic.hocon         # Shared registry (included but no external
 User / Caller
    │
    ▼
-engines_stop_agent  (LLM Orchestrator)
+aircraft_engines_stop_agent  (LLM Orchestrator)
    │
    ├── TrackerAPI               (Coded tool: read/write turnaround state via sly_data)
    │
@@ -68,7 +68,7 @@ engines_stop_agent  (LLM Orchestrator)
 
 ## 5. Components
 
-### 5.1 engines_stop_agent (LLM Orchestrator)
+### 5.1 aircraft_engines_stop_agent (LLM Orchestrator)
 
 The entry-point agent. It checks flight status, enters a user-wait loop if the aircraft is not yet on blocks, calls the operator once the prerequisite is met, persists the result, and returns the summary.
 
