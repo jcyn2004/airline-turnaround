@@ -257,8 +257,6 @@ tests/fixtures/aircraft_turnaround_subnetworks_test copy_hocon.txt
 tests/fixtures/aircraft_turnaround_subnetworks_test.hocon
 tests/integration/test_integration_hocons_airline_turnaround_py.txt
 servers/neuro_san/neuro_san_server_wrapper-old20260401.py
-
-# aircraft cleaning procedure to ignore - It's a different and separate use case
 coded_tools/AirlineTurnaround/aircraft_cleaning_procedure/aircraft_cleaning.py 
 coded_tools/AirlineTurnaround/aircraft_cleaning_procedure/extract_docs copy.py
 coded_tools/AirlineTurnaround/aircraft_cleaning_procedure/extract_docs_cabin_body_fluids.py
@@ -274,11 +272,12 @@ coded_tools/AirlineTurnaround/aircraft_cleaning_procedure/extract_docs.py
 coded_tools/AirlineTurnaround/aircraft_cleaning_procedure/url_provider.py
 coded_tools/AirlineTurnaround/aircraft_cleaning_procedure/webpage_reader.py
 registries/AirlineTurnaround/aircraft_cleaning_procedure.hocon
-
-# debug codes
 debug_code.py
 patch_debug.py
 patch_debug_old1.py
 patch_debug_old2.py
+parse_test_hocon_log_sequence.py
+parse_test_hocon_log.py
+pytest.ini
 
 
