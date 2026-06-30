@@ -148,7 +148,7 @@ The system is organized as a four-layer orchestrated multi-agent workflow.
 The top-level orchestrator defined in [`aircraft_turnaround.hocon`](registries/AirlineTurnaround/aircraft_turnaround.hocon) drives the 20-step turnaround plan. It:
 - Initializes the run, sequences the steps, and dispatches each step to the appropriate agent network.
 - Tracks global state (aircraft status, flight phase, time window, constraints) and decides which tasks are eligible to start.
-- Routes 5 of the 20 steps directly to leaf or aggregation networks and the remainder to specialised aggregation networks.
+- Routes all 20 steps to one of four aggregation networks (`aircraft_crew_pilot`, `aircraft_cabin_services`, `aircraft_gate_services`, `aircraft_ground_operation`); no step calls a leaf network directly.
 
 ### Layer 2 — Aggregation Networks (Routers)
 

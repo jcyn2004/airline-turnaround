@@ -1,0 +1,230 @@
+2026-06-29 14:18:43.944 :flight AF84 granted clearance [CLEARED_FOR_LANDING] on runway 19R
+2026-06-29 14:18:43.944 :flight AF84 status updated to APPROACH
+2026-06-29 14:18:57.111: flight AF84 has landed on runway 19R
+2026-06-29 14:19:17.061: ACU is ready at gate A4 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 14:19:17.592: GPU is ready at gate A4 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 14:19:17.640: Wheels chocks are ready at gate A4 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 14:19:27.621 :flight AF84 request for clearance_to_taxi_in is granted for runway 19R
+2026-06-29 14:19:27.621 :flight AF84 status updated to taxiing_in
+2026-06-29 14:19:36.546: ACU is ready at gate A4 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 14:19:36.552: GPU is ready at gate A4 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 14:19:36.571: Wheels chocks are ready at gate A4 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 14:19:46.261: Wheels chocks are ready at gate A4 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 14:19:46.463: ACU is ready at gate A4 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 14:19:46.761: GPU is ready at gate A4 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 14:19:49.705: Flight AF84 with airplane type B747 has taxied to gate A4. The flight status is now on blocks.
+2026-06-29 14:20:04.107: Flight AF84 with airplane type B747 on blocks at gate A4 has engine(s) stopped. Its engines stop status is stopped.
+2026-06-29 14:20:15.547: Wheels chocks are ready at gate A4 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 14:20:17.388: Wheels chocks are installed on the flight number AF84, aircraft type B747 on blocks at gate A4. Its wheels chocks installation status is installed.
+2026-06-29 14:20:23.121: ACU is ready at gate A4 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 14:20:24.759: Flight number AF84, aircraft type B747 on blocks at gate A4 is connected to acu. Its acu connection status is connected.
+2026-06-29 14:20:33.819: GPU is ready at gate A4 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 14:20:35.616: Flight number AF84, aircraft type B747 on blocks at gate A4 is connected to gpu. Its gpu connection status is connected.
+2026-06-29 14:20:43.526: Flight AF84 with airplane type B747 on blocks at gate A4 has jetbridge installed. Its jetbridge installation status is connected.
+2026-06-29 14:20:53.227: Flight AF84 with airplane type B747 on blocks at gate A4 has door opened. Its door opening status is open.
+2026-06-29 14:21:01.979: Flight AF84 with airplane type B747 on blocks at gate A4 has jetbridge connected and aircraft door open.  installed. Its passenger disembarkation status is status is completed.
+2026-06-29 14:21:17.551: Flight AF84 with airplane type B747 on blocks at gate A4 has jetbridge connected and aircraft door open.  installed. Its baggage unload status is completed.
+2026-06-29 14:21:30.811: Flight AF84 with airplane type B747 on blocks at gate A4 has jetbridge connected and aircraft door open. Its crew debrief status is status is completed.
+2026-06-29 14:21:39.850: Flight AF84 with airplane type B747 on blocks at gate A4 has jetbridge connected and aircraft door open.  installed. Its crew exit status is status is completed.
+2026-06-29 14:21:49.756: Flight AF84 with airplane type B747 on blocks at gate A4 has cabin cleaning completed.
+2026-06-29 14:21:57.986: Flight AF84 with airplane type B747 on blocks at gate A4 has lavatory service completed. Its lavatory service status is completed.
+2026-06-29 14:22:05.933: Flight AF84 with airplane type B747 on blocks at gate A4 has catering loading completed. Its catering loading status is completed.
+2026-06-29 14:22:15.332: Flight AF84 with airplane type B747 on blocks at gate A4 has inspection and maintenance completed. Its inspection and maintenance status is completed.
+2026-06-29 14:22:25.334: Flight AF84 with airplane type B747 on blocks at gate A4 has fueling completed. Its fueling status is completed.
+2026-06-29 18:39:06.255 :flight AF84 granted clearance [CLEARED_FOR_LANDING] on runway 19R
+2026-06-29 18:39:06.255 :flight AF84 status updated to APPROACH
+2026-06-29 18:39:20.165: flight AF84 has landed on runway 19R
+2026-06-29 18:39:45.581: ACU is ready at gate A24 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:39:45.581: GPU is ready at gate A24 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:39:45.648: Wheels chocks are ready at gate A24 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:39:54.470 :flight AF84 request for clearance_to_taxi_in is granted for runway 19R
+2026-06-29 18:39:54.470 :flight AF84 status updated to taxiing_in
+2026-06-29 18:40:07.990 :flight AF84 request for clearance_to_taxi_in is granted for runway 19R
+2026-06-29 18:40:07.990 :flight AF84 status updated to taxiing_in
+2026-06-29 18:40:16.799: GPU is ready at gate A24 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:40:16.804: ACU is ready at gate A24 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:40:17.033: Wheels chocks are ready at gate A24 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:40:21.857: Flight AF84 with airplane type B747 has taxied to gate A24. The flight status is now on blocks.
+2026-06-29 18:40:31.952: Flight AF84 with airplane type B747 on blocks at gate A24 has engine(s) stopped. Its engines stop status is stopped.
+2026-06-29 18:40:45.891: Wheels chocks are ready at gate A24 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:40:48.130: Wheels chocks are installed on the flight number AF84, aircraft type B747 on blocks at gate A24. Its wheels chocks installation status is installed.
+2026-06-29 18:40:55.711: ACU is ready at gate A24 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:40:58.372: Flight number AF84, aircraft type B747 on blocks at gate A24 is connected to acu. Its acu connection status is connected.
+2026-06-29 18:41:04.925: GPU is ready at gate A24 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:41:06.699: Flight number AF84, aircraft type B747 on blocks at gate A24 is connected to gpu. Its gpu connection status is connected.
+2026-06-29 18:41:17.516: Flight AF84 with airplane type B747 on blocks at gate A24 has jetbridge installed. Its jetbridge installation status is connected.
+2026-06-29 18:41:28.063: Flight AF84 with airplane type B747 on blocks at gate A24 has door opened. Its door opening status is open.
+2026-06-29 18:41:41.990: Flight AF84 with airplane type B747 on blocks at gate A24 has jetbridge connected and aircraft door open.  installed. Its passenger disembarkation status is status is completed.
+2026-06-29 18:42:03.085: Flight AF84 with airplane type B747 on blocks at gate A24 has jetbridge connected and aircraft door open.  installed. Its baggage unload status is completed.
+2026-06-29 18:42:15.476: Flight AF84 with airplane type B747 on blocks at gate A24 has jetbridge connected and aircraft door open. Its crew debrief status is status is completed.
+2026-06-29 18:42:27.251: Flight AF84 with airplane type B747 on blocks at gate A24 has jetbridge connected and aircraft door open.  installed. Its crew exit status is status is completed.
+2026-06-29 18:42:47.013: Flight AF84 with airplane type B747 on blocks at gate A24 has cabin cleaning completed.
+2026-06-29 18:42:56.441: Flight AF84 with airplane type B747 on blocks at gate A24 has lavatory service completed. Its lavatory service status is completed.
+2026-06-29 18:43:04.833: Flight AF84 with airplane type B747 on blocks at gate A24 has catering loading completed. Its catering loading status is completed.
+2026-06-29 18:43:20.272: Flight AF84 with airplane type B747 on blocks at gate A24 has inspection and maintenance completed. Its inspection and maintenance status is completed.
+2026-06-29 18:43:31.046: Flight AF84 with airplane type B747 on blocks at gate A24 has fueling completed. Its fueling status is completed.
+2026-06-29 18:44:39.040 :flight AF84 granted clearance [CLEARED_FOR_LANDING] on runway 19R
+2026-06-29 18:44:39.040 :flight AF84 status updated to APPROACH
+2026-06-29 18:44:53.382: flight AF84 has landed on runway 19R
+2026-06-29 18:45:12.836: ACU is ready at gate A9 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:45:12.893: Wheels chocks are ready at gate A9 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:45:12.965: GPU is ready at gate A9 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:45:23.587 :flight AF84 request for clearance_to_taxi_in is granted for runway 19R
+2026-06-29 18:45:23.587 :flight AF84 status updated to taxiing_in
+2026-06-29 18:45:36.286: Wheels chocks are ready at gate A9 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:45:36.375: ACU is ready at gate A9 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:45:36.409: GPU is ready at gate A9 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:45:41.920: Flight AF84 with airplane type B747 has taxied to gate A9. The flight status is now on blocks.
+2026-06-29 18:45:50.338: Flight AF84 with airplane type B747 on blocks at gate A9 has engine(s) stopped. Its engines stop status is stopped.
+2026-06-29 18:46:01.076: Wheels chocks are ready at gate A9 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:46:03.731: Wheels chocks are installed on the flight number AF84, aircraft type B747 on blocks at gate A9. Its wheels chocks installation status is installed.
+2026-06-29 18:46:10.490: ACU is ready at gate A9 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:46:12.562: Flight number AF84, aircraft type B747 on blocks at gate A9 is connected to acu. Its acu connection status is connected.
+2026-06-29 18:46:20.729: GPU is ready at gate A9 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:46:22.982: Flight number AF84, aircraft type B747 on blocks at gate A9 is connected to gpu. Its gpu connection status is connected.
+2026-06-29 18:46:34.853: Flight AF84 with airplane type B747 on blocks at gate A9 has jetbridge installed. Its jetbridge installation status is connected.
+2026-06-29 18:46:47.554: Flight AF84 with airplane type B747 on blocks at gate A9 has door opened. Its door opening status is open.
+2026-06-29 18:46:57.696: Flight AF84 with airplane type B747 on blocks at gate A9 has jetbridge connected and aircraft door open.  installed. Its passenger disembarkation status is status is completed.
+2026-06-29 18:47:09.468: Flight AF84 with airplane type B747 on blocks at gate A9 has jetbridge connected and aircraft door open.  installed. Its baggage unload status is completed.
+2026-06-29 18:47:20.835: Flight AF84 with airplane type B747 on blocks at gate A9 has jetbridge connected and aircraft door open. Its crew debrief status is status is completed.
+2026-06-29 18:47:32.481: Flight AF84 with airplane type B747 on blocks at gate A9 has jetbridge connected and aircraft door open.  installed. Its crew exit status is status is completed.
+2026-06-29 18:47:46.768: Flight AF84 with airplane type B747 on blocks at gate A9 has cabin cleaning completed.
+2026-06-29 18:48:03.605: Flight AF84 with airplane type B747 on blocks at gate A9 has catering loading completed. Its catering loading status is completed.
+2026-06-29 18:48:14.388: Flight AF84 with airplane type B747 on blocks at gate A9 has inspection and maintenance completed. Its inspection and maintenance status is completed.
+2026-06-29 18:48:31.867: Flight AF84 with airplane type B747 on blocks at gate A9 has fueling completed. Its fueling status is completed.
+2026-06-29 18:51:22.296 :flight AF84 granted clearance [CLEARED_FOR_LANDING] on runway 19R
+2026-06-29 18:51:22.296 :flight AF84 status updated to APPROACH
+2026-06-29 18:51:36.017: flight AF84 has landed on runway 19R
+2026-06-29 18:51:55.684: ACU is ready at gate A29 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:51:56.403: GPU is ready at gate A29 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:51:56.526: Wheels chocks are ready at gate A29 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:52:07.251 :flight AF84 request for clearance_to_taxi_in is granted for runway 19R
+2026-06-29 18:52:07.251 :flight AF84 status updated to taxiing_in
+2026-06-29 18:52:19.337: ACU is ready at gate A29 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:52:19.475: GPU is ready at gate A29 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:52:19.531: Wheels chocks are ready at gate A29 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:52:28.352: GPU is ready at gate A29 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:52:28.461: Wheels chocks are ready at gate A29 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:52:28.657: ACU is ready at gate A29 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:52:33.667: Flight AF84 with airplane type B747 has taxied to gate A29. The flight status is now on blocks.
+2026-06-29 18:52:43.553: Flight AF84 with airplane type B747 on blocks at gate A29 has engine(s) stopped. Its engines stop status is stopped.
+2026-06-29 18:52:54.771: Wheels chocks are ready at gate A29 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:52:57.118: Wheels chocks are installed on the flight number AF84, aircraft type B747 on blocks at gate A29. Its wheels chocks installation status is installed.
+2026-06-29 18:53:03.372: ACU is ready at gate A29 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:53:05.415: Flight number AF84, aircraft type B747 on blocks at gate A29 is connected to acu. Its acu connection status is connected.
+2026-06-29 18:53:15.656: GPU is ready at gate A29 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 18:53:17.525: Flight number AF84, aircraft type B747 on blocks at gate A29 is connected to gpu. Its gpu connection status is connected.
+2026-06-29 18:53:30.576: Flight AF84 with airplane type B747 on blocks at gate A29 has jetbridge installed. Its jetbridge installation status is connected.
+2026-06-29 18:53:42.842: Flight AF84 with airplane type B747 on blocks at gate A29 has door opened. Its door opening status is open.
+2026-06-29 18:54:02.246: Flight AF84 with airplane type B747 on blocks at gate A29 has jetbridge connected and aircraft door open.  installed. Its passenger disembarkation status is status is completed.
+2026-06-29 18:54:16.612: Flight AF84 with airplane type B747 on blocks at gate A29 has jetbridge connected and aircraft door open.  installed. Its baggage unload status is completed.
+2026-06-29 18:54:32.454: Flight AF84 with airplane type B747 on blocks at gate A29 has jetbridge connected and aircraft door open. Its crew debrief status is status is completed.
+2026-06-29 18:54:43.310: Flight AF84 with airplane type B747 on blocks at gate A29 has jetbridge connected and aircraft door open.  installed. Its crew exit status is status is completed.
+2026-06-29 18:54:53.087: Flight AF84 with airplane type B747 on blocks at gate A29 has cabin cleaning completed.
+2026-06-29 18:55:01.821: Flight AF84 with airplane type B747 on blocks at gate A29 has lavatory service completed. Its lavatory service status is completed.
+2026-06-29 18:55:11.710: Flight AF84 with airplane type B747 on blocks at gate A29 has catering loading completed. Its catering loading status is completed.
+2026-06-29 18:55:22.631: Flight AF84 with airplane type B747 on blocks at gate A29 has inspection and maintenance completed. Its inspection and maintenance status is completed.
+2026-06-29 18:55:34.929: Flight AF84 with airplane type B747 on blocks at gate A29 has fueling completed. Its fueling status is completed.
+2026-06-29 19:24:40.378 :flight AF84 granted clearance [CLEARED_FOR_LANDING] on runway 19R
+2026-06-29 19:24:40.378 :flight AF84 status updated to APPROACH
+2026-06-29 19:24:54.194: flight AF84 has landed on runway 19R
+2026-06-29 19:25:20.832: Wheels chocks are ready at gate A5 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:25:20.848: ACU is ready at gate A5 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:25:21.062: GPU is ready at gate A5 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:25:34.708 :flight AF84 request for clearance_to_taxi_in is granted for runway 19R
+2026-06-29 19:25:34.708 :flight AF84 status updated to taxiing_in
+2026-06-29 19:25:45.500: ACU is ready at gate A5 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:25:45.576: GPU is ready at gate A5 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:25:45.986: Wheels chocks are ready at gate A5 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:25:57.379: GPU is ready at gate A5 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:25:57.422: ACU is ready at gate A5 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:25:57.886: Wheels chocks are ready at gate A5 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:26:01.057: Flight AF84 with airplane type B747 has taxied to gate A5. The flight status is now on blocks.
+2026-06-29 19:26:09.353: Flight AF84 with airplane type B747 on blocks at gate A5 has engine(s) stopped. Its engines stop status is stopped.
+2026-06-29 19:26:21.983: Wheels chocks are ready at gate A5 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:26:23.898: Wheels chocks are installed on the flight number AF84, aircraft type B747 on blocks at gate A5. Its wheels chocks installation status is installed.
+2026-06-29 19:26:30.666: ACU is ready at gate A5 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:26:32.906: Flight number AF84, aircraft type B747 on blocks at gate A5 is connected to acu. Its acu connection status is connected.
+2026-06-29 19:26:39.879: GPU is ready at gate A5 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:26:50.621: Flight AF84 with airplane type B747 on blocks at gate A5 has jetbridge installed. Its jetbridge installation status is connected.
+2026-06-29 19:27:01.453: Flight AF84 with airplane type B747 on blocks at gate A5 has door opened. Its door opening status is open.
+2026-06-29 19:27:12.840: Flight AF84 with airplane type B747 on blocks at gate A5 has jetbridge connected and aircraft door open.  installed. Its passenger disembarkation status is status is completed.
+2026-06-29 19:27:24.821: Flight AF84 with airplane type B747 on blocks at gate A5 has jetbridge connected and aircraft door open.  installed. Its baggage unload status is completed.
+2026-06-29 19:27:36.699: Flight AF84 with airplane type B747 on blocks at gate A5 has jetbridge connected and aircraft door open. Its crew debrief status is status is completed.
+2026-06-29 19:27:46.666: Flight AF84 with airplane type B747 on blocks at gate A5 has jetbridge connected and aircraft door open.  installed. Its crew exit status is status is completed.
+2026-06-29 19:27:57.697: Flight AF84 with airplane type B747 on blocks at gate A5 has cabin cleaning completed.
+2026-06-29 19:28:06.398: Flight AF84 with airplane type B747 on blocks at gate A5 has lavatory service completed. Its lavatory service status is completed.
+2026-06-29 19:28:15.407: Flight AF84 with airplane type B747 on blocks at gate A5 has catering loading completed. Its catering loading status is completed.
+2026-06-29 19:28:25.651: Flight AF84 with airplane type B747 on blocks at gate A5 has inspection and maintenance completed. Its inspection and maintenance status is completed.
+2026-06-29 19:28:36.706: Flight AF84 with airplane type B747 on blocks at gate A5 has fueling completed. Its fueling status is completed.
+2026-06-29 19:49:43.509 :flight AF84 granted clearance [CLEARED_FOR_LANDING] on runway 19R
+2026-06-29 19:49:43.509 :flight AF84 status updated to APPROACH
+2026-06-29 19:49:56.312 :flight AF84 granted clearance [CLEARED_FOR_LANDING] on runway 19R
+2026-06-29 19:49:56.312 :flight AF84 status updated to APPROACH
+2026-06-29 19:50:01.633: flight AF84 has landed on runway 19R
+2026-06-29 19:50:12.182: flight AF84 has landed on runway 19R
+2026-06-29 19:50:33.622: ACU is ready at gate A10 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:50:33.823: Wheels chocks are ready at gate A10 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:50:34.209: GPU is ready at gate A10 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:50:47.042 :flight AF84 request for clearance_to_taxi_in is granted for runway 19R
+2026-06-29 19:50:47.042 :flight AF84 status updated to taxiing_in
+2026-06-29 19:50:57.385: Wheels chocks are ready at gate A10 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:50:57.494: ACU is ready at gate A10 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:50:57.520: GPU is ready at gate A10 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:51:05.951: GPU is ready at gate A10 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:51:05.951: ACU is ready at gate A10 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:51:06.093: Wheels chocks are ready at gate A10 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:51:11.477: Flight AF84 with airplane type B747 has taxied to gate A10. The flight status is now on blocks.
+2026-06-29 19:51:21.004: Flight AF84 with airplane type B747 on blocks at gate A10 has engine(s) stopped. Its engines stop status is stopped.
+2026-06-29 19:51:32.467: Wheels chocks are ready at gate A10 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:51:34.115: Wheels chocks are installed on the flight number AF84, aircraft type B747 on blocks at gate A10. Its wheels chocks installation status is installed.
+2026-06-29 19:51:40.967: ACU is ready at gate A10 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:51:44.178: Flight number AF84, aircraft type B747 on blocks at gate A10 is connected to acu. Its acu connection status is connected.
+2026-06-29 19:51:50.702: GPU is ready at gate A10 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 19:51:52.653: Flight number AF84, aircraft type B747 on blocks at gate A10 is connected to gpu. Its gpu connection status is connected.
+2026-06-29 19:52:02.573: Flight AF84 with airplane type B747 on blocks at gate A10 has jetbridge installed. Its jetbridge installation status is connected.
+2026-06-29 19:52:14.448: Flight AF84 with airplane type B747 on blocks at gate A10 has door opened. Its door opening status is open.
+2026-06-29 19:52:24.996: Flight AF84 with airplane type B747 on blocks at gate A10 has jetbridge connected and aircraft door open.  installed. Its passenger disembarkation status is status is completed.
+2026-06-29 19:52:43.325: Flight AF84 with airplane type B747 on blocks at gate A10 has jetbridge connected and aircraft door open.  installed. Its baggage unload status is completed.
+2026-06-29 19:52:56.134: Flight AF84 with airplane type B747 on blocks at gate A10 has jetbridge connected and aircraft door open. Its crew debrief status is status is completed.
+2026-06-29 19:53:05.855: Flight AF84 with airplane type B747 on blocks at gate A10 has jetbridge connected and aircraft door open.  installed. Its crew exit status is status is completed.
+2026-06-29 19:53:16.197: Flight AF84 with airplane type B747 on blocks at gate A10 has cabin cleaning completed.
+2026-06-29 19:53:26.026: Flight AF84 with airplane type B747 on blocks at gate A10 has lavatory service completed. Its lavatory service status is completed.
+2026-06-29 19:53:34.166: Flight AF84 with airplane type B747 on blocks at gate A10 has catering loading completed. Its catering loading status is completed.
+2026-06-29 19:53:51.088: Flight AF84 with airplane type B747 on blocks at gate A10 has inspection and maintenance completed. Its inspection and maintenance status is completed.
+2026-06-29 19:54:06.011: Flight AF84 with airplane type B747 on blocks at gate A10 has fueling completed. Its fueling status is completed.
+2026-06-29 20:01:53.018 :flight AF84 granted clearance [CLEARED_FOR_LANDING] on runway 19R
+2026-06-29 20:01:53.018 :flight AF84 status updated to APPROACH
+2026-06-29 20:02:06.044 :flight AF84 granted clearance [CLEARED_FOR_LANDING] on runway 19R
+2026-06-29 20:02:06.044 :flight AF84 status updated to APPROACH
+2026-06-29 20:02:14.117: flight AF84 has landed on runway 19R
+2026-06-29 20:02:35.820: GPU is ready at gate A25 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 20:02:35.928: ACU is ready at gate A25 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 20:02:35.941: Wheels chocks are ready at gate A25 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 20:02:49.031 :flight AF84 request for clearance_to_taxi_in is granted for runway 19R
+2026-06-29 20:02:49.031 :flight AF84 status updated to taxiing_in
+2026-06-29 20:03:00.810: Wheels chocks are ready at gate A25 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 20:03:01.116: ACU is ready at gate A25 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 20:03:02.021: ACU is ready at gate A25 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 20:03:02.196: GPU is ready at gate A25 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 20:03:02.267: Wheels chocks are ready at gate A25 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 20:03:05.924: Flight AF84 with airplane type B747 has taxied to gate A25. The flight status is now on blocks.
+2026-06-29 20:03:13.897: GPU is ready at gate A25 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 20:03:36.541: Flight AF84 with airplane type B747 on blocks at gate A25 has engine(s) stopped. Its engines stop status is stopped.
+2026-06-29 20:03:48.218: Wheels chocks are ready at gate A25 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 20:03:49.857: Wheels chocks are installed on the flight number AF84, aircraft type B747 on blocks at gate A25. Its wheels chocks installation status is installed.
+2026-06-29 20:04:00.001: ACU is ready at gate A25 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 20:04:02.653: Flight number AF84, aircraft type B747 on blocks at gate A25 is connected to acu. Its acu connection status is connected.
+2026-06-29 20:04:11.668: GPU is ready at gate A25 for arrival of flight AF84 of aicraft type B747.
+2026-06-29 20:04:13.510: Flight number AF84, aircraft type B747 on blocks at gate A25 is connected to gpu. Its gpu connection status is connected.
+2026-06-29 20:04:23.030: Flight AF84 with airplane type B747 on blocks at gate A25 has jetbridge installed. Its jetbridge installation status is connected.
+2026-06-29 20:04:36.049: Flight AF84 with airplane type B747 on blocks at gate A25 has door opened. Its door opening status is open.
+2026-06-29 20:04:45.764: Flight AF84 with airplane type B747 on blocks at gate A25 has jetbridge connected and aircraft door open.  installed. Its passenger disembarkation status is status is completed.
+2026-06-29 20:04:57.438: Flight AF84 with airplane type B747 on blocks at gate A25 has jetbridge connected and aircraft door open.  installed. Its baggage unload status is completed.
+2026-06-29 20:05:11.057: Flight AF84 with airplane type B747 on blocks at gate A25 has jetbridge connected and aircraft door open. Its crew debrief status is status is completed.
+2026-06-29 20:05:27.035: Flight AF84 with airplane type B747 on blocks at gate A25 has jetbridge connected and aircraft door open.  installed. Its crew exit status is status is completed.
+2026-06-29 20:05:37.680: Flight AF84 with airplane type B747 on blocks at gate A25 has cabin cleaning completed.
+2026-06-29 20:05:50.276: Flight AF84 with airplane type B747 on blocks at gate A25 has lavatory service completed. Its lavatory service status is completed.
+2026-06-29 20:05:58.877: Flight AF84 with airplane type B747 on blocks at gate A25 has catering loading completed. Its catering loading status is completed.
+2026-06-29 20:06:13.009: Flight AF84 with airplane type B747 on blocks at gate A25 has inspection and maintenance completed. Its inspection and maintenance status is completed.
+2026-06-29 20:06:23.556: Flight AF84 with airplane type B747 on blocks at gate A25 has fueling completed. Its fueling status is completed.
