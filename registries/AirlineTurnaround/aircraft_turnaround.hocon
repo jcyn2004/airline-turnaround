@@ -243,7 +243,7 @@ TOOL ROUTING CHEATSHEET — override model priors, consult before every tool cal
     STEP 14 — crew exit               → aircraft_crew_pilot (BRANCH F)
   Ground operation tasks → /AirlineTurnaround/aircraft_ground_operation
     STEP 4  — ground readiness        → aircraft_ground_operation (instruction: 'Check ground services readiness.')
-    STEP 8  — ramp services           → aircraft_ground_rampservices (DIRECT — bypasses aircraft_ground_operation)
+    STEP 8  — ramp services           → aircraft_ground_operation (instruction: 'Execute ground ramp services.')
     STEP 12 — baggage unload          → aircraft_ground_operation (instruction: 'Unload baggage from the aircraft.')
     STEP 18 — inspection/maint        → aircraft_ground_operation (instruction: 'Perform inspection and maintenance.')
     STEP 19 — fueling                 → aircraft_ground_operation (instruction: 'Fuel the aircraft.')
@@ -442,11 +442,10 @@ STEP 7 - Stop engines
   - Do NOT proceed to STEP 8 until engines_stop_status contains 'stopped'.
 
 STEP 8 - Ground ramp services (wheelchocks install + ACU connect + GPU connect)
-  - Call /AirlineTurnaround/aircraft_ground_rampservices directly with named parameters:
+  - Call /AirlineTurnaround/aircraft_ground_operation with named parameters:
       flight_number, aircraft_type, gate_id, flight_status, engines_stop_status,
       wheels_chocks_readiness_status, acu_readiness_status, gpu_readiness_status,
       instruction='Execute ground ramp services.'
-  - Do NOT route this through aircraft_ground_operation.
   - Wait for response.
   - Extract and store: wheels_chocks_installation_status, acu_connection_status, gpu_connection_status.
   - VALIDATION — wheelchocks: wheels_chocks_installation_status MUST contain 'installed'.
@@ -736,36 +735,36 @@ STEP 19 - Fueling
 STEP 20 - Final report
   After all steps are complete, compile and display the following turnaround report:
 
-  ============================================
-  *  AIRCRAFT TURNAROUND COMPLETE REPORT     *
-  ============================================
-  ** Flight Number        **: [flight_number]
-  ** Aircraft Type        **: [aircraft_type]
-  ** Aircraft Direction   **: [aircraft_direction]
-  ** Gate ID              **: [gate_id]
-  ** Assigned Runway      **: [assigned_runway_id]
-  ** Clearance Type       **: [clearance_type]
-  ** Flight Status        **: [flight_status]
-  ** Engines Stop         **: [engines_stop_status]
-  ** Wheelchocks Readiness**: [wheels_chocks_readiness_status]
-  ** Wheelchocks Install  **: [wheels_chocks_installation_status]
-  ** ACU Readiness        **: [acu_readiness_status]
-  ** ACU Connection       **: [acu_connection_status]
-  ** GPU Readiness        **: [gpu_readiness_status]
-  ** GPU Connection       **: [gpu_connection_status]
-  ** Jetbridge            **: [jetbridge_connection_status or 'not applicable']
-  ** Stairtruck           **: [stairtruck_connection_status or 'not applicable']
-  ** Door Opening         **: [door_opening_status]
-  ** Pax Disembarkation   **: [passenger_disembarkation_status]
-  ** Baggage Unload       **: [baggage_unload_status]
-  ** Crew Debrief         **: [crew_debrief_status]
-  ** Crew Exit            **: [crew_exit_status]
-  ** Cabin Cleaning       **: [cabin_cleaning_status]
-  ** Lavatory Service     **: [lavatory_service_status]
-  ** Catering Loading     **: [catering_loading_status]
-  ** Inspection/Maint     **: [inspection_maintenance_status]
-  ** Fueling              **: [fueling_status]
-  ============================================
+============================================
+*   AIRCRAFT TURNAROUND COMPLETE REPORT    *
+============================================
+  ** Flight Number         **: [flight_number]
+  ** Aircraft Type         **: [aircraft_type]
+  ** Aircraft Direction    **: [aircraft_direction]
+  ** Gate ID               **: [gate_id]
+  ** Assigned Runway       **: [assigned_runway_id]
+  ** Clearance Type        **: [clearance_type]
+  ** Flight Status         **: [flight_status]
+  ** Engines Stop          **: [engines_stop_status]
+  ** Wheelchocks Readiness **: [wheels_chocks_readiness_status]
+  ** Wheelchocks Install   **: [wheels_chocks_installation_status]
+  ** ACU Readiness         **: [acu_readiness_status]
+  ** ACU Connection        **: [acu_connection_status]
+  ** GPU Readiness         **: [gpu_readiness_status]
+  ** GPU Connection        **: [gpu_connection_status]
+  ** Jetbridge             **: [jetbridge_connection_status or 'not applicable']
+  ** Stairtruck            **: [stairtruck_connection_status or 'not applicable']
+  ** Door Opening          **: [door_opening_status]
+  ** Pax Disembarkation    **: [passenger_disembarkation_status]
+  ** Baggage Unload        **: [baggage_unload_status]
+  ** Crew Debrief          **: [crew_debrief_status]
+  ** Crew Exit             **: [crew_exit_status]
+  ** Cabin Cleaning        **: [cabin_cleaning_status]
+  ** Lavatory Service      **: [lavatory_service_status]
+  ** Catering Loading      **: [catering_loading_status]
+  ** Inspection/Maint      **: [inspection_maintenance_status]
+  ** Fueling               **: [fueling_status]
+============================================
             """,
 
             # Specify the sly data exchanged with downstream networks
@@ -848,31 +847,12 @@ STEP 20 - Final report
                 }
             },
 
-    // STEP 8  — ramp services           → aircraft_ground_operation (instruction: 'Execute ground ramp services.')
-
-// STEP 8 - Ground ramp services (wheelchocks install + ACU connect + GPU connect)
-//   - Call /AirlineTurnaround/aircraft_ground_operation with named parameters:
-//       flight_number, aircraft_type, gate_id, flight_status, engines_stop_status,
-//       wheels_chocks_readiness_status, acu_readiness_status, gpu_readiness_status,
-//       instruction='Execute ground ramp services.'
-//   - Wait for response.
-//   - Extract and store: wheels_chocks_installation_status, acu_connection_status, gpu_connection_status.
-
-            // "tools": [
-            //     "TrackerAPI",
-            //     "/AirlineTurnaround/aircraft_cabin_services", 
-            //     "/AirlineTurnaround/aircraft_crew_pilot",    # ALL crew tasks: STEPS 1/2/5/6/7/10/11/13/14
-            //     "/AirlineTurnaround/aircraft_gate_services",
-            //     "/AirlineTurnaround/aircraft_ground_operation",  # STEP 4 readiness, STEP 8 ramp services, STEP 12 baggage, STEP 18 inspection, STEP 19 fueling
-            // ], 
-
             "tools": [
                 "TrackerAPI",
                 "/AirlineTurnaround/aircraft_cabin_services", 
                 "/AirlineTurnaround/aircraft_crew_pilot",    # ALL crew tasks: STEPS 1/2/5/6/7/10/11/13/14
                 "/AirlineTurnaround/aircraft_gate_services",
-                "/AirlineTurnaround/aircraft_ground_operation",  # STEP 4 readiness, STEP 12 baggage, STEP 18 inspection, STEP 19 fueling
-                "/AirlineTurnaround/aircraft_ground_rampservices",  # STEP 8 ramp services direct
+                "/AirlineTurnaround/aircraft_ground_operation",  # STEP 4 readiness, STEP 8 ramp services, STEP 12 baggage, STEP 18 inspection, STEP 19 fueling
             ],
 
         }, 
