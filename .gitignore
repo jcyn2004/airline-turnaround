@@ -285,3 +285,4 @@ Notes.txt
 *.db
 ~$*.docx
 tests/
+tests/
