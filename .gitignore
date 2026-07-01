@@ -284,3 +284,4 @@ pytest.ini
 Notes.txt
 *.db
 ~$*.docx
+tests/
