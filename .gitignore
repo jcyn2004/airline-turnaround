@@ -281,3 +281,6 @@ parse_test_hocon_log.py
 pytest.ini
 
 
+Notes.txt
+*.db
+~$*.docx
