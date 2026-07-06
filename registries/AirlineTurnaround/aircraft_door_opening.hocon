@@ -12,7 +12,9 @@
     },
 
     "llm_config": {
-        model_name = "gpt-5.4-mini"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
+        class = "ollama"
+        temperature = 0.0
+        model_name = "qwen2.5:32b"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -140,7 +142,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "description": "Wheelchocks installation status."
                         },
                     }, 
-                    "required": ["flight_number", "aircraft_type","gate_id","flight_status"] 
+                    "required": [] 
                 }
             },
 
@@ -375,7 +377,7 @@ This agent opens the door of the aircraft.
                             "description": "This is the door opening status."
                         },  
                     }, 
-                    "required": ["flight_number", "aircraft_type","gate_id"] 
+                    "required": [] 
                 }
             },
             "class": "AirlineTurnaround.aircraft_door_opening.aircraft_door_opening.door_operator" 

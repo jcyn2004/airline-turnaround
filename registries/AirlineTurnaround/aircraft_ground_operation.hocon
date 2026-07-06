@@ -14,7 +14,9 @@
     },
 
     "llm_config": {
-        model_name = "gpt-5.4-mini"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
+        class = "ollama"
+        temperature = 0.0
+        model_name = "qwen2.5:32b"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
     },
     "max_iterations": 40000,
     "max_execution_seconds": 7200,
@@ -205,7 +207,7 @@ The specific ground operation to perform. Used to route to the correct sub-agent
                             """
                         },
                     },
-                    "required": ["aircraft_type"]
+                    "required": []
                 }
             },
 
@@ -250,6 +252,15 @@ NEVER refuse a call because status fields are null or missing.
 Null status fields are NORMAL and EXPECTED — they are inputs to be
 filled by the sub-agent, not prerequisites for routing.
 You are ALWAYS relevant when an instruction field is present.
+
+RESPONSE COMPLETENESS CHECK (applies to EVERY branch):
+  After receiving the sub-agent response and BEFORE returning it, verify
+  that each status field listed in the branch's 'Extract and pass back'
+  line holds an explicit value in the response. If any expected status is
+  missing, null, or reads 'None', re-invoke the SAME sub-agent exactly
+  once more with the same parameters and return the second response
+  instead. Never return a response containing 'None' for an expected
+  status without having performed this one retry.
 
 ─────────────────────────────────────────────────────────────
 BRANCH A — Ground readiness check

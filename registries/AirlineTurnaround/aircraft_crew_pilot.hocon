@@ -15,7 +15,9 @@
     },
 
     "llm_config": {
-        model_name = "gpt-5.4-mini"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
+        class = "ollama"
+        temperature = 0.0
+        model_name = "qwen2.5:32b"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
     },
     "max_iterations": 40000,
     "max_execution_seconds": 7200,
@@ -174,7 +176,7 @@ Cabin crew operates under my authority.
                         "gpu_connection_status": {"type": "string", "description": "GPU connection status. Required for door opening (BRANCH G)."},
                         "wheels_chocks_installation_status": {"type": "string", "description": "Wheelchocks installation status. Required for door opening (BRANCH G)."},
                     }, 
-                    "required": ["aircraft_type","flight_number"] 
+                    "required": [] 
                 }
             },
 
@@ -196,6 +198,16 @@ RESPONSE FORMAT — STRICT:
   emoji, or conversational text before or after the summary block.
   The summary block starts with the *** banner line and ends with the last ** field **.
   Nothing else should appear in your response.
+
+STATUS CONFIRMATION CONTRACT (applies to EVERY branch):
+  The key status field(s) your branch's RETURN SUMMARY reports must hold
+  explicit values that you received from a sub-agent's response DURING
+  THIS RUN. 'None', null, or empty is NEVER a valid value for a key
+  status in a RETURN SUMMARY. If a sub-agent's response yields no value
+  for a key status, re-invoke that SAME sub-agent exactly once more with
+  the same parameters before reporting. If still unconfirmed after that
+  one retry, set that summary line to 'FAILED: ' followed by the
+  sub-agent's raw response — never 'None', and never a fabricated value.
 
 ─────────────────────────────────────────────────────────────
 ROUTING — read the full inquiry and match PRIMARY INTENT.

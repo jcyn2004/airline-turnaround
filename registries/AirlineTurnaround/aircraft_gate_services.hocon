@@ -12,7 +12,9 @@
     },
 
     "llm_config": {
-        model_name = "gpt-5.4-mini"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"   #"gpt-4o", # "claude-haiku-4-5-20251001", #"claude-sonnet-4-6", #
+        class = "ollama"
+        temperature = 0.0
+        model_name = "qwen2.5:32b"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"   #"gpt-4o", # "claude-haiku-4-5-20251001", #"claude-sonnet-4-6", #
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -168,7 +170,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "description": "Explicit instruction from the caller. Used as fallback routing when task_id is absent."
                         },
                     }, 
-                    "required": ["aircraft_type","flight_number"] 
+                    "required": [] 
                 }
             },
 
@@ -186,6 +188,20 @@ RESPONSE FORMAT — STRICT:
   emoji, or conversational text before or after the summary block.
   The summary block starts with the *** banner line and ends with the last ** field **.
   Nothing else should appear in your response.
+
+STATUS CONFIRMATION CONTRACT (applies to EVERY branch):
+  The key fields your branch reports (BRANCH A: gate_id and
+  deplaning_equipment_type; BRANCH B: jetbridge_connection_status or
+  stairtruck_connection_status) must hold explicit values that you
+  received from the sub-agent's response DURING THIS RUN. 'None', null,
+  or empty is NEVER a valid value for these fields in a RETURN SUMMARY.
+  If the sub-agent's response yields no value for a key field, re-invoke
+  that SAME sub-agent exactly once more with the same parameters before
+  reporting. If still unconfirmed after that one retry, report 'FAILED: '
+  followed by the sub-agent's raw response — never 'None', and never a
+  fabricated value. (Fields that are legitimately not applicable, such as
+  stairtruck status at a jetway gate, are reported 'not applicable' — that
+  is different from 'None'.)
 
 ─────────────────────────────────────────────────────────────
 ROUTING — check task_id FIRST, then instruction, then inquiry text.

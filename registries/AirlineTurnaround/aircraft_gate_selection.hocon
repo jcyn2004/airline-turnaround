@@ -13,7 +13,9 @@
     },
 
     "llm_config": {
-        model_name = "gpt-5.4-mini"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
+        class = "ollama"
+        temperature = 0.0
+        model_name = "qwen2.5:32b"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -109,7 +111,7 @@ I am in charge of gate assignment to aircraft. I select the deplaning equipment 
                             "description": "This is the gate assigned to the aircraft parking."
                         },                                 
                     }, 
-                    "required": ["flight_number","aircraft_type"], 
+                    "required": [], 
                 }
             },
 
@@ -230,7 +232,7 @@ RETURN SUMMARY:
                             "description": "This is the score of deplaning equipment computed by a deterministic tool. "
                         },    
                     }, 
-                    "required": ["flight_number","aircraft_type"], 
+                    "required": [], 
                 },
             },
 

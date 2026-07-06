@@ -12,7 +12,9 @@
     },
 
     "llm_config": {
-        model_name = "gpt-5.4-mini"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
+        class = "ollama"
+        temperature = 0.0
+        model_name = "qwen2.5:32b"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -120,7 +122,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "description": "This is the status of wheels chocks installation."
                         },         
                     }, 
-                    "required": ["flight_number", "aircraft_type","flight_status","gate_id"] 
+                    "required": [] 
                 }
             },
 
@@ -228,7 +230,7 @@ This agent connects gpu to the aircraft upon arrival at the gate.
                             "description": "This is the gpu connection status."
                         },          
                     }, 
-                    "required": ["flight_number", "aircraft_type","flight_status","gate_id"] 
+                    "required": [] 
                 }
             },
             "class": "AirlineTurnaround.aircraft_gpu_connect.aircraft_gpu_connect.gpu_operator" 

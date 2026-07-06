@@ -11,7 +11,9 @@
     },
 
     "llm_config": {
-        model_name = "gpt-5.4-mini"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"   #"gpt-4o", # "claude-haiku-4-5-20251001", #"claude-sonnet-4-6", #
+        class = "ollama"
+        temperature = 0.0
+        model_name = "qwen2.5:32b"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"   #"gpt-4o", # "claude-haiku-4-5-20251001", #"claude-sonnet-4-6", #
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -112,7 +114,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "description": "This is the acu readiness status."
                         },   
                     }, 
-                    "required": ["aircraft_type","gate_id"] 
+                    "required": [] 
                 }
             },
 
@@ -197,7 +199,7 @@ This agent report the status of acu readiness at the gate.
                             "description": "This is the acu readiness status."
                         },   
                     }, 
-                    "required": ["aircraft_type","gate_id"] 
+                    "required": [] 
                 }
             },
             "class": "AirlineTurnaround.aircraft_ground_acu_setup.aircraft_ground_acu_setup.acu_setup" 

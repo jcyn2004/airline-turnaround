@@ -12,7 +12,9 @@
     },
 
     "llm_config": {
-        model_name = "gpt-5.4-mini"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
+        class = "ollama"
+        temperature = 0.0
+        model_name = "qwen2.5:32b"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
     },
     "max_iterations": 50000,
     "max_execution_seconds": 7200,
@@ -148,7 +150,7 @@ I retrieve, not prerequisites for my relevance.
                             "description": "GPU connection status."
                         },   
                     }, 
-                    "required": ["aircraft_type","gate_id"] 
+                    "required": [] 
                 },
             },
 
@@ -179,8 +181,24 @@ will be null — this is expected and normal. Each step produces the status
 the next step conceptually depends on. Do NOT check or validate prior step
 completion before calling the next sub-agent. Do NOT stop between steps.
 
+COMPLETION CONTRACT — STRICT (checked before RETURN SUMMARY):
+  Your RETURN SUMMARY is valid ONLY when ALL THREE of
+  wheels_chocks_installation_status, acu_connection_status, and
+  gpu_connection_status hold an explicit value that you received from the
+  corresponding sub-agent's response DURING THIS RUN.
+  'None', null, or empty is NEVER a valid value in the summary.
+  Before emitting the RETURN SUMMARY, verify each of the three statuses:
+  - If any status is missing, null, or 'None', re-invoke ONLY the sub-agent
+    responsible for that specific status (chocks → wheels_chocks_install,
+    ACU → ground_acu_connect, GPU → ground_gpu_connect) exactly once more,
+    wait for its response, and record the returned status.
+  - If after that one retry the status is still not confirmed, set that
+    summary line to 'FAILED: ' followed by the sub-agent's raw response.
+    Never write 'None' and never fabricate a success value you did not
+    receive.
+
 STEP 1 - Wheels Chocks Installation
-  a. Call /AirlineTurnaround/aircraft_ground_wheels chocks_install with:
+  a. Call /AirlineTurnaround/aircraft_ground_wheels_chocks_install with:
        aircraft_type, gate_id, flight_status, engines_stop_status,
        wheels_chocks_readiness_status.
   b. Wait for response and store wheels_chocks_installation_status.

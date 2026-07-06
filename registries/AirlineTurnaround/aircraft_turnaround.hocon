@@ -11,7 +11,9 @@
     },
 
     "llm_config": {
-        model_name = "gpt-5.4-mini"  # "gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6" "gpt-5.4-mini"  "gpt-4.1-mini"
+        class = "ollama"
+        temperature = 0.0
+        model_name = "qwen2.5:32b" # "gemma4:26b-a4b-it-q4_K_M" # "deepseek-r1:32b" # "qwen2.5-coder:32b" # "gpt-5.4-mini"  # "gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6" "gpt-5.4-mini"  "gpt-4.1-mini"
     },
     "max_iterations": 40000,
     "max_execution_seconds": 7200,
@@ -187,7 +189,7 @@ You are in charge of aircraft turnaround at the airport.
                             "description": "Correlation token passed to sub-agents to uniquely identify each call. Must be echoed back unchanged in the response. Routing: STEP_10_DOOR_OPENING → aircraft_crew_pilot BRANCH G, STEP_11_PAX_DISEMBARKATION → aircraft_crew_pilot BRANCH H, STEP_13_CREW_DEBRIEF → aircraft_crew_pilot BRANCH I, all other task_ids also go to aircraft_crew_pilot."
                         },
                     }, 
-                    "required": ["aircraft_direction","flight_number","aircraft_type"] 
+                    "required": [] 
                 },
             },
 
@@ -227,8 +229,22 @@ CRITICAL EXECUTION RULES — READ BEFORE STARTING:
      even if they appear independent or you believe one will be fast.
      This rule has NO exceptions. If you find yourself about to call
      two tools at once, stop — issue only the first call and wait for
-     its response before proceeding. Violating this rule causes the
-     workflow to restart from STEP 1, which is a critical failure.
+     its response before proceeding. If you are ever uncertain what the next step is, 
+     issue NO tool call and re-read the step list — never issue multiple candidate calls. 
+     Violating this rule causes the workflow to restart from STEP 1, which is a critical failure.
+ 6. TASK_ID MONOTONICITY — the task_id sequence is strictly increasing.
+     If your last completed step was STEP_N, your next tool call MUST
+     carry the next step in the sequence. Emitting any task_id lower
+     than or equal to your last completed step is a critical failure.
+     STEP_1_LANDING_CLEARANCE may only ever be executed ONCE per aircraft;
+     the aircraft cannot land twice. 
+ 7. You must NEVER produce an empty response. Every turn must contain either exactly one tool call, 
+     or the final AIRCRAFT TURNAROUND COMPLETE REPORT. Silence is a critical failure. 
+ 8. MANDATORY FIELDS: Every tool call MUST include flight_number,
+     aircraft_type, and task_id, copied exactly from your working
+     context. Omitting any of these is a critical failure.
+     Do NOT include fields whose value is null/unknown — only pass
+     fields you have confirmed values for, plus the mandatory three.
 
 TOOL ROUTING CHEATSHEET — override model priors, consult before every tool call:
   All crew tasks → /AirlineTurnaround/aircraft_crew_pilot

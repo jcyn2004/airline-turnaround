@@ -12,7 +12,9 @@
     },
 
     "llm_config": {
-        model_name = "gpt-5.4-mini"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
+        class = "ollama"
+        temperature = 0.0
+        model_name = "qwen2.5:32b"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -127,7 +129,7 @@ You coordinate ground traffic at the airport.
                         "description": "This is the ground clearance status of the aircraft"
                     },  
                 }, 
-                "required": ["flight_number", "aircraft_type","flight_status","assigned_runway_id","gate_id"] 
+                "required": [] 
             },
 
             "instructions": """
@@ -252,7 +254,7 @@ Your role is to provide ground clearance for aircraft to taxi in or to taxi out 
                             "description": "This is the ground clearance status of the aircraft"
                         },    
                     },  
-                    "required": ["aircraft_type", "flight_number", "flight_status","assigned_runway_id","gate_id","ground_clearance_type"] 
+                    "required": [] 
                 },
             },
 
@@ -304,7 +306,7 @@ This agent gives clearance to aircraft for taxi in or taxi out on the airport gr
                             "description": "This is the ground clearance status of the aircraft"
                         },    
                     }, 
-                    "required": ["flight_number", "aircraft_type","flight_status","assigned_runway_id","gate_id","ground_clearance_type"] 
+                    "required": [] 
                 }
             }, 
             "class": "AirlineTurnaround.aircraft_ground_traffic.aircraft_ground_traffic.execute_ground_clearance"

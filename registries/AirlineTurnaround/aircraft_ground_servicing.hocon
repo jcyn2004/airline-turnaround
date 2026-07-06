@@ -13,7 +13,9 @@
     },
 
     "llm_config": {
-        model_name = "gpt-5.4-mini"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"   #"gpt-4o", # "claude-haiku-4-5-20251001", #"claude-sonnet-4-6", #
+        class = "ollama"
+        temperature = 0.0
+        model_name = "qwen2.5:32b"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"   #"gpt-4o", # "claude-haiku-4-5-20251001", #"claude-sonnet-4-6", #
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -193,7 +195,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "description": "The instruction identifying which branch to execute: baggage unloading, inspection/maintenance, or fueling."
                         },
                     }, 
-                    "required": ["aircraft_type","flight_status","flight_number"] 
+                    "required": [] 
                 }
             },
 
@@ -205,6 +207,17 @@ CRITICAL: You are a sequential executor. Read the `instruction` field
 from the call parameters to identify which branch to execute. Execute
 every step in that branch in order. Do NOT return until you reach
 RETURN SUMMARY.
+
+STATUS CONFIRMATION CONTRACT (applies to EVERY branch below):
+  The status field your branch reports (baggage_unload_status,
+  inspection_maintenance_status, or fueling_status) must hold an explicit
+  value that you received from the sub-agent's response DURING THIS RUN.
+  'None', null, or empty is NEVER a valid value in a RETURN SUMMARY.
+  If the sub-agent's response yields no status at all (missing, null, or
+  'None'), re-invoke that SAME sub-agent exactly once more with the same
+  parameters before reporting. If the status is still unconfirmed after
+  that one retry, report 'FAILED: ' followed by the sub-agent's raw
+  response — never 'None', and never a fabricated success value.
 
 ─────────────────────────────────────────────────────────────
 ROUTING — match the `instruction` field to the correct branch.

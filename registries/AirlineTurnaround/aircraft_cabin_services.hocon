@@ -13,7 +13,9 @@
     },
 
     "llm_config": {
-        model_name = "gpt-5.4-mini"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"   #"gpt-4o", # "claude-haiku-4-5-20251001", #"claude-sonnet-4-6", #
+        class = "ollama"
+        temperature = 0.0
+        model_name = "qwen2.5:32b"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"   #"gpt-4o", # "claude-haiku-4-5-20251001", #"claude-sonnet-4-6", #
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -145,7 +147,7 @@ I perform aircraft cabin services including lavatory service, cabin cleaning, an
                             "description": "Lavatory service status."                            
                         }   
                     }, 
-                    "required": ["aircraft_type", "gate_id"] 
+                    "required": [] 
                 },
             },
 
@@ -165,6 +167,17 @@ RESPONSE FORMAT — STRICT:
   emoji, or conversational text before or after the summary block.
   The summary block starts with the *** banner line and ends with the last ** field **.
   Nothing else should appear in your response.
+
+STATUS CONFIRMATION CONTRACT (applies to EVERY step below):
+  The status field your step reports (cabin_cleaning_status,
+  lavatory_service_status, or catering_loading_status) must hold an
+  explicit value that you received from the sub-agent's response DURING
+  THIS RUN. 'None', null, or empty is NEVER a valid value in a RETURN
+  SUMMARY. If the sub-agent's response yields no status (missing, null,
+  or 'None'), re-invoke that SAME sub-agent exactly once more with the
+  same parameters before reporting. If still unconfirmed after that one
+  retry, report 'FAILED: ' followed by the sub-agent's raw response —
+  never 'None', and never a fabricated success value.
 
 CRITICAL — ROUTING (task_id FIRST, then instruction):
 Check task_id BEFORE reading the instruction or inquiry text. Route immediately:

@@ -10,7 +10,9 @@
     },
 
     "llm_config": {
-        model_name = "gpt-5.4-mini"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
+        class = "ollama"
+        temperature = 0.0
+        model_name = "qwen2.5:32b"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
     },
     "max_iterations": 50000,
     "max_execution_seconds": 7200,
@@ -122,7 +124,7 @@ When called with aircraft_type and gate_id, I return all three statuses.
                             "description": "GPU readiness status."
                         },   
                     }, 
-                    "required": ["aircraft_type","gate_id"] 
+                    "required": [] 
                 },
             },
 
@@ -176,6 +178,20 @@ and report all results.
 NOTE 2: Always proceed through ALL THREE steps regardless of the result from
 any individual step. If a step returns an error string, record the error
 as the status value and continue to the next step. Never abort early.
+
+COMPLETION CONTRACT — STRICT (checked before the readiness summary):
+  Your summary is valid ONLY when ALL THREE of acu_readiness_status,
+  gpu_readiness_status, and wheels_chocks_readiness_status hold an explicit
+  value that you received from the corresponding sub-agent's response
+  DURING THIS RUN. 'None', null, or empty is NEVER a valid summary value.
+  Before emitting the summary, verify each of the three statuses:
+  - If any status is missing, null, or 'None', re-invoke ONLY the sub-agent
+    responsible for that specific status (ACU → ground_acu_setup,
+    GPU → ground_gpu_setup, chocks → ground_wheels_chocks_setup) exactly
+    once more, wait, and record the returned status.
+  - If after that one retry the status is still not confirmed, set that
+    summary line to 'FAILED: ' followed by the sub-agent's raw response.
+    Never write 'None' and never fabricate a value you did not receive.
             """ ${aaosa_instructions},  
 
             "allow": {

@@ -11,7 +11,9 @@
     },
 
     "llm_config": {
-        model_name = "gpt-5.4-mini"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
+        class = "ollama"
+        temperature = 0.0
+        model_name = "qwen2.5:32b"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -127,7 +129,7 @@ If mode is 'Fulfill' or "Follow up", respond to the inquiry and return a json bl
                             "description": "lavatory service status."                            
                         }
                     }, 
-                    "required": ["flight_number", "aircraft_type","gate_id","passenger_disembarkation_status","crew_exit_status","baggage_unload_status"]        
+                    "required": []        
                 }
             },
 
@@ -275,7 +277,7 @@ This agent services lavatories on the aircraft at the gate.
                             "description": "lavatory service status."                            
                         }
                     }, 
-                    "required": ["flight_number", "aircraft_type","gate_id","passenger_disembarkation_status","crew_exit_status","baggage_unload_status"] 
+                    "required": [] 
                 }
             },
             "class": "AirlineTurnaround.aircraft_lavatory_service.aircraft_lavatory_service.lavatory_service_operator" 

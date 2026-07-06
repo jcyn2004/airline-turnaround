@@ -12,7 +12,9 @@
     },
 
     "llm_config": {
-        model_name = "gpt-5.4-mini"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
+        class = "ollama"
+        temperature = 0.0
+        model_name = "qwen2.5:32b"  # “gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6"  
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -128,7 +130,7 @@ I am responsible for landing the aircraft.
                             "description": "This is the llanding summary of the aircraft."
                         },   
                     }, 
-                    "required": ["aircraft_direction","flight_number","aircraft_type"] 
+                    "required": [] 
                 },
             },
 
@@ -249,7 +251,7 @@ I land the aircraft.
                             "description": "This is the length of assigned runway."
                         },               
                     }, 
-                    "required": ["flight_number","aircraft_type","clearance_type","assigned_runway_id","assigned_runway_length"] 
+                    "required": [] 
                 },
             },
 
@@ -299,7 +301,7 @@ I am the agent in charge of landing the aircraft.
                             "description": "This is the length of assigned runway."
                         },        
                     }, 
-                    "required": ["aircraft_direction","flight_number", "aircraft_type","clearance_type","assigned_runway_id","assigned_runway_length"] 
+                    "required": [] 
                 },
             },
             "class": "AirlineTurnaround.aircraft_landing.aircraft_landing.execute_aircraft_landing" 

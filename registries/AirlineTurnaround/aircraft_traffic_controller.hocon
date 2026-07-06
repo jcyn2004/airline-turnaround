@@ -12,7 +12,9 @@
     },
 
     "llm_config": {
-        model_name = "gpt-5.4-mini" # "gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6" "gpt-5.4-mini"  "gpt-4.1-mini"
+        class = "ollama"
+        temperature = 0.0
+        model_name = "qwen2.5:32b" # "gemini-3.1-pro" "gemma4:12b-mlx" "qwen3:8b" "claude-haiku-4-5" "claude-sonnet-4-6" "gpt-5.4-mini"  "gpt-4.1-mini"
     },
     "max_iterations": 40000, #3000 
     "max_execution_seconds": 7200, #600
@@ -176,7 +178,7 @@ When you receive a user request for clearance,
                         "description": "This is the clearance summary"
                     },  
                 }, 
-                "required": ["aircraft_direction","flight_number", "aircraft_type"] 
+                "required": [] 
             },
 
             # Specify the sly data that would be exchanged between this network and its related or adjacent upstream and downstream networks.
@@ -260,7 +262,7 @@ You can grant clearance, refuse clearance, or put clearance hold.
                             "description": "This is the assigned runway length"
                         },          
                     }, 
-                    "required": ["aircraft_type", "flight_number", "aircraft_direction"] 
+                    "required": [] 
                 },
             },
 
@@ -313,7 +315,7 @@ This agent gives aircraft clearance for landing.
                             "description": "This is the assigned runway length"
                         },     
                     }, 
-                    "required": ["aircraft_type", "flight_number", "aircraft_direction"] 
+                    "required": [] 
                 },
             }, 
             "class": "coded_tools.AirlineTurnaround.aircraft_traffic_controller.aircraft_traffic_controller.execute_air_clearance"
